@@ -8,6 +8,7 @@ using UnityEngine.AI;
 public class ZombieSpawner : MonoBehaviour
 {
     private Zombie _zombiePrefab;
+    private PrefabPool<Zombie> _zombiePool;
     private int _spawnCount;
     private float _spawnInterval;
     private float _spawnRadius;
@@ -16,9 +17,10 @@ public class ZombieSpawner : MonoBehaviour
     // 스포너가 사라질 때 구독자(SpawnerManager)에게 알린다.
     public event Action<ZombieSpawner> OnFinished;
 
-    public void Init(Zombie zombiePrefab, int spawnCount, float spawnInterval, float spawnRadius, float navMeshSampleDistance)
+    public void Init(Zombie zombiePrefab, PrefabPool<Zombie> zombiePool, int spawnCount, float spawnInterval, float spawnRadius, float navMeshSampleDistance)
     {
         _zombiePrefab = zombiePrefab;
+        _zombiePool = zombiePool;
         _spawnCount = spawnCount;
         _spawnInterval = spawnInterval;
         _spawnRadius = spawnRadius;
@@ -74,9 +76,9 @@ public class ZombieSpawner : MonoBehaviour
         return ((controller.height * 0.5f) - controller.center.y) * scaleY;
     }
 
-    // 오브젝트 풀링을 적용하면 이 한 곳만 풀에서 꺼내도록 바꾼다.
+    // 풀에서 좀비를 꺼낸다. 위치를 잡은 뒤 활성화되므로 CharacterController가 어긋나지 않는다.
     private Zombie CreateZombie(Vector3 position, Quaternion rotation)
     {
-        return Instantiate(_zombiePrefab, position, rotation);
+        return _zombiePool.Get(position, rotation);
     }
 }

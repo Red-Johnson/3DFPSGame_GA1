@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Pool;
 
 // FSM(유한 상태 머신) : 유한개의 상태가 있고, 상태마다 행동을 다르게 함으로써 AI를 구현하는 유명한 방법
 // - "상태": 객체가 가질 수 있는 어떤 조건이나 상황
@@ -11,7 +13,7 @@ using UnityEngine;
 // - Idle: 제자리에서 쉰다. / Roaming: 주변 무작위 위치로 걷는다.
 // - Trace: 플레이어를 쫓아간다. / Attack: 일정 시간마다 플레이어를 때린다.
 // - Hit: 공격을 받아 잠깐 멈칫한다. / Death: 쓰러지고 잠시 뒤 사라진다.
-public class Zombie : MonoBehaviour, IDamageable
+public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
 {
     [Header("스탯")]
     [SerializeField] private float _detectDistance  = 8;    // 플레이어를 발견하는 거리
@@ -48,8 +50,8 @@ public class Zombie : MonoBehaviour, IDamageable
     public float HitStunDuration => _hitStunDuration;
     public GameObject Player => _player;
 
-    // 대미지를 받아 체력이 바뀌면 구독자(체력바 등)에게 알린다.
-    public event Action OnDamaged;
+    // 체력이 바뀌면(대미지를 받거나 다시 살아나면) 구독자(체력바 등)에게 알린다.
+    public event Action OnHealthChanged;
 
     // 좀비가 죽으면 구독자(남은 좀비 수 UI 등)에게 알린다.
     public event Action OnDied;
@@ -68,6 +70,12 @@ public class Zombie : MonoBehaviour, IDamageable
     public ZombieAttackState AttackState => _attackState;
 
     private ZombieStateBase _currentState;
+
+    // 풀에서 꺼낸 좀비면 값이 있다. 씬에 미리 배치한 좀비는 null이라 Destroy로 없앤다.
+    private IObjectPool<Zombie> _pool;
+
+    // 좀비의 자식으로 만든 피 이펙트. 재사용되기 전에 정리한다.
+    private readonly List<GameObject> _bloodSprays = new List<GameObject>();
 
     private bool IsDead => _currentState == _deathState;
 
@@ -88,6 +96,7 @@ public class Zombie : MonoBehaviour, IDamageable
     {
         _health = _maxHealth;
         _controller.enabled = true;
+        OnHealthChanged?.Invoke();
 
         ChangeState(_idleState);
 
@@ -97,6 +106,12 @@ public class Zombie : MonoBehaviour, IDamageable
     private void OnDisable()
     {
         UnregisterFromManager();
+        ClearBloodSprays();
+    }
+
+    public void SetPool(IObjectPool<Zombie> pool)
+    {
+        _pool = pool;
     }
 
     private void Start()
@@ -150,12 +165,13 @@ public class Zombie : MonoBehaviour, IDamageable
         }
 
         _health -= damageInfo.Value;
-        OnDamaged?.Invoke();
+        OnHealthChanged?.Invoke();
 
         if (_health > 0f)
         {
             // 좀비의 자식으로 블러드 스프레이를 생성! -> 위치 수정!
             GameObject bloodSpray = Instantiate(_bloodSprayPrefab, transform);
+            _bloodSprays.Add(bloodSpray);
             //bloodSpray.transform.SetParent(transform);
             bloodSpray.transform.position = damageInfo.HitPoint;
             bloodSpray.transform.forward = damageInfo.HitNormal;
@@ -208,9 +224,29 @@ public class Zombie : MonoBehaviour, IDamageable
         Despawn();
     }
 
-    // 오브젝트 풀링을 적용하면 Destroy 대신 풀 반환(SetActive(false))으로 교체한다.
+    // 풀에서 꺼낸 좀비는 풀로 돌려보내고, 아니면 삭제한다.
     private void Despawn()
     {
-        Destroy(gameObject);
+        if (_pool != null)
+        {
+            _pool.Release(this);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
+
+    private void ClearBloodSprays()
+    {
+        foreach (GameObject bloodSpray in _bloodSprays)
+        {
+            if (bloodSpray != null)
+            {
+                Destroy(bloodSpray);
+            }
+        }
+
+        _bloodSprays.Clear();
     }
 }

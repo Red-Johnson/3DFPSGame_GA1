@@ -14,13 +14,13 @@ public class ZombieHealthBar : MonoBehaviour
 
     private void Start()
     {
-        _zombie.OnDamaged += RefreshHealth;
+        _zombie.OnHealthChanged += RefreshHealth;
         RefreshHealth();
     }
 
     private void OnDestroy()
     {
-        _zombie.OnDamaged -= RefreshHealth;
+        _zombie.OnHealthChanged -= RefreshHealth;
     }
 
     private void LateUpdate()

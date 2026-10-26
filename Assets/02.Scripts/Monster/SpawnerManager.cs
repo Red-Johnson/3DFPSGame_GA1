@@ -24,11 +24,17 @@ public class SpawnerManager : MonoBehaviour
     [SerializeField] private Renderer _ground;                  // 비워두면 Map 아래의 Ground를 찾는다.
     [SerializeField] private float _navMeshSampleDistance = 2f; // NavMesh 위치 보정 최대 거리
 
+    private const int ZombiePoolDefaultCapacity = 10;
+
     private readonly List<ZombieSpawner> _spawners = new List<ZombieSpawner>();
+    private PrefabPool<Zombie> _zombiePool;
     private Transform _player;
 
     private void Start()
     {
+        // 동시에 존재할 수 있는 좀비 수만큼만 풀에 보관한다.
+        _zombiePool = new PrefabPool<Zombie>(_zombiePrefab, "ZombiePool", ZombiePoolDefaultCapacity, ZombieManager.Instance.MaxCount);
+
         if (_ground == null)
         {
             _ground = FindGround();
@@ -71,7 +77,7 @@ public class SpawnerManager : MonoBehaviour
 
         ZombieSpawner spawner = spawnerObject.AddComponent<ZombieSpawner>();
         spawner.OnFinished += OnSpawnerFinished;
-        spawner.Init(_zombiePrefab, _zombiesPerSpawner, _zombieSpawnInterval, _zombieSpawnRadius, _navMeshSampleDistance);
+        spawner.Init(_zombiePrefab, _zombiePool, _zombiesPerSpawner, _zombieSpawnInterval, _zombieSpawnRadius, _navMeshSampleDistance);
 
         _spawners.Add(spawner);
     }
