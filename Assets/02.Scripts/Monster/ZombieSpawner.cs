@@ -1,0 +1,82 @@
+using System;
+using System.Collections;
+using UnityEngine;
+using UnityEngine.AI;
+
+// 좀비 스포너: 일정 간격으로 주변 무작위 위치에 좀비를 한 마리씩 생성한다.
+// 생성 기회를 모두 쓰면(건너뛴 것 포함) 스스로 사라진다. SpawnerManager가 만들고 Init으로 설정을 넘긴다.
+public class ZombieSpawner : MonoBehaviour
+{
+    private Zombie _zombiePrefab;
+    private int _spawnCount;
+    private float _spawnInterval;
+    private float _spawnRadius;
+    private float _navMeshSampleDistance;
+
+    // 스포너가 사라질 때 구독자(SpawnerManager)에게 알린다.
+    public event Action<ZombieSpawner> OnFinished;
+
+    public void Init(Zombie zombiePrefab, int spawnCount, float spawnInterval, float spawnRadius, float navMeshSampleDistance)
+    {
+        _zombiePrefab = zombiePrefab;
+        _spawnCount = spawnCount;
+        _spawnInterval = spawnInterval;
+        _spawnRadius = spawnRadius;
+        _navMeshSampleDistance = navMeshSampleDistance;
+
+        StartCoroutine(Spawn_Coroutine());
+    }
+
+    private IEnumerator Spawn_Coroutine()
+    {
+        WaitForSeconds wait = new WaitForSeconds(_spawnInterval);
+
+        for (int i = 0; i < _spawnCount; i++)
+        {
+            yield return wait;
+
+            // 게임이 진행 중이 아니면 기회를 쓰지 않고 진행 중이 될 때까지 기다린다.
+            yield return new WaitUntil(IsGamePlaying);
+
+            TrySpawnZombie();
+        }
+
+        OnFinished?.Invoke(this);
+        Destroy(gameObject);
+    }
+
+    private bool IsGamePlaying()
+    {
+        return GameManager.Instance.State == GameState.Playing;
+    }
+
+    // 생성 기회 한 번. 상한에 도달했거나 자리를 못 찾으면 건너뛴다.
+    private void TrySpawnZombie()
+    {
+        if (!ZombieManager.Instance.HasRoom) return;
+
+        Vector2 offset = UnityEngine.Random.insideUnitCircle * _spawnRadius;
+        Vector3 candidate = transform.position + new Vector3(offset.x, 0f, offset.y);
+
+        // NavMesh 위의 지면 높이로 맞춘다. 높이가 어긋나 허공/바닥에 끼는 것을 막는다.
+        if (!NavMesh.SamplePosition(candidate, out NavMeshHit hit, _navMeshSampleDistance, NavMesh.AllAreas)) return;
+
+        Quaternion rotation = Quaternion.Euler(0f, UnityEngine.Random.Range(0f, 360f), 0f);
+        CreateZombie(hit.position + (Vector3.up * GetControllerBottomOffset()), rotation);
+    }
+
+    // 좀비의 피벗에서 CharacterController 캡슐 바닥까지의 높이. 바닥 위치에 이만큼 더해야 땅에 박히지 않는다.
+    private float GetControllerBottomOffset()
+    {
+        CharacterController controller = _zombiePrefab.GetComponent<CharacterController>();
+        float scaleY = _zombiePrefab.transform.lossyScale.y;
+
+        return ((controller.height * 0.5f) - controller.center.y) * scaleY;
+    }
+
+    // 오브젝트 풀링을 적용하면 이 한 곳만 풀에서 꺼내도록 바꾼다.
+    private Zombie CreateZombie(Vector3 position, Quaternion rotation)
+    {
+        return Instantiate(_zombiePrefab, position, rotation);
+    }
+}
