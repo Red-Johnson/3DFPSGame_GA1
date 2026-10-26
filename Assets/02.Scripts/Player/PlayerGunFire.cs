@@ -5,9 +5,21 @@ using UnityEngine;
 // 마우스 왼쪽 버튼을 누르면 바라보는 방향으로 총알을 발사하고 싶다.
 public class PlayerGunFire : MonoBehaviour
 {
+    private const int TracerPoolDefaultCapacity = 20;
+    private const int TracerPoolMaxSize = 50;
+
     [SerializeField] private ParticleSystem _hitEffectPrefab;
 
-    [Header("스탯")] 
+    [Header("총알 궤적")]
+    [SerializeField] private Transform _muzzle;                                        // 궤적이 시작될 총구. 비워두면 카메라 기준 오프셋을 쓴다.
+    [SerializeField] private Vector3 _tracerOriginOffset = new Vector3(0.3f, -0.2f, 0.5f);
+    [SerializeField] private Material _tracerMaterial;                                 // 비워두면 Sprites/Default를 쓴다.
+    [SerializeField] private Color _tracerColor = new Color(1f, 0.25f, 0.2f, 1f);
+    [SerializeField] private float _tracerWidth = 0.05f;
+    [SerializeField] private float _tracerSpeed = 200f;                                // 선이 날아가는 속도
+    [SerializeField] private float _tracerLength = 5f;                                 // 선의 길이
+
+    [Header("스탯")]
     [SerializeField] private int _maxBulletCount = 30;
     [SerializeField] private float _reloadingTime = 3f;
     [SerializeField] private float _range = 100f;            // 사거리
@@ -17,11 +29,66 @@ public class PlayerGunFire : MonoBehaviour
     private float _fireTimer = 0f;
     private int _bulletCount = 0;
     private Coroutine _reloadCoroutine = null;
-    
+    private PrefabPool<BulletTracer> _tracerPool;
+    private Material _fallbackMaterial;
+
+
+    private void Awake()
+    {
+        _tracerPool = new PrefabPool<BulletTracer>(CreateTracer, "TracerPool", TracerPoolDefaultCapacity, TracerPoolMaxSize);
+    }
 
     private void Start()
     {
         _bulletCount = _maxBulletCount;
+    }
+
+    // 프리팹 없이 선 렌더러를 달아서 궤적 오브젝트를 만든다. (보관함 아래에 만들어 꺼낼 때 활성화된다)
+    private BulletTracer CreateTracer(Transform parent)
+    {
+        GameObject tracerObject = new GameObject("BulletTracer");
+        tracerObject.transform.SetParent(parent);
+
+        LineRenderer line = tracerObject.AddComponent<LineRenderer>();
+        line.useWorldSpace = true;
+        line.positionCount = 2;
+        line.startWidth = _tracerWidth;
+        line.endWidth = _tracerWidth;
+        line.sharedMaterial = GetTracerMaterial();
+        line.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        line.receiveShadows = false;
+
+        // 꼬리는 투명하게, 머리는 선명하게 해서 날아가는 느낌을 낸다.
+        Gradient gradient = new Gradient();
+        gradient.SetKeys(
+            new[] { new GradientColorKey(_tracerColor, 0f), new GradientColorKey(_tracerColor, 1f) },
+            new[] { new GradientAlphaKey(0f, 0f), new GradientAlphaKey(_tracerColor.a, 1f) });
+        line.colorGradient = gradient;
+
+        return tracerObject.AddComponent<BulletTracer>();
+    }
+
+    private Material GetTracerMaterial()
+    {
+        if (_tracerMaterial != null) return _tracerMaterial;
+
+        if (_fallbackMaterial == null)
+        {
+            _fallbackMaterial = new Material(Shader.Find("Sprites/Default"));
+        }
+
+        return _fallbackMaterial;
+    }
+
+    // 총구 위치에서 목표 지점까지 날아가는 궤적을 쏜다.
+    private void FireTracer(Transform cameraTransform, Vector3 endPoint)
+    {
+        Vector3 start = _muzzle != null
+            ? _muzzle.position
+            : cameraTransform.position + cameraTransform.TransformDirection(_tracerOriginOffset);
+
+        BulletTracer tracer = _tracerPool.Get(start, Quaternion.identity);
+        tracer.Fire(start, endPoint, _tracerSpeed, _tracerLength);
     }
     
     
@@ -86,6 +153,10 @@ public class PlayerGunFire : MonoBehaviour
 
         // 4. 레이를 발사하고, 만일 부딛힌 물체가 있다면 이펙트 표시하기
         bool isHit = Physics.Raycast(ray, out hitInfo, _range);
+
+        // 맞았으면 맞은 자리까지, 허공이면 사거리 끝까지 궤적을 날린다.
+        FireTracer(cameraTransform, isHit ? hitInfo.point : ray.GetPoint(_range));
+
         if (isHit)
         {
             // Debug.Log($"{hitInfo.collider.name}이 총알을 맞았다. 대미지: {_damage}");
