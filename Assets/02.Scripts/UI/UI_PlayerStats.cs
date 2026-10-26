@@ -15,6 +15,11 @@ public class UI_PlayerStats : MonoBehaviour
         _player.OnDamaged += RefreshHealth; // OnDamaged 함수에 RefreshHealth 함수를 등록!
     }
 
+    private void OnDestroy()
+    {
+        _player.OnDamaged -= RefreshHealth;
+    }
+
     private void Update()
     {
         // RefreshHealth(); // 폴링 방식
