@@ -53,22 +53,50 @@ public class Zombie : MonoBehaviour, IDamageable
 
     private void Awake()
     {
+        _controller = GetComponent<CharacterController>();
+    }
+
+    // 활성화될 때마다 처음 상태로 되돌린다. (오브젝트 풀링으로 재사용해도 같은 경로)
+    private void OnEnable()
+    {
         _health = _maxHealth;
+        _state = ZombieState.Idle;
+        _attackTimer = 0f;
+        _startPosition = transform.position;
+        _controller.enabled = true;
+
+        RegisterToManager();
+    }
+
+    private void OnDisable()
+    {
+        UnregisterFromManager();
     }
 
     private void Start()
     {
-        // 좀비 수 집계에 등록한다. (스포너가 만든 좀비도 같은 경로)
+        // OnEnable 시점에 매니저가 아직 없었을 수 있으니 한 번 더 등록한다. (중복 등록은 무시됨)
+        RegisterToManager();
+
+        // 게임을 시작하면 플레이어를 찾는다.
+        _player = GameObject.FindGameObjectWithTag("Player");
+    }
+
+    // 좀비 수 집계에 등록/해제한다. (스포너가 만든 좀비도 같은 경로)
+    private void RegisterToManager()
+    {
         if (ZombieManager.Instance != null)
         {
             ZombieManager.Instance.Register(this);
         }
+    }
 
-        _controller = GetComponent<CharacterController>();
-        _startPosition = transform.position;
-        
-        // 게임을 시작하면 플레이어를 찾는다.
-        _player = GameObject.FindGameObjectWithTag("Player");
+    private void UnregisterFromManager()
+    {
+        if (ZombieManager.Instance != null)
+        {
+            ZombieManager.Instance.Unregister(this);
+        }
     }
     
 
@@ -126,6 +154,7 @@ public class Zombie : MonoBehaviour, IDamageable
         {
             Debug.Log($"{_state} -> Death");
             _state = ZombieState.Death;
+            UnregisterFromManager();
             OnDied?.Invoke();
             StartCoroutine(Death_Coroutine());
         }
@@ -144,7 +173,13 @@ public class Zombie : MonoBehaviour, IDamageable
     private IEnumerator Death_Coroutine()
     {
         _controller.enabled = false;
-        yield return new WaitForSeconds(0.5f); 
+        yield return new WaitForSeconds(0.5f);
+        Despawn();
+    }
+
+    // 오브젝트 풀링을 적용하면 Destroy 대신 풀 반환(SetActive(false))으로 교체한다.
+    private void Despawn()
+    {
         Destroy(gameObject);
     }
 
