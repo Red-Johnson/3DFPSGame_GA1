@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 
@@ -40,14 +41,20 @@ public class Zombie : MonoBehaviour, IDamageable
 
     public float MaxHealth => _maxHealth;
     public float Health => _health;
-    
+
+    // 대미지를 받아 체력이 바뀌면 구독자(체력바 등)에게 알린다.
+    public event Action OnDamaged;
+
     
     private ZombieState _state = ZombieState.Idle;
 
-    private void Start()
+    private void Awake()
     {
         _health = _maxHealth;
-        
+    }
+
+    private void Start()
+    {
         _controller = GetComponent<CharacterController>();
         _startPosition = transform.position;
         
@@ -89,7 +96,8 @@ public class Zombie : MonoBehaviour, IDamageable
         }
         
         _health -= damageInfo.Value;
-        
+        OnDamaged?.Invoke();
+
         StopAllCoroutines();
         
         if (_health > 0f)
