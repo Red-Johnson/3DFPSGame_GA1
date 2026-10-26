@@ -12,7 +12,7 @@ public class CursorManager : MonoBehaviour
     private void Update()
     {
         if (GameManager.Instance.State != GameState.Playing) return;
-        
+
         if (Input.GetKeyDown(KeyCode.LeftAlt))
         {
             UnlockCursor();
@@ -22,8 +22,8 @@ public class CursorManager : MonoBehaviour
             LockCursor();
         }
     }
-    
-    
+
+
 
     public void LockCursor()
     {
