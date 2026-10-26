@@ -45,6 +45,9 @@ public class Zombie : MonoBehaviour, IDamageable
     // 대미지를 받아 체력이 바뀌면 구독자(체력바 등)에게 알린다.
     public event Action OnDamaged;
 
+    // 좀비가 죽으면 구독자(남은 좀비 수 UI 등)에게 알린다.
+    public event Action OnDied;
+
     
     private ZombieState _state = ZombieState.Idle;
 
@@ -117,6 +120,7 @@ public class Zombie : MonoBehaviour, IDamageable
         {
             Debug.Log($"{_state} -> Death");
             _state = ZombieState.Death;
+            OnDied?.Invoke();
             StartCoroutine(Death_Coroutine());
         }
        
