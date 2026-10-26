@@ -58,6 +58,12 @@ public class Zombie : MonoBehaviour, IDamageable
 
     private void Start()
     {
+        // 좀비 수 집계에 등록한다. (스포너가 만든 좀비도 같은 경로)
+        if (ZombieManager.Instance != null)
+        {
+            ZombieManager.Instance.Register(this);
+        }
+
         _controller = GetComponent<CharacterController>();
         _startPosition = transform.position;
         
