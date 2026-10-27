@@ -328,27 +328,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c0d794b8f8cad804f8c7b25810a31080, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Zombie
-  _detectDistance: 8
-  _loseDistanceRatio: 1.5
-  _attackDamage: 10
-  _attackRange: 1.5
-  _attackInterval: 1.2
-  _moveSpeed: 5
-  _angularSpeed: 540
-  _maxHealth: 30
-  _health: 30
-  _roamDistance: 10
-  _idleDuration: 1
-  _destinationUpdateInterval: 0.2
-  _destinationRepathDistance: 0.5
-  _chaseStopDistanceRatio: 0.8
-  _minAvoidancePriority: 30
-  _maxAvoidancePriority: 60
-  _jumpDuration: 0.6
-  _jumpHeight: 1.5
-  _animationFadeDuration: 0.15
-  _hitStunDuration: 0.3
-  _despawnDelay: 1.5
+  _stats: {fileID: 11400000, guid: c0d1939614f75a74a858ae3b0c4a3b0b, type: 2}
   _bloodSprayPrefab: {fileID: 1000013355911406, guid: d32aa916f50cac94db11e6f19821a58f, type: 3}
 --- !u!114 &5890396465777849555
 MonoBehaviour:
