@@ -18,6 +18,7 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
 {
     [Header("스탯")]
     [SerializeField] private float _detectDistance  = 8;    // 플레이어를 발견하는 거리
+    [SerializeField] private float _loseDistanceRatio = 1.5f;   // 추격을 포기하는 거리 = 발견 거리 * 이 비율 (발견 거리보다 길어야 경계에서 Idle/Trace가 번갈아 바뀌지 않는다)
     [SerializeField] private float _attackDamage = 10f;     // 공격 대미지
     [SerializeField] private float _attackRange = 1.5f;     // 공격 범위
     [SerializeField] private float _attackInterval = 1.2f;  // 공격 간격
@@ -39,6 +40,9 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
     [SerializeField] private float _jumpDuration = 0.6f;    // NavMeshLink를 건너는 데 걸리는 시간
     [SerializeField] private float _jumpHeight = 1.5f;      // 시작점과 도착점을 잇는 직선보다 위로 솟는 최대 높이
 
+    [Header("애니메이션")]
+    [SerializeField] private float _animationFadeDuration = 0.15f;  // 애니메이션이 서로 섞이는 시간
+
     [Header("피격/죽음")]
     [SerializeField] private float _hitStunDuration = 0.3f; // 맞고 멈칫하는 시간
     [SerializeField] private float _despawnDelay = 0.5f;    // 죽고 사라지기까지 걸리는 시간
@@ -46,8 +50,18 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
     [Header("이펙트")]
     [SerializeField] private GameObject _bloodSprayPrefab;
 
+    // 애니메이터 상태 이름. 컨트롤러의 상태 이름과 똑같아야 한다.
+    private static readonly int IdleHash = Animator.StringToHash("Idle");
+    private static readonly int WalkHash = Animator.StringToHash("Walk");
+    private static readonly int TraceHash = Animator.StringToHash("Trace");
+    private static readonly int AttackHash = Animator.StringToHash("Attack");
+    private static readonly int AttackDelayHash = Animator.StringToHash("AttackDelay");
+    private static readonly int HitHash = Animator.StringToHash("Hit");
+    private static readonly int DeathHash = Animator.StringToHash("Death");
+
     private NavMeshAgent _agent;
     private Collider _collider;
+    private Animator _animator;
     private GameObject _player;
 
     public float MaxHealth => _maxHealth;
@@ -100,6 +114,7 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
     {
         _agent = GetComponent<NavMeshAgent>();
         _collider = GetComponent<Collider>();
+        _animator = GetComponentInChildren<Animator>();
         _agent.speed = _moveSpeed;
         _agent.autoTraverseOffMeshLink = false;     // 링크는 Jump_Coroutine에서 직접 건넌다.
 
@@ -275,6 +290,54 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
     public bool IsPlayerInDetectRange()
     {
         return Vector3.Distance(transform.position, _player.transform.position) <= _detectDistance;
+    }
+
+    // 추격하던 플레이어가 충분히 멀어졌는지 (추격 포기 거리 밖인지)
+    public bool IsPlayerOutOfLoseRange()
+    {
+        return Vector3.Distance(transform.position, _player.transform.position) > _detectDistance * _loseDistanceRatio;
+    }
+
+    // 애니메이터 상태 이름으로 바로 재생한다. (전이나 트리거 없이 현재 모션에서 부드럽게 섞는다.)
+    // 그 상태가 컨트롤러에 없으면 fallbackHash 상태로 대신 재생하고, 그것도 없으면 아무것도 하지 않는다.
+    private void PlayAnimation(int stateHash, int fallbackHash = 0)
+    {
+        if (_animator == null || !_animator.isInitialized) return;
+
+        if (!_animator.HasState(0, stateHash))
+        {
+            if (fallbackHash == 0 || !_animator.HasState(0, fallbackHash)) return;
+
+            stateHash = fallbackHash;
+        }
+
+        _animator.CrossFadeInFixedTime(stateHash, _animationFadeDuration);
+    }
+
+    public void PlayIdleAnimation() => PlayAnimation(IdleHash);
+
+    // 로밍은 걷는 모션을 쓴다. Walk 상태가 없으면 Trace 모션으로 대신한다.
+    public void PlayWalkAnimation() => PlayAnimation(WalkHash, TraceHash);
+
+    public void PlayTraceAnimation() => PlayAnimation(TraceHash);
+
+    public void PlayAttackAnimation() => PlayAnimation(AttackHash);
+
+    // 공격과 공격 사이에 기다리는 모션
+    public void PlayAttackDelayAnimation() => PlayAnimation(AttackDelayHash, IdleHash);
+
+    // 피격 모션이 없으면 서 있는 모션으로 대신한다.
+    public void PlayHitAnimation() => PlayAnimation(HitHash, IdleHash);
+
+    public void PlayDeathAnimation() => PlayAnimation(DeathHash);
+
+    // 공격 모션을 끝까지 재생했는지. 다른 모션으로 섞이는 중에는 판단하지 않는다.
+    public bool IsAttackAnimationFinished()
+    {
+        if (_animator == null || !_animator.isInitialized || _animator.IsInTransition(0)) return false;
+
+        AnimatorStateInfo stateInfo = _animator.GetCurrentAnimatorStateInfo(0);
+        return stateInfo.shortNameHash == AttackHash && stateInfo.normalizedTime >= 1f;
     }
 
     // NavMesh 경로를 계산해 목표 위치로 이동을 시작한다. 경로를 만들 수 없으면 false.

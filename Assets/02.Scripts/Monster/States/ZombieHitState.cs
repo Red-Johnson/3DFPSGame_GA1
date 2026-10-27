@@ -12,6 +12,7 @@ public class ZombieHitState : ZombieStateBase
     {
         _timer = 0f;
         _zombie.StopMoving();
+        _zombie.PlayHitAnimation();
     }
 
     public override void Update()

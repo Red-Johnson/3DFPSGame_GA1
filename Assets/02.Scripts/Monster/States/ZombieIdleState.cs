@@ -9,12 +9,11 @@ public class ZombieIdleState : ZombieStateBase
     {
         _timer = 0f;
         _zombie.StopMoving();
+        _zombie.PlayIdleAnimation();
     }
 
     public override void Update()
     {
-        // Todo. Idle 애니메이션 실행
-
         if (_zombie.IsPlayerInDetectRange())
         {
             _zombie.ChangeState(_zombie.TraceState);

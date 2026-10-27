@@ -1,6 +1,6 @@
 using UnityEngine;
 
-// 추격: 플레이어를 쫓아간다. 공격 거리 안에 들어오면 공격한다.
+// 추격: 플레이어를 쫓아간다. 공격 거리 안에 들어오면 공격하고, 추격 포기 거리 밖으로 멀어지면 쉰다.
 public class ZombieTraceState : ZombieStateBase
 {
     private float _destinationTimer;
@@ -13,11 +13,17 @@ public class ZombieTraceState : ZombieStateBase
         _destinationTimer = _zombie.DestinationUpdateInterval;
         _zombie.SetStoppingDistance(_zombie.ChaseStopDistance);
         _zombie.ResumeMoving();
+        _zombie.PlayTraceAnimation();
     }
 
     public override void Update()
     {
-        // Todo. Run 애니메이션 실행
+        // 플레이어가 충분히 멀어졌으면 추격을 포기하고 쉰다.
+        if (_zombie.IsPlayerOutOfLoseRange())
+        {
+            _zombie.ChangeState(_zombie.IdleState);
+            return;
+        }
 
         Vector3 playerPosition = _zombie.Player.transform.position;
 

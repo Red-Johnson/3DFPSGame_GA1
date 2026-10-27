@@ -25,6 +25,7 @@ public class ZombieRoamingState : ZombieStateBase
 
         _zombie.SetStoppingDistance(ArriveDistance);
         _zombie.ResumeMoving();
+        _zombie.PlayWalkAnimation();
 
         _hasTarget = NavMesh.SamplePosition(candidate, out NavMeshHit hit, NavMeshSampleDistance, NavMesh.AllAreas);
         _target = hit.position;
@@ -38,8 +39,6 @@ public class ZombieRoamingState : ZombieStateBase
 
     public override void Update()
     {
-        // Todo. Walk 애니메이션 실행
-
         if (_zombie.IsPlayerInDetectRange())
         {
             _zombie.ChangeState(_zombie.TraceState);
