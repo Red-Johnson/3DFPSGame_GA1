@@ -43,6 +43,9 @@ public class PrefabPool<T> where T : Component, IPoolable<T>
             maxSize: maxSize);
     }
 
+    // 보관함이 남아 있는지. 씬이 바뀌어 보관함이 사라졌다면 이 풀은 더 쓸 수 없다.
+    public bool IsAlive => _inactiveRoot != null;
+
     // 위치와 회전을 잡은 뒤 활성화해서 돌려준다.
     public T Get(Vector3 position, Quaternion rotation)
     {
