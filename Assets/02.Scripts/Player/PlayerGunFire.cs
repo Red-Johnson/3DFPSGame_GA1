@@ -105,8 +105,14 @@ public class PlayerGunFire : MonoBehaviour
 
         if (isHit)
         {
+            IDamageable target = hitInfo.collider.GetComponent<IDamageable>();
+
             // 맞은 자리에 총알 자국 이펙트 만들기 (끝나면 풀로 돌아가 재사용된다.)
-            EffectPool.For(_hitEffectPrefab).Play(hitInfo.point, Quaternion.LookRotation(hitInfo.normal));
+            // 좀비는 맞으면 피가 튀므로, 벽에 맞은 자국 이펙트는 내지 않는다.
+            if (target is not Zombie)
+            {
+                EffectPool.For(_hitEffectPrefab).Play(hitInfo.point, Quaternion.LookRotation(hitInfo.normal));
+            }
 
             // 대미지 구조체 만들기
             DamageInfo damageInfo = new DamageInfo();
@@ -114,7 +120,7 @@ public class PlayerGunFire : MonoBehaviour
             damageInfo.HitPoint = hitInfo.point;
             damageInfo.HitNormal = hitInfo.normal;
 
-            hitInfo.collider.GetComponent<IDamageable>()?.TakeDamage(damageInfo);
+            target?.TakeDamage(damageInfo);
         }
     }
 }
