@@ -23,6 +23,7 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
     [SerializeField] private float _attackRange = 1.5f;     // 공격 범위
     [SerializeField] private float _attackInterval = 1.2f;  // 공격 간격
     [SerializeField] private float _moveSpeed = 5;          // 이동속도
+    [SerializeField] private float _angularSpeed = 360f;    // 회전속도(초당 각도). 낮으면 방향을 바꿀 때 큰 반원을 그리며 돈다.
     [SerializeField] private float _maxHealth = 30;
     [SerializeField] private float _health;
 
@@ -118,6 +119,7 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
         _collider = GetComponent<Collider>();
         _animator = GetComponentInChildren<Animator>();
         _agent.speed = _moveSpeed;
+        _agent.angularSpeed = _angularSpeed;
         _agent.autoTraverseOffMeshLink = false;     // 링크는 Jump_Coroutine에서 직접 건넌다.
 
         _idleState = new ZombieIdleState(this);
@@ -218,12 +220,11 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
         // 링크 끝점은 NavMesh 표면 위치이므로 피벗 높이(Base Offset)를 더해 준다.
         Vector3 end = linkData.endPos + (Vector3.up * _agent.baseOffset);
 
-        FaceToward(end);
-
         float elapsed = 0f;
         while (elapsed < _jumpDuration)
         {
             elapsed += Time.deltaTime;
+            FaceToward(end);
             float t = Mathf.Clamp01(elapsed / _jumpDuration);
 
             // 직선 이동에 포물선(4h * t * (1 - t))을 더한다.
@@ -389,7 +390,7 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
         return _agent.pathStatus == NavMeshPathStatus.PathInvalid || _agent.remainingDistance <= _agent.stoppingDistance;
     }
 
-    // 멈춰 있는 동안에도 높이는 무시하고 목표 쪽을 바라본다.
+    // 에이전트가 회전을 맡지 않을 때(멈춤, 점프) 매 프레임 불러서, 높이는 무시하고 목표 쪽으로 _angularSpeed로 돈다.
     public void FaceToward(Vector3 target)
     {
         Vector3 direction = target - transform.position;
@@ -397,7 +398,8 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
 
         if (direction.sqrMagnitude < Mathf.Epsilon) return;
 
-        transform.forward = direction.normalized;
+        Quaternion targetRotation = Quaternion.LookRotation(direction);
+        transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, _angularSpeed * Time.deltaTime);
     }
 
     // 죽으면 이동과 피격 판정을 끈다. (다시 살아날 때 OnEnable에서 켠다.)

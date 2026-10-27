@@ -334,6 +334,7 @@ MonoBehaviour:
   _attackRange: 1.5
   _attackInterval: 1.2
   _moveSpeed: 5
+  _angularSpeed: 540
   _maxHealth: 30
   _health: 30
   _roamDistance: 10
