@@ -61,22 +61,14 @@ public class ZombieSpawner : MonoBehaviour
         Vector3 candidate = transform.position + new Vector3(offset.x, 0f, offset.y);
 
         // NavMesh 위의 지면 높이로 맞춘다. 높이가 어긋나 허공/바닥에 끼는 것을 막는다.
+        // 피벗과 바닥 사이 높이는 NavMeshAgent의 Base Offset이 맞춰 준다.
         if (!NavMesh.SamplePosition(candidate, out NavMeshHit hit, _navMeshSampleDistance, NavMesh.AllAreas)) return;
 
         Quaternion rotation = Quaternion.Euler(0f, UnityEngine.Random.Range(0f, 360f), 0f);
-        CreateZombie(hit.position + (Vector3.up * GetControllerBottomOffset()), rotation);
+        CreateZombie(hit.position, rotation);
     }
 
-    // 좀비의 피벗에서 CharacterController 캡슐 바닥까지의 높이. 바닥 위치에 이만큼 더해야 땅에 박히지 않는다.
-    private float GetControllerBottomOffset()
-    {
-        CharacterController controller = _zombiePrefab.GetComponent<CharacterController>();
-        float scaleY = _zombiePrefab.transform.lossyScale.y;
-
-        return ((controller.height * 0.5f) - controller.center.y) * scaleY;
-    }
-
-    // 풀에서 좀비를 꺼낸다. 위치를 잡은 뒤 활성화되므로 CharacterController가 어긋나지 않는다.
+    // 풀에서 좀비를 꺼낸다. 위치를 잡은 뒤 활성화되므로 NavMeshAgent가 NavMesh에 정상적으로 붙는다.
     private Zombie CreateZombie(Vector3 position, Quaternion rotation)
     {
         return _zombiePool.Get(position, rotation);

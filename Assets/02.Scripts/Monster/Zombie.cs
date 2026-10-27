@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.Pool;
 
 // FSM(유한 상태 머신) : 유한개의 상태가 있고, 상태마다 행동을 다르게 함으로써 AI를 구현하는 유명한 방법
@@ -28,6 +29,12 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
     [SerializeField] private float _roamDistance = 3f;      // 로밍할 때 현재 위치에서 이동할 최대 거리
     [SerializeField] private float _idleDuration = 1f;      // 대기 시간
 
+    [Header("길찾기")]
+    [SerializeField] private float _destinationUpdateInterval = 0.2f;   // 추격 중 목적지를 다시 계산하는 간격
+    [SerializeField] private float _chaseStopDistanceRatio = 0.8f;      // 추격 정지 거리 = 공격 범위 * 이 비율 (경계에서 떨리지 않게 공격 범위보다 짧게)
+    [SerializeField] private int _minAvoidancePriority = 30;            // 좀비끼리 길이 막히지 않도록 회피 우선순위를 무작위로 준다.
+    [SerializeField] private int _maxAvoidancePriority = 60;
+
     [Header("피격/죽음")]
     [SerializeField] private float _hitStunDuration = 0.3f; // 맞고 멈칫하는 시간
     [SerializeField] private float _despawnDelay = 0.5f;    // 죽고 사라지기까지 걸리는 시간
@@ -35,7 +42,8 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
     [Header("이펙트")]
     [SerializeField] private GameObject _bloodSprayPrefab;
 
-    private CharacterController _controller;
+    private NavMeshAgent _agent;
+    private Collider _collider;
     private GameObject _player;
 
     public float MaxHealth => _maxHealth;
@@ -47,6 +55,8 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
     public float MoveSpeed => _moveSpeed;
     public float RoamDistance => _roamDistance;
     public float IdleDuration => _idleDuration;
+    public float DestinationUpdateInterval => _destinationUpdateInterval;
+    public float ChaseStopDistance => _attackRange * _chaseStopDistanceRatio;
     public float HitStunDuration => _hitStunDuration;
     public GameObject Player => _player;
 
@@ -81,7 +91,9 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
 
     private void Awake()
     {
-        _controller = GetComponent<CharacterController>();
+        _agent = GetComponent<NavMeshAgent>();
+        _collider = GetComponent<Collider>();
+        _agent.speed = _moveSpeed;
 
         _idleState = new ZombieIdleState(this);
         _roamingState = new ZombieRoamingState(this);
@@ -95,7 +107,22 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
     private void OnEnable()
     {
         _health = _maxHealth;
-        _controller.enabled = true;
+        _collider.enabled = true;
+        _agent.enabled = true;
+        _agent.avoidancePriority = UnityEngine.Random.Range(_minAvoidancePriority, _maxAvoidancePriority + 1);
+
+        // 풀에서 재사용될 때 NavMesh에 붙지 못했다면 가까운 NavMesh 위로 옮긴다.
+        if (!_agent.isOnNavMesh)
+        {
+            _agent.Warp(transform.position);
+        }
+
+        if (_agent.isOnNavMesh)
+        {
+            _agent.ResetPath();
+            _agent.isStopped = false;
+        }
+
         OnHealthChanged?.Invoke();
 
         ChangeState(_idleState);
@@ -194,23 +221,60 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
         return Vector3.Distance(transform.position, _player.transform.position) <= _detectDistance;
     }
 
-    // 높이는 무시하고 목표 위치 쪽으로 이동한다.
-    public void MoveToward(Vector3 target)
+    // NavMesh 경로를 계산해 목표 위치로 이동을 시작한다. 경로를 만들 수 없으면 false.
+    public bool SetDestination(Vector3 target)
+    {
+        if (!_agent.isOnNavMesh) return false;
+
+        return _agent.SetDestination(target);
+    }
+
+    public void SetStoppingDistance(float distance)
+    {
+        _agent.stoppingDistance = distance;
+    }
+
+    // 걷는 상태에 들어갈 때 부른다. (정지했던 에이전트를 다시 움직일 수 있게 한다.)
+    public void ResumeMoving()
+    {
+        if (!_agent.isOnNavMesh) return;
+
+        _agent.isStopped = false;
+    }
+
+    // 제자리에 서는 상태에 들어갈 때 부른다.
+    public void StopMoving()
+    {
+        if (!_agent.isOnNavMesh) return;
+
+        _agent.isStopped = true;
+        _agent.ResetPath();
+    }
+
+    // 목적지에 도착했거나 갈 수 없는 경로면 true. 경로 계산 중에는 false.
+    public bool HasFinishedPath()
+    {
+        if (!_agent.isOnNavMesh || _agent.pathPending) return false;
+
+        return _agent.pathStatus == NavMeshPathStatus.PathInvalid || _agent.remainingDistance <= _agent.stoppingDistance;
+    }
+
+    // 멈춰 있는 동안에도 높이는 무시하고 목표 쪽을 바라본다.
+    public void FaceToward(Vector3 target)
     {
         Vector3 direction = target - transform.position;
         direction.y = 0f;
 
         if (direction.sqrMagnitude < Mathf.Epsilon) return;
 
-        direction.Normalize();
-
-        transform.forward = direction;
-        _controller.SimpleMove(direction * _moveSpeed);
+        transform.forward = direction.normalized;
     }
 
-    public void DisableController()
+    // 죽으면 이동과 피격 판정을 끈다. (다시 살아날 때 OnEnable에서 켠다.)
+    public void DisableMovement()
     {
-        _controller.enabled = false;
+        _agent.enabled = false;
+        _collider.enabled = false;
     }
 
     public void StartDespawn()

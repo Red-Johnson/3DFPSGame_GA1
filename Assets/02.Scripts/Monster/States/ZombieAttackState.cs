@@ -10,6 +10,7 @@ public class ZombieAttackState : ZombieStateBase
     public override void Enter()
     {
         _timer = 0f;
+        _zombie.StopMoving();
     }
 
     public override void Update()
@@ -21,6 +22,9 @@ public class ZombieAttackState : ZombieStateBase
             _zombie.ChangeState(_zombie.TraceState);
             return;
         }
+
+        // 멈춰 있어도 플레이어 쪽을 바라본다.
+        _zombie.FaceToward(player.transform.position);
 
         _timer += Time.deltaTime;
         if (_timer >= _zombie.AttackInterval)

@@ -10,7 +10,7 @@ public interface IPoolable<T> where T : Component
 
 // 오브젝트 풀: 만들어 둔 오브젝트를 껐다 켜며 재사용한다.
 // 꺼진 오브젝트는 비활성 상태인 보관함 아래에 둔다. 그래서 만들 때는 Awake/OnEnable이 실행되지 않고,
-// Get에서 위치를 잡은 뒤 보관함 밖으로 꺼내는 순간 활성화(OnEnable)된다. (CharacterController 위치 어긋남 방지)
+// Get에서 위치를 잡은 뒤 보관함 밖으로 꺼내는 순간 활성화(OnEnable)된다. (CharacterController, NavMeshAgent 위치 어긋남 방지)
 public class PrefabPool<T> where T : Component, IPoolable<T>
 {
     private readonly ObjectPool<T> _pool;

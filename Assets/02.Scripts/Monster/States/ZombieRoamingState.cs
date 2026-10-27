@@ -23,8 +23,17 @@ public class ZombieRoamingState : ZombieStateBase
         Vector2 offset = Random.insideUnitCircle * _zombie.RoamDistance;
         Vector3 candidate = _zombie.transform.position + new Vector3(offset.x, 0f, offset.y);
 
+        _zombie.SetStoppingDistance(ArriveDistance);
+        _zombie.ResumeMoving();
+
         _hasTarget = NavMesh.SamplePosition(candidate, out NavMeshHit hit, NavMeshSampleDistance, NavMesh.AllAreas);
         _target = hit.position;
+
+        // 목적지까지 갈 수 있는 경로를 못 만들면 곧바로 쉬러 간다.
+        if (_hasTarget)
+        {
+            _hasTarget = _zombie.SetDestination(_target);
+        }
     }
 
     public override void Update()
@@ -39,19 +48,9 @@ public class ZombieRoamingState : ZombieStateBase
 
         // 갈 수 있는 자리를 못 찾았거나, 도착했거나, 너무 오래 걸으면 다시 쉰다.
         _timer += Time.deltaTime;
-        if (!_hasTarget || _timer >= _timeout || GetFlatDistanceToTarget() <= ArriveDistance)
+        if (!_hasTarget || _timer >= _timeout || _zombie.HasFinishedPath())
         {
             _zombie.ChangeState(_zombie.IdleState);
-            return;
         }
-
-        _zombie.MoveToward(_target);
-    }
-
-    private float GetFlatDistanceToTarget()
-    {
-        Vector3 position = _zombie.transform.position;
-        position.y = _target.y;
-        return Vector3.Distance(position, _target);
     }
 }

@@ -5,7 +5,7 @@ public class ZombieDeathState : ZombieStateBase
 
     public override void Enter()
     {
-        _zombie.DisableController();
+        _zombie.DisableMovement();
         _zombie.StartDespawn();
     }
 
