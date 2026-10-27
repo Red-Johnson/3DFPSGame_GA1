@@ -5,6 +5,7 @@ public class ZombieAttackState : ZombieStateBase
 {
     private float _timer;
     private bool _isAttackAnimating;    // 공격 모션을 재생 중인지. 끝나면 대기 모션으로 돌아간다.
+    private bool _hasHit;               // 이번 공격의 타격을 이미 처리했는지. (이벤트가 두 번 와도 대미지는 한 번만)
 
     public ZombieAttackState(Zombie zombie) : base(zombie) { }
 
@@ -12,6 +13,7 @@ public class ZombieAttackState : ZombieStateBase
     {
         _timer = 0f;
         _isAttackAnimating = false;
+        _hasHit = true;     // 휘두르기 전에는 타격할 것이 없다.
         _zombie.StopMoving();
         _zombie.PlayAttackDelayAnimation();
     }
@@ -39,19 +41,31 @@ public class ZombieAttackState : ZombieStateBase
         _timer += Time.deltaTime;
         if (_timer >= _zombie.AttackInterval)
         {
+            // 대미지는 여기서 주지 않고, 애니메이션의 타격 프레임(OnAttackHit)에서 준다.
             _zombie.PlayAttackAnimation();
             _isAttackAnimating = true;
-
-            DamageInfo info = new DamageInfo()
-            {
-                Value = _zombie.AttackDamage,
-                HitPoint = player.transform.position,
-                HitNormal = (_zombie.transform.position - player.transform.position).normalized,
-            };
-
-            player.GetComponent<IDamageable>().TakeDamage(info);
+            _hasHit = false;
 
             _timer = 0f;
         }
+    }
+
+    // 공격 애니메이션의 타격 프레임에서 불린다. 휘두르는 중일 때만 대미지를 준다.
+    public override void OnAttackHit()
+    {
+        if (_hasHit) return;
+
+        _hasHit = true;
+
+        GameObject player = _zombie.Player;
+
+        DamageInfo info = new DamageInfo()
+        {
+            Value = _zombie.AttackDamage,
+            HitPoint = player.transform.position,
+            HitNormal = (_zombie.transform.position - player.transform.position).normalized,
+        };
+
+        player.GetComponent<IDamageable>().TakeDamage(info);
     }
 }

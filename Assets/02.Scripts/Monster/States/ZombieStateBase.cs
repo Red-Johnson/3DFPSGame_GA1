@@ -14,4 +14,7 @@ public abstract class ZombieStateBase
     public abstract void Update();
 
     public virtual void Exit() { }
+
+    // 공격 애니메이션에서 타격 프레임이 되면 알려 준다. 공격 상태만 사용한다.
+    public virtual void OnAttackHit() { }
 }

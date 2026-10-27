@@ -32,6 +32,7 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
 
     [Header("길찾기")]
     [SerializeField] private float _destinationUpdateInterval = 0.2f;   // 추격 중 목적지를 다시 계산하는 간격
+    [SerializeField] private float _destinationRepathDistance = 0.5f;   // 플레이어가 이만큼 움직였을 때만 추격 경로를 다시 계산한다.
     [SerializeField] private float _chaseStopDistanceRatio = 0.8f;      // 추격 정지 거리 = 공격 범위 * 이 비율 (경계에서 떨리지 않게 공격 범위보다 짧게)
     [SerializeField] private int _minAvoidancePriority = 30;            // 좀비끼리 길이 막히지 않도록 회피 우선순위를 무작위로 준다.
     [SerializeField] private int _maxAvoidancePriority = 60;
@@ -57,7 +58,7 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
     private static readonly int AttackHash = Animator.StringToHash("Attack");
     private static readonly int AttackDelayHash = Animator.StringToHash("AttackDelay");
     private static readonly int HitHash = Animator.StringToHash("Hit");
-    private static readonly int DeathHash = Animator.StringToHash("Death");
+    private static readonly int[] DeathHashes = { Animator.StringToHash("Death1"), Animator.StringToHash("Death2") };
 
     private NavMeshAgent _agent;
     private Collider _collider;
@@ -74,6 +75,7 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
     public float RoamDistance => _roamDistance;
     public float IdleDuration => _idleDuration;
     public float DestinationUpdateInterval => _destinationUpdateInterval;
+    public float DestinationRepathDistance => _destinationRepathDistance;
     public float ChaseStopDistance => _attackRange * _chaseStopDistanceRatio;
     public float HitStunDuration => _hitStunDuration;
     public GameObject Player => _player;
@@ -243,6 +245,13 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
         _isJumping = false;
     }
 
+    // 공격 애니메이션의 타격 프레임에서 불린다. (ZombieAnimationEvents가 전달)
+    // 공격 상태가 아닐 때(피격, 죽음 등) 온 이벤트는 상태가 무시한다.
+    public void OnAttackHit()
+    {
+        _currentState?.OnAttackHit();
+    }
+
     // 현재 상태를 마치고 다음 상태로 넘어간다.
     public void ChangeState(ZombieStateBase nextState)
     {
@@ -329,7 +338,8 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
     // 피격 모션이 없으면 서 있는 모션으로 대신한다.
     public void PlayHitAnimation() => PlayAnimation(HitHash, IdleHash);
 
-    public void PlayDeathAnimation() => PlayAnimation(DeathHash);
+    // 죽는 모션 중 하나를 무작위로 고른다.
+    public void PlayDeathAnimation() => PlayAnimation(DeathHashes[UnityEngine.Random.Range(0, DeathHashes.Length)]);
 
     // 공격 모션을 끝까지 재생했는지. 다른 모션으로 섞이는 중에는 판단하지 않는다.
     public bool IsAttackAnimationFinished()
@@ -368,6 +378,7 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
 
         _agent.isStopped = true;
         _agent.ResetPath();
+        _agent.velocity = Vector3.zero;     // 남은 속도로 미끄러지며 목표를 지나쳤다 돌아오는 떨림을 막는다.
     }
 
     // 목적지에 도착했거나 갈 수 없는 경로면 true. 경로 계산 중에는 false.
