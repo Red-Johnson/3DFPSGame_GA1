@@ -3788,6 +3788,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerGunFire
   _hitEffectPrefab: {fileID: 19800002, guid: 54dd9cb5740188a488b8baebbf19207c, type: 3}
+  _muzzle: {fileID: 0}
+  _tracerOriginOffset: {x: 0.3, y: -0.2, z: 0.5}
+  _tracerMaterial: {fileID: 0}
+  _tracerColor: {r: 1, g: 0.25, b: 0.2, a: 1}
+  _tracerWidth: 0.05
+  _tracerSpeed: 200
+  _tracerLength: 5
   _maxBulletCount: 30
   _reloadingTime: 3
   _range: 100
