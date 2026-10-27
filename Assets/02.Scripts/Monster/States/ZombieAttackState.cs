@@ -14,35 +14,35 @@ public class ZombieAttackState : ZombieStateBase
         _timer = 0f;
         _isAttackAnimating = false;
         _hasHit = true;     // 휘두르기 전에는 타격할 것이 없다.
-        _zombie.StopMoving();
-        _zombie.PlayAttackDelayAnimation();
+        _zombie.Motor.StopMoving();
+        _zombie.Anim.PlayAttackDelay();
     }
 
     public override void Update()
     {
-        GameObject player = _zombie.Player;
+        Vector3 targetPosition = _zombie.Target.position;
 
-        if (Vector3.Distance(_zombie.transform.position, player.transform.position) > _zombie.AttackRange)
+        if (Vector3.Distance(_zombie.transform.position, targetPosition) > _zombie.Stats.AttackRange)
         {
             _zombie.ChangeState(_zombie.TraceState);
             return;
         }
 
         // 멈춰 있어도 플레이어 쪽을 바라본다.
-        _zombie.FaceToward(player.transform.position);
+        _zombie.Motor.FaceToward(targetPosition);
 
         // 공격 모션이 끝나면 다음 공격까지 기다리는 모션으로 돌아간다.
-        if (_isAttackAnimating && _zombie.IsAttackAnimationFinished())
+        if (_isAttackAnimating && _zombie.Anim.IsAttackFinished())
         {
             _isAttackAnimating = false;
-            _zombie.PlayAttackDelayAnimation();
+            _zombie.Anim.PlayAttackDelay();
         }
 
         _timer += Time.deltaTime;
-        if (_timer >= _zombie.AttackInterval)
+        if (_timer >= _zombie.Stats.AttackInterval)
         {
             // 대미지는 여기서 주지 않고, 애니메이션의 타격 프레임(OnAttackHit)에서 준다.
-            _zombie.PlayAttackAnimation();
+            _zombie.Anim.PlayAttack();
             _isAttackAnimating = true;
             _hasHit = false;
 
@@ -57,15 +57,15 @@ public class ZombieAttackState : ZombieStateBase
 
         _hasHit = true;
 
-        GameObject player = _zombie.Player;
+        Vector3 targetPosition = _zombie.Target.position;
 
         DamageInfo info = new DamageInfo()
         {
-            Value = _zombie.AttackDamage,
-            HitPoint = player.transform.position,
-            HitNormal = (_zombie.transform.position - player.transform.position).normalized,
+            Value = _zombie.Stats.AttackDamage,
+            HitPoint = targetPosition,
+            HitNormal = (_zombie.transform.position - targetPosition).normalized,
         };
 
-        player.GetComponent<IDamageable>().TakeDamage(info);
+        _zombie.TargetDamageable.TakeDamage(info);
     }
 }

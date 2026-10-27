@@ -6,7 +6,7 @@ public class ZombieDeathState : ZombieStateBase
     public override void Enter()
     {
         _zombie.DisableMovement();
-        _zombie.PlayDeathAnimation();
+        _zombie.Anim.PlayDeath();
         _zombie.StartDespawn();
     }
 

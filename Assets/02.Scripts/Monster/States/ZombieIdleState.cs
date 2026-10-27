@@ -8,8 +8,8 @@ public class ZombieIdleState : ZombieStateBase
     public override void Enter()
     {
         _timer = 0f;
-        _zombie.StopMoving();
-        _zombie.PlayIdleAnimation();
+        _zombie.Motor.StopMoving();
+        _zombie.Anim.PlayIdle();
     }
 
     public override void Update()
@@ -21,7 +21,7 @@ public class ZombieIdleState : ZombieStateBase
         }
 
         _timer += UnityEngine.Time.deltaTime;
-        if (_timer >= _zombie.IdleDuration)
+        if (_timer >= _zombie.Stats.IdleDuration)
         {
             _zombie.ChangeState(_zombie.RoamingState);
         }

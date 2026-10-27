@@ -14,72 +14,34 @@ using UnityEngine.Pool;
 // - Idle: 제자리에서 쉰다. / Roaming: 주변 무작위 위치로 걷는다.
 // - Trace: 플레이어를 쫓아간다. / Attack: 일정 시간마다 플레이어를 때린다.
 // - Hit: 공격을 받아 잠깐 멈칫한다. / Death: 쓰러지고 잠시 뒤 사라진다.
+//
+// 역할 분담: 설정값은 ZombieStats(에셋), 이동과 점프는 ZombieMotor, 애니메이션은 ZombieAnimator가 맡고,
+// Zombie는 상태 머신, 체력과 피격, 풀링을 맡는다.
 public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
 {
-    [Header("스탯")]
-    [SerializeField] private float _detectDistance  = 8;    // 플레이어를 발견하는 거리
-    [SerializeField] private float _loseDistanceRatio = 1.5f;   // 추격을 포기하는 거리 = 발견 거리 * 이 비율 (발견 거리보다 길어야 경계에서 Idle/Trace가 번갈아 바뀌지 않는다)
-    [SerializeField] private float _attackDamage = 10f;     // 공격 대미지
-    [SerializeField] private float _attackRange = 1.5f;     // 공격 범위
-    [SerializeField] private float _attackInterval = 1.2f;  // 공격 간격
-    [SerializeField] private float _moveSpeed = 5;          // 이동속도
-    [SerializeField] private float _angularSpeed = 360f;    // 회전속도(초당 각도). 낮으면 방향을 바꿀 때 큰 반원을 그리며 돈다.
-    [SerializeField] private float _maxHealth = 30;
-    [SerializeField] private float _health;
-
-    [Header("로밍")]
-    [SerializeField] private float _roamDistance = 3f;      // 로밍할 때 현재 위치에서 이동할 최대 거리
-    [SerializeField] private float _idleDuration = 1f;      // 대기 시간
-
-    [Header("길찾기")]
-    [SerializeField] private float _destinationUpdateInterval = 0.2f;   // 추격 중 목적지를 다시 계산하는 간격
-    [SerializeField] private float _destinationRepathDistance = 0.5f;   // 플레이어가 이만큼 움직였을 때만 추격 경로를 다시 계산한다.
-    [SerializeField] private float _chaseStopDistanceRatio = 0.8f;      // 추격 정지 거리 = 공격 범위 * 이 비율 (경계에서 떨리지 않게 공격 범위보다 짧게)
-    [SerializeField] private int _minAvoidancePriority = 30;            // 좀비끼리 길이 막히지 않도록 회피 우선순위를 무작위로 준다.
-    [SerializeField] private int _maxAvoidancePriority = 60;
-
-    [Header("점프")]
-    [SerializeField] private float _jumpDuration = 0.6f;    // NavMeshLink를 건너는 데 걸리는 시간
-    [SerializeField] private float _jumpHeight = 1.5f;      // 시작점과 도착점을 잇는 직선보다 위로 솟는 최대 높이
-
-    [Header("애니메이션")]
-    [SerializeField] private float _animationFadeDuration = 0.15f;  // 애니메이션이 서로 섞이는 시간
-
-    [Header("피격/죽음")]
-    [SerializeField] private float _hitStunDuration = 0.3f; // 맞고 멈칫하는 시간
-    [SerializeField] private float _despawnDelay = 0.5f;    // 죽고 사라지기까지 걸리는 시간
+    [SerializeField] private ZombieStats _stats;
 
     [Header("이펙트")]
     [SerializeField] private GameObject _bloodSprayPrefab;
 
-    // 애니메이터 상태 이름. 컨트롤러의 상태 이름과 똑같아야 한다.
-    private static readonly int IdleHash = Animator.StringToHash("Idle");
-    private static readonly int WalkHash = Animator.StringToHash("Walk");
-    private static readonly int TraceHash = Animator.StringToHash("Trace");
-    private static readonly int AttackHash = Animator.StringToHash("Attack");
-    private static readonly int AttackDelayHash = Animator.StringToHash("AttackDelay");
-    private static readonly int HitHash = Animator.StringToHash("Hit");
-    private static readonly int[] DeathHashes = { Animator.StringToHash("Death1"), Animator.StringToHash("Death2") };
+    // _stats를 연결하지 않았을 때 같은 기본값으로 동작하도록 모든 좀비가 나눠 쓰는 대체 설정
+    private static ZombieStats _fallbackStats;
 
-    private NavMeshAgent _agent;
+    private ZombieMotor _motor;
+    private ZombieAnimator _anim;
     private Collider _collider;
-    private Animator _animator;
-    private GameObject _player;
+    private Transform _target;
+    private IDamageable _targetDamageable;
+    private float _health;
 
-    public float MaxHealth => _maxHealth;
+    public ZombieStats Stats => _stats;
+    public ZombieMotor Motor => _motor;
+    public ZombieAnimator Anim => _anim;
+    public Transform Target => _target;
+    public IDamageable TargetDamageable => _targetDamageable;
+
+    public float MaxHealth => _stats.MaxHealth;
     public float Health => _health;
-
-    public float AttackDamage => _attackDamage;
-    public float AttackRange => _attackRange;
-    public float AttackInterval => _attackInterval;
-    public float MoveSpeed => _moveSpeed;
-    public float RoamDistance => _roamDistance;
-    public float IdleDuration => _idleDuration;
-    public float DestinationUpdateInterval => _destinationUpdateInterval;
-    public float DestinationRepathDistance => _destinationRepathDistance;
-    public float ChaseStopDistance => _attackRange * _chaseStopDistanceRatio;
-    public float HitStunDuration => _hitStunDuration;
-    public GameObject Player => _player;
 
     // 체력이 바뀌면(대미지를 받거나 다시 살아나면) 구독자(체력바 등)에게 알린다.
     public event Action OnHealthChanged;
@@ -108,19 +70,18 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
     // 좀비의 자식으로 만든 피 이펙트. 재사용되기 전에 정리한다.
     private readonly List<GameObject> _bloodSprays = new List<GameObject>();
 
-    // NavMeshLink를 건너는 중인지. 건너는 동안은 상태 Update와 피격 경직을 건너뛴다.
-    private bool _isJumping;
-
     private bool IsDead => _currentState == _deathState;
 
     private void Awake()
     {
-        _agent = GetComponent<NavMeshAgent>();
+        if (_stats == null)
+        {
+            _stats = GetFallbackStats();
+        }
+
         _collider = GetComponent<Collider>();
-        _animator = GetComponentInChildren<Animator>();
-        _agent.speed = _moveSpeed;
-        _agent.angularSpeed = _angularSpeed;
-        _agent.autoTraverseOffMeshLink = false;     // 링크는 Jump_Coroutine에서 직접 건넌다.
+        _motor = new ZombieMotor(GetComponent<NavMeshAgent>(), _stats);
+        _anim = new ZombieAnimator(GetComponentInChildren<Animator>(), _stats.AnimationFadeDuration);
 
         _idleState = new ZombieIdleState(this);
         _roamingState = new ZombieRoamingState(this);
@@ -133,23 +94,9 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
     // 활성화될 때마다 처음 상태로 되돌린다. (오브젝트 풀링으로 재사용해도 같은 경로)
     private void OnEnable()
     {
-        _health = _maxHealth;
-        _isJumping = false;     // 점프 중에 풀로 돌아갔어도 재사용될 때 초기화한다.
+        _health = _stats.MaxHealth;
         _collider.enabled = true;
-        _agent.enabled = true;
-        _agent.avoidancePriority = UnityEngine.Random.Range(_minAvoidancePriority, _maxAvoidancePriority + 1);
-
-        // 풀에서 재사용될 때 NavMesh에 붙지 못했다면 가까운 NavMesh 위로 옮긴다.
-        if (!_agent.isOnNavMesh)
-        {
-            _agent.Warp(transform.position);
-        }
-
-        if (_agent.isOnNavMesh)
-        {
-            _agent.ResetPath();
-            _agent.isStopped = false;
-        }
+        _motor.Enable();
 
         OnHealthChanged?.Invoke();
 
@@ -169,13 +116,23 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
         _pool = pool;
     }
 
+    // 쫓아갈 대상을 정한다. 스포너가 좀비를 꺼낼 때 넘겨 준다.
+    public void SetTarget(Transform target)
+    {
+        _target = target;
+        _targetDamageable = target.GetComponent<IDamageable>();
+    }
+
     private void Start()
     {
         // OnEnable 시점에 매니저가 아직 없었을 수 있으니 한 번 더 등록한다. (중복 등록은 무시됨)
         RegisterToManager();
 
-        // 게임을 시작하면 플레이어를 찾는다.
-        _player = GameObject.FindGameObjectWithTag("Player");
+        // 미리 배치한 좀비처럼 대상을 받지 못했다면 플레이어를 찾는다.
+        if (_target == null)
+        {
+            SetTarget(GameObject.FindGameObjectWithTag("Player").transform);
+        }
     }
 
     // 좀비 수 집계에 등록/해제한다. (스포너가 만든 좀비도 같은 경로)
@@ -195,55 +152,18 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
         }
     }
 
-
     private void Update()
     {
-        if (GameManager.Instance.State != GameState.Playing) return;
-        if (_isJumping) return;
+        if (!GameManager.Instance.IsPlaying) return;
+        if (_motor.IsJumping) return;
 
-        if (_agent.enabled && _agent.isOnNavMesh && _agent.isOnOffMeshLink)
+        if (_motor.IsOnOffMeshLink)
         {
-            StartCoroutine(Jump_Coroutine());
+            StartCoroutine(_motor.Jump_Coroutine());
             return;
         }
 
         _currentState.Update();
-    }
-
-    // NavMeshLink의 시작점에서 도착점까지 포물선으로 뛰어 건넌다.
-    private IEnumerator Jump_Coroutine()
-    {
-        _isJumping = true;
-
-        OffMeshLinkData linkData = _agent.currentOffMeshLinkData;
-        Vector3 start = transform.position;
-        // 링크 끝점은 NavMesh 표면 위치이므로 피벗 높이(Base Offset)를 더해 준다.
-        Vector3 end = linkData.endPos + (Vector3.up * _agent.baseOffset);
-
-        float elapsed = 0f;
-        while (elapsed < _jumpDuration)
-        {
-            elapsed += Time.deltaTime;
-            FaceToward(end);
-            float t = Mathf.Clamp01(elapsed / _jumpDuration);
-
-            // 직선 이동에 포물선(4h * t * (1 - t))을 더한다.
-            Vector3 position = Vector3.Lerp(start, end, t);
-            position.y += 4f * _jumpHeight * t * (1f - t);
-            transform.position = position;
-
-            yield return null;
-        }
-
-        transform.position = end;
-
-        // 점프 도중 죽어서 에이전트가 꺼졌다면 건넌 자리에 그대로 둔다.
-        if (_agent.enabled && _agent.isOnNavMesh)
-        {
-            _agent.CompleteOffMeshLink();
-        }
-
-        _isJumping = false;
     }
 
     // 공격 애니메이션의 타격 프레임에서 불린다. (ZombieAnimationEvents가 전달)
@@ -277,12 +197,11 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
             // 좀비의 자식으로 블러드 스프레이를 생성! -> 위치 수정!
             GameObject bloodSpray = Instantiate(_bloodSprayPrefab, transform);
             _bloodSprays.Add(bloodSpray);
-            //bloodSpray.transform.SetParent(transform);
             bloodSpray.transform.position = damageInfo.HitPoint;
             bloodSpray.transform.forward = damageInfo.HitNormal;
 
             // 잠깐 멈칫 하고 싶다! (링크를 건너는 중에는 멈추면 경로가 꼬이므로 멈칫하지 않는다.)
-            if (!_isJumping)
+            if (!_motor.IsJumping)
             {
                 ChangeState(_hitState);
             }
@@ -291,121 +210,29 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
         {
             UnregisterFromManager();
             OnDied?.Invoke();
+
+            // 쓰러지기 시작하면 출혈 이펙트를 바로 없앤다. (좀비는 쓰러지는데 피만 공중에 남지 않게)
+            ClearBloodSprays();
             ChangeState(_deathState);
         }
-
     }
 
     // 플레이어를 발견했는지
     public bool IsPlayerInDetectRange()
     {
-        return Vector3.Distance(transform.position, _player.transform.position) <= _detectDistance;
+        return Vector3.Distance(transform.position, _target.position) <= _stats.DetectDistance;
     }
 
     // 추격하던 플레이어가 충분히 멀어졌는지 (추격 포기 거리 밖인지)
     public bool IsPlayerOutOfLoseRange()
     {
-        return Vector3.Distance(transform.position, _player.transform.position) > _detectDistance * _loseDistanceRatio;
-    }
-
-    // 애니메이터 상태 이름으로 바로 재생한다. (전이나 트리거 없이 현재 모션에서 부드럽게 섞는다.)
-    // 그 상태가 컨트롤러에 없으면 fallbackHash 상태로 대신 재생하고, 그것도 없으면 아무것도 하지 않는다.
-    private void PlayAnimation(int stateHash, int fallbackHash = 0)
-    {
-        if (_animator == null || !_animator.isInitialized) return;
-
-        if (!_animator.HasState(0, stateHash))
-        {
-            if (fallbackHash == 0 || !_animator.HasState(0, fallbackHash)) return;
-
-            stateHash = fallbackHash;
-        }
-
-        _animator.CrossFadeInFixedTime(stateHash, _animationFadeDuration);
-    }
-
-    public void PlayIdleAnimation() => PlayAnimation(IdleHash);
-
-    // 로밍은 걷는 모션을 쓴다. Walk 상태가 없으면 Trace 모션으로 대신한다.
-    public void PlayWalkAnimation() => PlayAnimation(WalkHash, TraceHash);
-
-    public void PlayTraceAnimation() => PlayAnimation(TraceHash);
-
-    public void PlayAttackAnimation() => PlayAnimation(AttackHash);
-
-    // 공격과 공격 사이에 기다리는 모션
-    public void PlayAttackDelayAnimation() => PlayAnimation(AttackDelayHash, IdleHash);
-
-    // 피격 모션이 없으면 서 있는 모션으로 대신한다.
-    public void PlayHitAnimation() => PlayAnimation(HitHash, IdleHash);
-
-    // 죽는 모션 중 하나를 무작위로 고른다.
-    public void PlayDeathAnimation() => PlayAnimation(DeathHashes[UnityEngine.Random.Range(0, DeathHashes.Length)]);
-
-    // 공격 모션을 끝까지 재생했는지. 다른 모션으로 섞이는 중에는 판단하지 않는다.
-    public bool IsAttackAnimationFinished()
-    {
-        if (_animator == null || !_animator.isInitialized || _animator.IsInTransition(0)) return false;
-
-        AnimatorStateInfo stateInfo = _animator.GetCurrentAnimatorStateInfo(0);
-        return stateInfo.shortNameHash == AttackHash && stateInfo.normalizedTime >= 1f;
-    }
-
-    // NavMesh 경로를 계산해 목표 위치로 이동을 시작한다. 경로를 만들 수 없으면 false.
-    public bool SetDestination(Vector3 target)
-    {
-        if (!_agent.isOnNavMesh) return false;
-
-        return _agent.SetDestination(target);
-    }
-
-    public void SetStoppingDistance(float distance)
-    {
-        _agent.stoppingDistance = distance;
-    }
-
-    // 걷는 상태에 들어갈 때 부른다. (정지했던 에이전트를 다시 움직일 수 있게 한다.)
-    public void ResumeMoving()
-    {
-        if (!_agent.isOnNavMesh) return;
-
-        _agent.isStopped = false;
-    }
-
-    // 제자리에 서는 상태에 들어갈 때 부른다.
-    public void StopMoving()
-    {
-        if (!_agent.isOnNavMesh) return;
-
-        _agent.isStopped = true;
-        _agent.ResetPath();
-        _agent.velocity = Vector3.zero;     // 남은 속도로 미끄러지며 목표를 지나쳤다 돌아오는 떨림을 막는다.
-    }
-
-    // 목적지에 도착했거나 갈 수 없는 경로면 true. 경로 계산 중에는 false.
-    public bool HasFinishedPath()
-    {
-        if (!_agent.isOnNavMesh || _agent.pathPending) return false;
-
-        return _agent.pathStatus == NavMeshPathStatus.PathInvalid || _agent.remainingDistance <= _agent.stoppingDistance;
-    }
-
-    // 에이전트가 회전을 맡지 않을 때(멈춤, 점프) 매 프레임 불러서, 높이는 무시하고 목표 쪽으로 _angularSpeed로 돈다.
-    public void FaceToward(Vector3 target)
-    {
-        Vector3 direction = target - transform.position;
-        direction.y = 0f;
-
-        if (direction.sqrMagnitude < Mathf.Epsilon) return;
-
-        Quaternion targetRotation = Quaternion.LookRotation(direction);
-        transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, _angularSpeed * Time.deltaTime);
+        return Vector3.Distance(transform.position, _target.position) > _stats.LoseDistance;
     }
 
     // 죽으면 이동과 피격 판정을 끈다. (다시 살아날 때 OnEnable에서 켠다.)
     public void DisableMovement()
     {
-        _agent.enabled = false;
+        _motor.Disable();
         _collider.enabled = false;
     }
 
@@ -416,7 +243,7 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
 
     private IEnumerator Despawn_Coroutine()
     {
-        yield return new WaitForSeconds(_despawnDelay);
+        yield return new WaitForSeconds(_stats.DespawnDelay);
         Despawn();
     }
 
@@ -444,5 +271,16 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
         }
 
         _bloodSprays.Clear();
+    }
+
+    private static ZombieStats GetFallbackStats()
+    {
+        if (_fallbackStats == null)
+        {
+            _fallbackStats = ScriptableObject.CreateInstance<ZombieStats>();
+            Debug.LogWarning("[Zombie] ZombieStats가 연결되지 않아 기본값을 사용합니다. 좀비 프리팹에 ZombieStats 에셋을 연결하세요.");
+        }
+
+        return _fallbackStats;
     }
 }

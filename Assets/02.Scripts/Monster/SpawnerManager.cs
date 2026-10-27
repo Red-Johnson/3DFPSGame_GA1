@@ -40,6 +40,14 @@ public class SpawnerManager : MonoBehaviour
             _ground = FindGround();
         }
 
+        // Ground를 못 찾으면 스포너 위치를 정할 수 없으니, 오류를 남기고 멈춘다.
+        if (_ground == null)
+        {
+            GameLogger.LogError("[SpawnerManager] Ground를 찾지 못했습니다. _ground를 직접 연결하거나 Map 아래에 Ground를 두세요.");
+            enabled = false;
+            return;
+        }
+
         _player = GameObject.FindGameObjectWithTag("Player").transform;
 
         StartCoroutine(SpawnerCreate_Coroutine());
@@ -67,7 +75,7 @@ public class SpawnerManager : MonoBehaviour
 
     private bool IsGamePlaying()
     {
-        return GameManager.Instance.State == GameState.Playing;
+        return GameManager.Instance.IsPlaying;
     }
 
     private void CreateSpawner(Vector3 position)
@@ -77,7 +85,15 @@ public class SpawnerManager : MonoBehaviour
 
         ZombieSpawner spawner = spawnerObject.AddComponent<ZombieSpawner>();
         spawner.OnFinished += OnSpawnerFinished;
-        spawner.Init(_zombiePrefab, _zombiePool, _zombiesPerSpawner, _zombieSpawnInterval, _zombieSpawnRadius, _navMeshSampleDistance);
+        ZombieSpawnSettings settings = new ZombieSpawnSettings()
+        {
+            SpawnCount = _zombiesPerSpawner,
+            SpawnInterval = _zombieSpawnInterval,
+            SpawnRadius = _zombieSpawnRadius,
+            NavMeshSampleDistance = _navMeshSampleDistance,
+        };
+
+        spawner.Init(settings, _zombiePool, _player);
 
         _spawners.Add(spawner);
     }
@@ -137,6 +153,8 @@ public class SpawnerManager : MonoBehaviour
     private Renderer FindGround()
     {
         GameObject map = GameObject.Find("Map");
+        if (map == null) return null;
+
         foreach (Renderer candidate in map.GetComponentsInChildren<Renderer>())
         {
             if (candidate.name == "Ground")

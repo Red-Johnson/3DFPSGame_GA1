@@ -12,11 +12,11 @@ public class ZombieTraceState : ZombieStateBase
     public override void Enter()
     {
         // 진입하자마자 목적지를 잡도록 타이머를 가득 채워 둔다.
-        _destinationTimer = _zombie.DestinationUpdateInterval;
+        _destinationTimer = _zombie.Stats.DestinationUpdateInterval;
         _hasDestination = false;
-        _zombie.SetStoppingDistance(_zombie.ChaseStopDistance);
-        _zombie.ResumeMoving();
-        _zombie.PlayTraceAnimation();
+        _zombie.Motor.SetStoppingDistance(_zombie.Stats.ChaseStopDistance);
+        _zombie.Motor.ResumeMoving();
+        _zombie.Anim.PlayTrace();
     }
 
     public override void Update()
@@ -28,9 +28,10 @@ public class ZombieTraceState : ZombieStateBase
             return;
         }
 
-        Vector3 playerPosition = _zombie.Player.transform.position;
+        ZombieStats stats = _zombie.Stats;
+        Vector3 playerPosition = _zombie.Target.position;
 
-        if (Vector3.Distance(_zombie.transform.position, playerPosition) <= _zombie.AttackRange)
+        if (Vector3.Distance(_zombie.transform.position, playerPosition) <= stats.AttackRange)
         {
             _zombie.ChangeState(_zombie.AttackState);
             return;
@@ -39,16 +40,16 @@ public class ZombieTraceState : ZombieStateBase
         // 경로 계산은 비싸고 자주 다시 잡으면 움직임이 끊기므로, 일정 간격마다 확인하되
         // 플레이어가 충분히 움직였을 때만 목적지를 다시 잡는다.
         _destinationTimer += Time.deltaTime;
-        if (_destinationTimer >= _zombie.DestinationUpdateInterval)
+        if (_destinationTimer >= stats.DestinationUpdateInterval)
         {
             _destinationTimer = 0f;
 
-            float repathDistance = _zombie.DestinationRepathDistance;
+            float repathDistance = stats.DestinationRepathDistance;
             bool playerMoved = (playerPosition - _lastDestination).sqrMagnitude > repathDistance * repathDistance;
 
             if (!_hasDestination || playerMoved)
             {
-                _hasDestination = _zombie.SetDestination(playerPosition);
+                _hasDestination = _zombie.Motor.SetDestination(playerPosition);
                 _lastDestination = playerPosition;
             }
         }

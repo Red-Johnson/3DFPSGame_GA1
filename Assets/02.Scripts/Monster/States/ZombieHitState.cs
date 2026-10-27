@@ -11,14 +11,14 @@ public class ZombieHitState : ZombieStateBase
     public override void Enter()
     {
         _timer = 0f;
-        _zombie.StopMoving();
-        _zombie.PlayHitAnimation();
+        _zombie.Motor.StopMoving();
+        _zombie.Anim.PlayHit();
     }
 
     public override void Update()
     {
         _timer += Time.deltaTime;
-        if (_timer >= _zombie.HitStunDuration)
+        if (_timer >= _zombie.Stats.HitStunDuration)
         {
             _zombie.ChangeState(_zombie.TraceState);
         }
