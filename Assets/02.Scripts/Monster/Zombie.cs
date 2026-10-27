@@ -35,6 +35,10 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
     [SerializeField] private int _minAvoidancePriority = 30;            // 좀비끼리 길이 막히지 않도록 회피 우선순위를 무작위로 준다.
     [SerializeField] private int _maxAvoidancePriority = 60;
 
+    [Header("점프")]
+    [SerializeField] private float _jumpDuration = 0.6f;    // NavMeshLink를 건너는 데 걸리는 시간
+    [SerializeField] private float _jumpHeight = 1.5f;      // 시작점과 도착점을 잇는 직선보다 위로 솟는 최대 높이
+
     [Header("피격/죽음")]
     [SerializeField] private float _hitStunDuration = 0.3f; // 맞고 멈칫하는 시간
     [SerializeField] private float _despawnDelay = 0.5f;    // 죽고 사라지기까지 걸리는 시간
@@ -87,6 +91,9 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
     // 좀비의 자식으로 만든 피 이펙트. 재사용되기 전에 정리한다.
     private readonly List<GameObject> _bloodSprays = new List<GameObject>();
 
+    // NavMeshLink를 건너는 중인지. 건너는 동안은 상태 Update와 피격 경직을 건너뛴다.
+    private bool _isJumping;
+
     private bool IsDead => _currentState == _deathState;
 
     private void Awake()
@@ -94,6 +101,7 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
         _agent = GetComponent<NavMeshAgent>();
         _collider = GetComponent<Collider>();
         _agent.speed = _moveSpeed;
+        _agent.autoTraverseOffMeshLink = false;     // 링크는 Jump_Coroutine에서 직접 건넌다.
 
         _idleState = new ZombieIdleState(this);
         _roamingState = new ZombieRoamingState(this);
@@ -107,6 +115,7 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
     private void OnEnable()
     {
         _health = _maxHealth;
+        _isJumping = false;     // 점프 중에 풀로 돌아갔어도 재사용될 때 초기화한다.
         _collider.enabled = true;
         _agent.enabled = true;
         _agent.avoidancePriority = UnityEngine.Random.Range(_minAvoidancePriority, _maxAvoidancePriority + 1);
@@ -171,8 +180,52 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
     private void Update()
     {
         if (GameManager.Instance.State != GameState.Playing) return;
+        if (_isJumping) return;
+
+        if (_agent.enabled && _agent.isOnNavMesh && _agent.isOnOffMeshLink)
+        {
+            StartCoroutine(Jump_Coroutine());
+            return;
+        }
 
         _currentState.Update();
+    }
+
+    // NavMeshLink의 시작점에서 도착점까지 포물선으로 뛰어 건넌다.
+    private IEnumerator Jump_Coroutine()
+    {
+        _isJumping = true;
+
+        OffMeshLinkData linkData = _agent.currentOffMeshLinkData;
+        Vector3 start = transform.position;
+        // 링크 끝점은 NavMesh 표면 위치이므로 피벗 높이(Base Offset)를 더해 준다.
+        Vector3 end = linkData.endPos + (Vector3.up * _agent.baseOffset);
+
+        FaceToward(end);
+
+        float elapsed = 0f;
+        while (elapsed < _jumpDuration)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / _jumpDuration);
+
+            // 직선 이동에 포물선(4h * t * (1 - t))을 더한다.
+            Vector3 position = Vector3.Lerp(start, end, t);
+            position.y += 4f * _jumpHeight * t * (1f - t);
+            transform.position = position;
+
+            yield return null;
+        }
+
+        transform.position = end;
+
+        // 점프 도중 죽어서 에이전트가 꺼졌다면 건넌 자리에 그대로 둔다.
+        if (_agent.enabled && _agent.isOnNavMesh)
+        {
+            _agent.CompleteOffMeshLink();
+        }
+
+        _isJumping = false;
     }
 
     // 현재 상태를 마치고 다음 상태로 넘어간다.
@@ -203,8 +256,11 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
             bloodSpray.transform.position = damageInfo.HitPoint;
             bloodSpray.transform.forward = damageInfo.HitNormal;
 
-            // 잠깐 멈칫 하고 싶다!
-            ChangeState(_hitState);
+            // 잠깐 멈칫 하고 싶다! (링크를 건너는 중에는 멈추면 경로가 꼬이므로 멈칫하지 않는다.)
+            if (!_isJumping)
+            {
+                ChangeState(_hitState);
+            }
         }
         else
         {
