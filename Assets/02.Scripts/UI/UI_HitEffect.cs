@@ -7,9 +7,11 @@ public class UI_HitEffect : MonoBehaviour
 {
     [SerializeField] private float _flashTime = 0.06f;
     [SerializeField] private float _fadeTime = 0.3f;
+    [SerializeField] private float _hitAlpha = 0.6f;    // 플레이어가 맞았을 때 화면이 붉어지는 처음 투명도
+
+    [SerializeField] private Player _player;    // 비워두면 씬에서 찾는다.
 
     private Image _image;
-    private Player _player;
 
 
     private void Awake()
@@ -20,7 +22,11 @@ public class UI_HitEffect : MonoBehaviour
 
     private void Start()
     {
-        _player = GameObject.FindAnyObjectByType<Player>();
+        if (_player == null)
+        {
+            _player = FindAnyObjectByType<Player>();
+        }
+
         if (_player != null)
         {
             _player.OnDamaged += OnPlayerDamaged;
@@ -37,7 +43,7 @@ public class UI_HitEffect : MonoBehaviour
 
     private void OnPlayerDamaged()
     {
-        Fade(0.6f);
+        Fade(_hitAlpha);
     }
 
     public void Flash(float alpha)

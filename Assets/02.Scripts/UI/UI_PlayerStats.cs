@@ -13,6 +13,8 @@ public class UI_PlayerStats : MonoBehaviour
     private void Start()
     {
         _player.OnDamaged += RefreshHealth; // OnDamaged 함수에 RefreshHealth 함수를 등록!
+
+        RefreshHealth();    // 처음 표시할 체력을 맞춘다.
     }
 
     private void OnDestroy()

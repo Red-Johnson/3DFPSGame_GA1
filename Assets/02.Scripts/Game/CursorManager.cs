@@ -11,7 +11,7 @@ public class CursorManager : MonoBehaviour
 
     private void Update()
     {
-        if (GameManager.Instance.State != GameState.Playing) return;
+        if (!GameManager.Instance.IsPlaying) return;
 
         if (Input.GetKeyDown(KeyCode.LeftAlt))
         {
