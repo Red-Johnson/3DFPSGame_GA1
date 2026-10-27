@@ -1336,7 +1336,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e4e00bf98e9a47046a1f297dd1f2bb25, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CameraRotate
-  _rotationSpeed: 200
+  _sensitivity: 3.3
 --- !u!114 &330585549
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2726,6 +2726,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameManager
   _stateText: {fileID: 659341660}
+  _readyDuration: 1.5
+  _startDuration: 0.5
 --- !u!4 &824612821
 Transform:
   m_ObjectHideFlags: 0
@@ -3660,6 +3662,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UI_HitEffect
   _flashTime: 0.06
   _fadeTime: 0.3
+  _hitAlpha: 0.6
+  _player: {fileID: 0}
 --- !u!1 &1356307824
 GameObject:
   m_ObjectHideFlags: 0
@@ -4128,7 +4132,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ea508d7809b34cf9a89460c3dcd354be, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerRotate
-  _rotationSpeed: 200
+  _sensitivity: 3.3
 --- !u!114 &1620558213
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4147,7 +4151,6 @@ MonoBehaviour:
   _staminaRecovery: 15
   _sprintCost: 20
   _jumpCost: 20
-  _characterController: {fileID: 0}
 --- !u!143 &1620558214
 CharacterController:
   m_ObjectHideFlags: 0
@@ -4186,15 +4189,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerGunFire
   _hitEffectPrefab: {fileID: 19800002, guid: 54dd9cb5740188a488b8baebbf19207c, type: 3}
-  _muzzle: {fileID: 0}
-  _tracerOriginOffset: {x: 0.3, y: -0.2, z: 0.5}
-  _tracerMaterial: {fileID: 0}
-  _tracerColor: {r: 1, g: 0.25, b: 0.2, a: 1}
-  _tracerWidth: 0.05
-  _tracerSpeed: 200
-  _tracerLength: 5
-  _maxBulletCount: 30
-  _reloadingTime: 3
+  _tracer:
+    _muzzle: {fileID: 0}
+    _originOffset: {x: 0.3, y: -0.2, z: 0.5}
+    _material: {fileID: 0}
+    _color: {r: 1, g: 0.25, b: 0.2, a: 1}
+    _width: 0.05
+    _speed: 200
+    _length: 5
+  _maxBulletCount: 60
+  _reloadingTime: 1
   _range: 100
   _damage: 10
   _fireInterval: 0.1
