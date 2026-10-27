@@ -21,15 +21,36 @@ public class PlayerGunFire : MonoBehaviour
     private int _bulletCount = 0;
     private Coroutine _reloadCoroutine = null;
     private Camera _camera;
+    private PlayerBombFire _bombFire;
+
+    private bool IsReloading => _reloadCoroutine != null;
 
 
     private void Awake()
     {
         _camera = Camera.main;
+        _bombFire = GetComponent<PlayerBombFire>();
 
         // 직렬화 데이터가 없는 오래된 씬에서도 동작하도록 한다.
         _tracer ??= new BulletTracerSpawner();
         _tracer.Init();
+    }
+
+    // 재장전은 폭탄을 던지거나(잔탄과 무관), 잔탄이 있는 상태에서 발사하면 취소된다.
+    private void OnEnable()
+    {
+        if (_bombFire != null)
+        {
+            _bombFire.OnBombThrown += CancelReload;
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (_bombFire != null)
+        {
+            _bombFire.OnBombThrown -= CancelReload;
+        }
     }
 
     private void Start()
@@ -46,28 +67,33 @@ public class PlayerGunFire : MonoBehaviour
         _fireTimer -= Time.deltaTime;
 
         // 1. 마우스 왼쪽 버튼 입력 받기 (커서가 풀려 있는 동안은 GameInput이 입력 없음으로 돌려준다.)
+        // 잔탄이 있으면 재장전 중에도 쏠 수 있고, 쏘면 재장전이 취소된다.
+        // 잔탄이 없으면 쏠 수 없으므로(빈 탄창으로 시작한 재장전 포함) 발사 시도로는 재장전이 취소되지 않는다.
         if (GameInput.FireHeld && _fireTimer <= 0f && _bulletCount > 0)
         {
+            CancelReload();
+
             _bulletCount--;
             _fireTimer = _fireInterval;
             Shoot();
-
-            // 이 방식은: 이 모노비헤이비어가 등록한 모든 코루틴을 실행 취소
-            // StopAllCoroutines();
-
-            if(_reloadCoroutine != null)
-            {
-                StopCoroutine(_reloadCoroutine);
-                GameLogger.Log("재장전 취소!");
-                _reloadCoroutine = null;
-            }
         }
 
-        // 2. R키 누르면 총알 재장전 시작
-        if (GameInput.ReloadPressed && _reloadCoroutine == null)
+        // 2. R키 누르면 총알 재장전 시작 (탄창이 가득 차 있거나 이미 재장전 중이면 시작하지 않는다.)
+        if (GameInput.ReloadPressed && !IsReloading && _bulletCount < _maxBulletCount)
         {
             _reloadCoroutine = StartCoroutine(Reloading_Coroutine());
         }
+    }
+
+    // 진행 중인 재장전을 취소한다. 재장전 중이 아니면 아무 일도 없다.
+    private void CancelReload()
+    {
+        if (!IsReloading) return;
+
+        StopCoroutine(_reloadCoroutine);
+        _reloadCoroutine = null;
+
+        GameLogger.Log("재장전 취소!");
     }
 
     private IEnumerator Reloading_Coroutine()

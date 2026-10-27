@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 // G키를 누르면 시선이 바라보는 방향으로 수류탄을 던지고 싶다.
@@ -12,6 +13,9 @@ public class PlayerBombFire : MonoBehaviour
 
     private PrefabPool<Bomb> _bombPool;
     private Camera _camera;
+
+    // 폭탄을 던지면 구독자(총기의 재장전 취소 등)에게 알린다.
+    public event Action OnBombThrown;
 
     private void Awake()
     {
@@ -36,6 +40,8 @@ public class PlayerBombFire : MonoBehaviour
 
         // 3. 꺼낸 수류탄을 시선 방향으로 던지기
         bomb.Launch(_camera.transform.forward * _throwPower);
+
+        OnBombThrown?.Invoke();
     }
 
 }
