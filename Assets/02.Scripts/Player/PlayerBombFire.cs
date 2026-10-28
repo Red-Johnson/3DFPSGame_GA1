@@ -14,11 +14,15 @@ public class PlayerBombFire : MonoBehaviour
     private PrefabPool<Bomb> _bombPool;
     private Camera _camera;
 
+    private const string ThrowParameter = "Throw";
+    private Animator _animator;
+
     // 폭탄을 던지면 구독자(총기의 재장전 취소 등)에게 알린다.
     public event Action OnBombThrown;
 
     private void Awake()
     {
+        _animator = GetComponentInChildren<Animator>();
         _camera = Camera.main;
         _bombPool = new PrefabPool<Bomb>(_bombPrefab, "BombPool", BombPoolDefaultCapacity, BombPoolMaxSize);
     }
@@ -41,7 +45,12 @@ public class PlayerBombFire : MonoBehaviour
         // 3. 꺼낸 수류탄을 시선 방향으로 던지기
         bomb.Launch(_camera.transform.forward * _throwPower);
 
-        OnBombThrown?.Invoke();
+        if (_animator != null)
+        {
+            _animator.SetTrigger(ThrowParameter);
+        }
+
+    OnBombThrown?.Invoke();
     }
 
 }

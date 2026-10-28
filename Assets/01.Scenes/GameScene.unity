@@ -5286,6 +5286,17 @@ PrefabInstance:
       propertyPath: m_Controller
       value: 
       objectReference: {fileID: 9100000, guid: 4510152b080c5174584c10234b96b777, type: 2}
+    - target: {fileID: 9500000, guid: fcb334eb247ae3e488abb081c847cf09, type: 3}
+      propertyPath: m_WarningMessage
+      value: "\nBinding warning: Some generic clip(s) animate transforms that are
+        already bound by a Humanoid avatar. These transforms can only be changed
+        by Humanoid clips.\n\tTransform 'Bip001 L Hand'\n\tTransform 'Bip001 R Foot'\n\tTransform
+        'Bip001 R Finger0'\n\tTransform 'Bip001 R Toe0'\n\tTransform 'Bip001 Head'\n\tTransform
+        'Bip001 Spine1'\n\tTransform 'Bip001 R UpperArm'\n\tTransform 'Bip001 R Calf'\n\tTransform
+        'Bip001 L UpperArm'\n\tTransform 'Bip001 L Forearm'\n\tand more ...\n\tFrom
+        animation clip 'demo_combat_idle'\n\tFrom animation clip 'demo_combat_run'\n\tFrom
+        animation clip 'demo_combat_shoot'"
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
