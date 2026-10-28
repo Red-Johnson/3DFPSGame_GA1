@@ -26,6 +26,10 @@ public class PlayerGunFire : MonoBehaviour
 
     private bool IsReloading => _reloadCoroutine != null;
 
+    // 폭탄을 충전하거나 던지는 모션이 재생되는 동안은 쏠 수 없다. 재장전은 충전 중에만 막는다.
+    private bool IsFireBlockedByBomb => _bombFire != null && (_bombFire.IsCharging || _bombFire.IsThrowing);
+    private bool IsReloadBlockedByBomb => _bombFire != null && _bombFire.IsCharging;
+
 
     private void Awake()
     {
@@ -38,12 +42,12 @@ public class PlayerGunFire : MonoBehaviour
         _tracer.Init();
     }
 
-    // 재장전은 폭탄을 던지거나(잔탄과 무관), 잔탄이 있는 상태에서 발사하면 취소된다.
+    // 재장전은 폭탄 충전을 시작하거나(잔탄과 무관), 잔탄이 있는 상태에서 발사하면 취소된다.
     private void OnEnable()
     {
         if (_bombFire != null)
         {
-            _bombFire.OnBombThrown += CancelReload;
+            _bombFire.OnChargeStarted += CancelReload;
         }
     }
 
@@ -51,7 +55,7 @@ public class PlayerGunFire : MonoBehaviour
     {
         if (_bombFire != null)
         {
-            _bombFire.OnBombThrown -= CancelReload;
+            _bombFire.OnChargeStarted -= CancelReload;
         }
     }
 
@@ -71,7 +75,8 @@ public class PlayerGunFire : MonoBehaviour
         // 1. 마우스 왼쪽 버튼 입력 받기 (커서가 풀려 있는 동안은 GameInput이 입력 없음으로 돌려준다.)
         // 잔탄이 있으면 재장전 중에도 쏠 수 있고, 쏘면 재장전이 취소된다.
         // 잔탄이 없으면 쏠 수 없으므로(빈 탄창으로 시작한 재장전 포함) 발사 시도로는 재장전이 취소되지 않는다.
-        if (GameInput.FireHeld && _fireTimer <= 0f && _bulletCount > 0)
+        // 폭탄을 충전하거나 던지는 모션이 재생되는 동안은 쏠 수 없다.
+        if (GameInput.FireHeld && _fireTimer <= 0f && _bulletCount > 0 && !IsFireBlockedByBomb)
         {
             CancelReload();
 
@@ -85,8 +90,8 @@ public class PlayerGunFire : MonoBehaviour
             _animator.SetBool("Fire", false);
         }
 
-        // 2. R키 누르면 총알 재장전 시작 (탄창이 가득 차 있거나 이미 재장전 중이면 시작하지 않는다.)
-        if (GameInput.ReloadPressed && !IsReloading && _bulletCount < _maxBulletCount)
+        // 2. R키 누르면 총알 재장전 시작 (탄창이 가득 차 있거나 이미 재장전 중이거나 폭탄을 충전 중이면 시작하지 않는다.)
+        if (GameInput.ReloadPressed && !IsReloading && _bulletCount < _maxBulletCount && !IsReloadBlockedByBomb)
         {
             _reloadCoroutine = StartCoroutine(Reloading_Coroutine());
         }

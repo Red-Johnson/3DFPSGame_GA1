@@ -18,6 +18,8 @@ public static class GameInput
 
     public static bool FireHeld => CanShoot && Input.GetButton("Fire1");
     public static bool BombPressed => CanShoot && Input.GetKeyDown(BombKey);
+    public static bool BombHeld => CanShoot && Input.GetKey(BombKey);
+    public static bool BombReleased => CanShoot && Input.GetKeyUp(BombKey);
 
     private static bool IsPlaying => GameManager.Instance != null && GameManager.Instance.IsPlaying;
 
