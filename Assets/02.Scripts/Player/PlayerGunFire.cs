@@ -5,8 +5,6 @@ using UnityEngine;
 // 마우스 왼쪽 버튼을 누르면 바라보는 방향으로 총알을 발사하고 싶다.
 public class PlayerGunFire : MonoBehaviour
 {
-    private const string FireParameter = "Fire";    // 애니메이터의 사격 중 파라미터
-
     [SerializeField] private ParticleSystem _hitEffectPrefab;
 
     [Header("총알 궤적")]
@@ -34,12 +32,6 @@ public class PlayerGunFire : MonoBehaviour
         _camera = Camera.main;
         _bombFire = GetComponent<PlayerBombFire>();
         _animator = GetComponentInChildren<Animator>();
-
-        // 사격 중 상체 조준 보정을 모델에 붙인다. (OnAnimatorIK는 Animator가 있는 오브젝트에서만 불린다.)
-        if (_animator != null && _animator.GetComponent<PlayerAimIK>() == null)
-        {
-            _animator.gameObject.AddComponent<PlayerAimIK>();
-        }
 
         // 직렬화 데이터가 없는 오래된 씬에서도 동작하도록 한다.
         _tracer ??= new BulletTracerSpawner();
@@ -71,12 +63,7 @@ public class PlayerGunFire : MonoBehaviour
 
     private void Update()
     {
-        if (!GameManager.Instance.IsPlaying)
-        {
-            // 게임이 끝났을 때 사격 모션이 켜진 채 남지 않게 한다.
-            SetFireAnimation(false);
-            return;
-        }
+        if (!GameManager.Instance.IsPlaying) return;
 
         // 0. 발사 타이머를 지난 시간만큼 줄인다.
         _fireTimer -= Time.deltaTime;
@@ -84,19 +71,18 @@ public class PlayerGunFire : MonoBehaviour
         // 1. 마우스 왼쪽 버튼 입력 받기 (커서가 풀려 있는 동안은 GameInput이 입력 없음으로 돌려준다.)
         // 잔탄이 있으면 재장전 중에도 쏠 수 있고, 쏘면 재장전이 취소된다.
         // 잔탄이 없으면 쏠 수 없으므로(빈 탄창으로 시작한 재장전 포함) 발사 시도로는 재장전이 취소되지 않는다.
-        bool isFiring = GameInput.FireHeld && _bulletCount > 0;
-
-        // 발사 버튼을 누르고 잔탄이 있는 동안은 사격 모션을 유지한다.
-        // (발사한 프레임에만 켜면 사격 포즈로 들어갔다 나오기를 반복해 총이 흔들린다.)
-        SetFireAnimation(isFiring);
-
-        if (isFiring && _fireTimer <= 0f)
+        if (GameInput.FireHeld && _fireTimer <= 0f && _bulletCount > 0)
         {
             CancelReload();
 
             _bulletCount--;
             _fireTimer = _fireInterval;
             Shoot();
+            _animator.SetBool("Fire", true);
+        }
+        else
+        {
+            _animator.SetBool("Fire", false);
         }
 
         // 2. R키 누르면 총알 재장전 시작 (탄창이 가득 차 있거나 이미 재장전 중이면 시작하지 않는다.)
@@ -104,13 +90,6 @@ public class PlayerGunFire : MonoBehaviour
         {
             _reloadCoroutine = StartCoroutine(Reloading_Coroutine());
         }
-    }
-
-    private void SetFireAnimation(bool isFiring)
-    {
-        if (_animator == null) return;
-
-        _animator.SetBool(FireParameter, isFiring);
     }
 
     // 진행 중인 재장전을 취소한다. 재장전 중이 아니면 아무 일도 없다.
