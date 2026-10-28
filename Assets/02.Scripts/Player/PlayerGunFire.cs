@@ -22,6 +22,7 @@ public class PlayerGunFire : MonoBehaviour
     private Coroutine _reloadCoroutine = null;
     private Camera _camera;
     private PlayerBombFire _bombFire;
+    private Animator _animator;
 
     private bool IsReloading => _reloadCoroutine != null;
 
@@ -30,6 +31,7 @@ public class PlayerGunFire : MonoBehaviour
     {
         _camera = Camera.main;
         _bombFire = GetComponent<PlayerBombFire>();
+        _animator = GetComponentInChildren<Animator>();
 
         // 직렬화 데이터가 없는 오래된 씬에서도 동작하도록 한다.
         _tracer ??= new BulletTracerSpawner();
@@ -76,6 +78,10 @@ public class PlayerGunFire : MonoBehaviour
             _bulletCount--;
             _fireTimer = _fireInterval;
             Shoot();
+            if (_animator.GetFloat("MoveMotion") == 0f)
+            {
+                _animator.SetTrigger("Attack");
+            }
         }
 
         // 2. R키 누르면 총알 재장전 시작 (탄창이 가득 차 있거나 이미 재장전 중이면 시작하지 않는다.)

@@ -10,6 +10,7 @@ public class PlayerMove : MonoBehaviour
     private float _yVelocity = 0f;  // 위아래 속도, 매 프레임마다 중력 가속도가 붙는다.
     private int   _jumpCount = 0;   // 점프 횟수
     private float _stamina = 0f;
+    private Animator _animator;
 
     public float Stamina => _stamina;
 
@@ -27,6 +28,7 @@ public class PlayerMove : MonoBehaviour
     {
         _characterController = GetComponent<CharacterController>();
         _stamina = MaxStamina;
+        _animator = GetComponentInChildren<Animator>();
     }
 
     private void Update()
@@ -43,6 +45,8 @@ public class PlayerMove : MonoBehaviour
         Vector3 direction = new Vector3(moveInput.x, 0, moveInput.y);
         direction.Normalize(); // 대각선이어도 방향의 길이 1로 바꾸기 위해
         // 캐릭터의 회전 방향을 기준으로 로컬 방향 벡터를 월드 방향 벡터로 변환한다.
+
+        _animator.SetFloat("MoveMotion", direction.magnitude);
         direction = transform.TransformDirection(direction);
         // 로컬 좌표계: 한 대상을 중심
         // 월드 좌표계: 세상을 중심

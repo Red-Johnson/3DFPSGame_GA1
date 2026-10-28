@@ -23,6 +23,7 @@ public class GameManager : MonoBehaviour
     public event Action<GameState> OnStateChanged;
 
     [SerializeField] private TextMeshProUGUI _stateText;
+    [SerializeField] private Animator _playerAnimator;
 
     [Header("시작 연출")]
     [SerializeField] private float _readyDuration = 1.5f;   // "준비" 표시 시간
@@ -82,6 +83,8 @@ public class GameManager : MonoBehaviour
         _stateText.gameObject.SetActive(true);
         _stateText.text = "게임오버";
         _stateText.color = Color.red;
+
+        _playerAnimator.SetFloat("MoveMotion", 0f);
     }
 
     private void SetState(GameState state)
