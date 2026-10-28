@@ -140,7 +140,7 @@ Rigidbody:
   m_IsKinematic: 0
   m_Interpolate: 0
   m_Constraints: 0
-  m_CollisionDetection: 0
+  m_CollisionDetection: 2
 --- !u!114 &64837993550276244
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -154,3 +154,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Bomb
   _explosionEffectPrefab: {fileID: 19800006, guid: 8a4aceaf2957c044480166b429f4c7d0, type: 3}
+  _explosionRange: 4.5
+  _damage: 100
