@@ -22,13 +22,13 @@ public class SpawnerManager : MonoBehaviour
 
     [Header("위치 판정")]
     [SerializeField] private Renderer _ground;                  // 비워두면 Map 아래의 Ground를 찾는다.
+    [SerializeField] private Transform _player;                 // 비워두면 Player 태그로 찾는다.
     [SerializeField] private float _navMeshSampleDistance = 2f; // NavMesh 위치 보정 최대 거리
 
     private const int ZombiePoolDefaultCapacity = 10;
 
     private readonly List<ZombieSpawner> _spawners = new List<ZombieSpawner>();
     private PrefabPool<Zombie> _zombiePool;
-    private Transform _player;
 
     private void Start()
     {
@@ -38,6 +38,7 @@ public class SpawnerManager : MonoBehaviour
         if (_ground == null)
         {
             _ground = FindGround();
+            GameLogger.LogWarning("[SpawnerManager] _ground가 연결되지 않아 씬에서 찾았습니다. 인스펙터에서 연결하세요.");
         }
 
         // Ground를 못 찾으면 스포너 위치를 정할 수 없으니, 오류를 남기고 멈춘다.
@@ -48,7 +49,11 @@ public class SpawnerManager : MonoBehaviour
             return;
         }
 
-        _player = GameObject.FindGameObjectWithTag("Player").transform;
+        if (_player == null)
+        {
+            _player = GameObject.FindGameObjectWithTag("Player").transform;
+            GameLogger.LogWarning("[SpawnerManager] _player가 연결되지 않아 Player 태그로 찾았습니다. 인스펙터에서 연결하세요.");
+        }
 
         StartCoroutine(SpawnerCreate_Coroutine());
     }

@@ -4,6 +4,7 @@ using UnityEngine;
 
 // 좀비 수 관리자: 살아 있는 좀비를 등록해서 세고, 수가 바뀔 때마다 구독자(UI 등)에게 알린다.
 // 좀비는 미리 배치되었든 스포너가 만들었든(풀에서 꺼냈든) 활성화될 때 Register, 죽거나 꺼질 때 Unregister를 호출한다.
+[DefaultExecutionOrder(-100)]   // 다른 컴포넌트가 OnEnable에서 Instance를 써도 되도록 가장 먼저 초기화한다.
 public class ZombieManager : MonoBehaviour
 {
     private static ZombieManager _instance = null;

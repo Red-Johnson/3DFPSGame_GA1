@@ -6,19 +6,24 @@ public class UI_ZombieCount : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI _countText;
 
-    private void Start()
+    // ZombieManager는 DefaultExecutionOrder(-100)으로 먼저 초기화되므로 OnEnable에서 Instance를 써도 된다.
+    private void OnEnable()
     {
         ZombieManager.Instance.OnCountChanged += Refresh;
-
-        Refresh(ZombieManager.Instance.AliveCount, ZombieManager.Instance.MaxCount);
     }
 
-    private void OnDestroy()
+    private void OnDisable()
     {
         if (ZombieManager.Instance != null)
         {
             ZombieManager.Instance.OnCountChanged -= Refresh;
         }
+    }
+
+    private void Start()
+    {
+        // 모든 컴포넌트의 Awake가 끝난 뒤 한 번 갱신해서, 처음부터 정확한 값을 보여 준다.
+        Refresh(ZombieManager.Instance.AliveCount, ZombieManager.Instance.MaxCount);
     }
 
     private void Refresh(int aliveCount, int maxCount)

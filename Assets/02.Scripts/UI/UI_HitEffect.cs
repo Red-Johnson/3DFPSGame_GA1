@@ -20,11 +20,12 @@ public class UI_HitEffect : MonoBehaviour
         _image.enabled = false;
     }
 
-    private void Start()
+    private void OnEnable()
     {
         if (_player == null)
         {
             _player = FindAnyObjectByType<Player>();
+            GameLogger.LogWarning("[UI_HitEffect] _player가 연결되지 않아 씬에서 찾았습니다. 인스펙터에서 연결하세요.");
         }
 
         if (_player != null)
@@ -33,7 +34,7 @@ public class UI_HitEffect : MonoBehaviour
         }
     }
 
-    private void OnDestroy()
+    private void OnDisable()
     {
         if (_player != null)
         {

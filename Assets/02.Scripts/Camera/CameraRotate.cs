@@ -9,13 +9,17 @@ public class CameraRotate : MonoBehaviour
     private const float MaxPitch = 90f;     // 위아래로 볼 수 있는 최대 각도
 
     [SerializeField] private float _sensitivity = 3.3f;     // 마우스 한 칸당 회전 각도
+    [SerializeField] private PlayerRotate _playerRotate;    // 비워두면 씬에서 찾는다.
 
-    private PlayerRotate _playerRotate;
     private float _pitch = 0f; // 위아래 회전 각도
 
     private void Awake()
     {
-        _playerRotate = FindAnyObjectByType<PlayerRotate>();
+        if (_playerRotate == null)
+        {
+            _playerRotate = FindAnyObjectByType<PlayerRotate>();
+            GameLogger.LogWarning("[CameraRotate] _playerRotate가 연결되지 않아 씬에서 찾았습니다. 인스펙터에서 연결하세요.");
+        }
     }
 
     private void Update()
