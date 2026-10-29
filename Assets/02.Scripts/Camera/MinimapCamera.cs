@@ -13,8 +13,6 @@ public class MinimapCamera : MonoBehaviour
     [SerializeField] private float _zoomStep = 2f;
     [SerializeField] private float _minSize = 4f;
     [SerializeField] private float _maxSize = 16f;
-    [SerializeField] private KeyCode _zoomInKey = KeyCode.Alpha0;
-    [SerializeField] private KeyCode _zoomOutKey = KeyCode.Alpha9;
 
 
     private void Awake()
@@ -25,11 +23,11 @@ public class MinimapCamera : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetKeyDown(_zoomInKey))
+        if (GameInput.MinimapZoomInPressed)
         {
             ZoomIn();
         }
-        else if (Input.GetKeyDown(_zoomOutKey))
+        else if (GameInput.MinimapZoomOutPressed)
         {
             ZoomOut();
         }

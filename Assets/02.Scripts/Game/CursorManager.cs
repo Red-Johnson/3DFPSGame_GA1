@@ -11,13 +11,12 @@ public class CursorManager : MonoBehaviour
 
     private void Update()
     {
-        if (!GameManager.Instance.IsPlaying) return;
-
-        if (Input.GetKeyDown(KeyCode.LeftAlt))
+        // 게임이 진행 중이 아니면 GameInput이 입력 없음으로 돌려준다.
+        if (GameInput.CursorUnlockPressed)
         {
             UnlockCursor();
         }
-        else if (Input.GetKeyUp(KeyCode.LeftAlt))
+        else if (GameInput.CursorUnlockReleased)
         {
             LockCursor();
         }
