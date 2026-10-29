@@ -7,6 +7,8 @@ public class PlayerWeaponMode : MonoBehaviour
     private WeaponMode _mode = WeaponMode.Normal;
     public WeaponMode Mode => _mode;
 
+    public event System.Action<WeaponMode> OnModeChanged;
+
     private void Start()
     {
         ShowMode();
@@ -29,9 +31,10 @@ public class PlayerWeaponMode : MonoBehaviour
     {
         _mode = mode;
         ShowMode();
+        OnModeChanged?.Invoke(mode);
         Debug.Log($"무기 모드: {mode}");
     }
-    
+
     private void ShowMode()
     {
         switch (_mode)
@@ -42,7 +45,7 @@ public class PlayerWeaponMode : MonoBehaviour
             case WeaponMode.Sniper:
                 _modeText.text = "저격 모드";
                 break;
-                
+
         }
     }
 }

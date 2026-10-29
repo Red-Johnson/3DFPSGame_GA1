@@ -26,6 +26,10 @@ public class PlayerGunFire : MonoBehaviour
 
     private bool IsReloading => _reloadCoroutine != null;
 
+    public int BulletCount => _bulletCount;
+    public int MaxBulletCount => _maxBulletCount;
+    public event System.Action<int, int> OnBulletChanged;
+
     // 폭탄을 충전하거나 던지는 모션이 재생되는 동안은 쏠 수 없다. 재장전은 충전 중에만 막는다.
     private bool IsFireBlockedByBomb => _bombFire != null && (_bombFire.IsCharging || _bombFire.IsThrowing);
     private bool IsReloadBlockedByBomb => _bombFire != null && _bombFire.IsCharging;
@@ -36,6 +40,9 @@ public class PlayerGunFire : MonoBehaviour
         _camera = Camera.main;
         _bombFire = GetComponent<PlayerBombFire>();
         _animator = GetComponentInChildren<Animator>();
+
+        // UI가 Start에서 총알 수를 읽어도 되도록 Awake에서 채운다. (Start 실행 순서에 의존하지 않는다.)
+        _bulletCount = _maxBulletCount;
 
         // 직렬화 데이터가 없는 오래된 씬에서도 동작하도록 한다.
         _tracer ??= new BulletTracerSpawner();
@@ -59,12 +66,6 @@ public class PlayerGunFire : MonoBehaviour
         }
     }
 
-    private void Start()
-    {
-        _bulletCount = _maxBulletCount;
-    }
-
-
     private void Update()
     {
         if (!GameManager.Instance.IsPlaying) return;
@@ -81,6 +82,7 @@ public class PlayerGunFire : MonoBehaviour
             CancelReload();
 
             _bulletCount--;
+            OnBulletChanged?.Invoke(_bulletCount, _maxBulletCount);
             _fireTimer = _fireInterval;
             Shoot();
             _animator.SetBool("Fire", true);
@@ -115,6 +117,7 @@ public class PlayerGunFire : MonoBehaviour
         yield return new WaitForSeconds(_reloadingTime);
 
         _bulletCount = _maxBulletCount;
+        OnBulletChanged?.Invoke(_bulletCount, _maxBulletCount);
 
         GameLogger.Log("재장전 완료!");
         _reloadCoroutine = null;

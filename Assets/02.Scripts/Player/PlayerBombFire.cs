@@ -44,11 +44,14 @@ public class PlayerBombFire : MonoBehaviour
     [Header("던지는 모션")]
     [SerializeField] private float _releaseAnimationSpeed = 3f;     // 버튼을 뗀 뒤 던지는 모션의 재생 배속. 클수록 모션이 빨리 끝나 사격이 빨리 풀린다.
 
+    [SerializeField] private int _maxBombCount = 6;
+
     private PrefabPool<Bomb> _bombPool;
     private Camera _camera;
     private Animator _animator;
     private PlayerWeaponMode _weaponMode;
     private int _throwLayerIndex = -1;
+    private int _bombCount;
 
     private Phase _phase = Phase.Idle;
     private float _chargeTime;      // 버튼을 누르고 있던 시간
@@ -64,6 +67,9 @@ public class PlayerBombFire : MonoBehaviour
 
     // 폭탄 충전을 시작하면 구독자(총기의 재장전 취소 등)에게 알린다.
     public event Action OnChargeStarted;
+
+    public int BombCount => _bombCount;
+    public event System.Action<int> OnBombChanged;
 
     private void Awake()
     {
@@ -85,6 +91,8 @@ public class PlayerBombFire : MonoBehaviour
                 GameLogger.LogError($"[PlayerBombFire] 애니메이터에 '{ThrowLayerName}' 레이어가 없어 던지는 모션 없이 던집니다.");
             }
         }
+
+        _bombCount = _maxBombCount;
     }
 
     private void OnValidate()
@@ -112,7 +120,7 @@ public class PlayerBombFire : MonoBehaviour
             case Phase.Idle:
                 // 버튼을 누르면 충전을 시작한다. (커서가 풀려 있으면 GameInput이 입력 없음으로 돌려준다.)
                 // 무기 모드가 Normal이 아니면 눌러도 시작하지 않는다.
-                if (CanThrowInCurrentMode && GameInput.BombPressed)
+                if (CanThrowInCurrentMode && GameInput.BombPressed && _bombCount > 0)
                 {
                     StartCharge();
                 }
@@ -184,6 +192,9 @@ public class PlayerBombFire : MonoBehaviour
             _phase = Phase.Idle;
             return;
         }
+
+        _bombCount--;
+        OnBombChanged?.Invoke(_bombCount);
 
         // 모션이 끝날 때까지는 사격과 다음 던지기가 막힌다. 빨리 풀리도록 배속으로 재생한다.
         _phase = Phase.Throwing;
