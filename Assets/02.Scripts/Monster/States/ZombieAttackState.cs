@@ -59,12 +59,10 @@ public class ZombieAttackState : ZombieStateBase
 
         Vector3 targetPosition = _zombie.Target.position;
 
-        DamageInfo info = new DamageInfo()
-        {
-            Value = _zombie.Stats.AttackDamage,
-            HitPoint = targetPosition,
-            HitNormal = (_zombie.transform.position - targetPosition).normalized,
-        };
+        DamageInfo info = new DamageInfo(
+            _zombie.Stats.AttackDamage,
+            targetPosition,
+            (_zombie.transform.position - targetPosition).normalized);
 
         _zombie.TargetDamageable.TakeDamage(info);
     }

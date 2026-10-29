@@ -8,7 +8,7 @@ public class CameraFollow : MonoBehaviour
     {
         if (_target == null)
         {
-            Debug.LogWarning("[CameraFollow] 카메라 타겟이 없습니다!!");
+            GameLogger.LogWarning("[CameraFollow] 카메라 타겟이 없습니다!!");
         }
     }
 

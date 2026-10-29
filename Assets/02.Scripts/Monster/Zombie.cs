@@ -278,7 +278,7 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
         if (_fallbackStats == null)
         {
             _fallbackStats = ScriptableObject.CreateInstance<ZombieStats>();
-            Debug.LogWarning("[Zombie] ZombieStats가 연결되지 않아 기본값을 사용합니다. 좀비 프리팹에 ZombieStats 에셋을 연결하세요.");
+            GameLogger.LogWarning("[Zombie] ZombieStats가 연결되지 않아 기본값을 사용합니다. 좀비 프리팹에 ZombieStats 에셋을 연결하세요.");
         }
 
         return _fallbackStats;

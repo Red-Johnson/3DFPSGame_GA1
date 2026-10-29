@@ -12,12 +12,7 @@ public static class ExplosionDamage
         {
             Vector3 closestPoint = col.ClosestPoint(center);   // 폭발 중심에서 가장 가까운 콜라이더 표면 위치
 
-            DamageInfo damageInfo = new DamageInfo()
-            {
-                Value = damage,
-                HitPoint = closestPoint,
-                HitNormal = (center - closestPoint).normalized
-            };
+            DamageInfo damageInfo = new DamageInfo(damage, closestPoint, (center - closestPoint).normalized);
 
             col.GetComponent<IDamageable>()?.TakeDamage(damageInfo);
         }
