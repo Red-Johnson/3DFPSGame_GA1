@@ -1,9 +1,9 @@
 using System;
 using UnityEngine;
 
-// G키를 누르고 있으면 폭탄을 들고 충전하고, 떼는 즉시 충전한 만큼 세게 던진다.
+// 마우스 오른쪽 버튼을 누르고 있으면 폭탄을 들고 충전하고, 떼는 즉시 충전한 만큼 세게 던진다.
 // 던지는 모션(Throw Layer, 상체만)은 누르면 첫 자세에서 멈춘 채 시작하고, 떼면 이어서 재생된다.
-// 폭탄은 모션이 끝나길 기다리지 않고 G를 떼자마자 손을 떠난다.
+// 폭탄은 모션이 끝나길 기다리지 않고 버튼을 떼자마자 손을 떠난다.
 public class PlayerBombFire : MonoBehaviour
 {
     private const int BombPoolDefaultCapacity = 5;
@@ -25,8 +25,8 @@ public class PlayerBombFire : MonoBehaviour
     private enum Phase
     {
         Idle,       // 던질 수 있는 상태
-        Charging,   // G를 누르고 충전 중
-        Throwing,   // G를 떼서 폭탄은 나갔고, 던지는 모션이 끝날 때까지
+        Charging,   // 버튼을 누르고 충전 중
+        Throwing,   // 버튼을 떼서 폭탄은 나갔고, 던지는 모션이 끝날 때까지
     }
 
     [SerializeField] private Transform _firePoint;
@@ -39,7 +39,7 @@ public class PlayerBombFire : MonoBehaviour
     [SerializeField] private AnimationCurve _chargeCurve = AnimationCurve.Linear(0f, 0f, 1f, 1f);   // 충전 정도(0~1)에 따른 힘의 증가 모양
 
     [Header("던지는 모션")]
-    [SerializeField] private float _releaseAnimationSpeed = 3f;     // G를 뗀 뒤 던지는 모션의 재생 배속. 클수록 모션이 빨리 끝나 사격이 빨리 풀린다.
+    [SerializeField] private float _releaseAnimationSpeed = 3f;     // 버튼을 뗀 뒤 던지는 모션의 재생 배속. 클수록 모션이 빨리 끝나 사격이 빨리 풀린다.
 
     private PrefabPool<Bomb> _bombPool;
     private Camera _camera;
@@ -47,7 +47,7 @@ public class PlayerBombFire : MonoBehaviour
     private int _throwLayerIndex = -1;
 
     private Phase _phase = Phase.Idle;
-    private float _chargeTime;      // G를 누르고 있던 시간
+    private float _chargeTime;      // 버튼을 누르고 있던 시간
 
     public bool IsCharging => _phase == Phase.Charging;
     public bool IsThrowing => _phase == Phase.Throwing;
@@ -97,7 +97,7 @@ public class PlayerBombFire : MonoBehaviour
         switch (_phase)
         {
             case Phase.Idle:
-                // G를 누르면 충전을 시작한다. (커서가 풀려 있으면 GameInput이 입력 없음으로 돌려준다.)
+                // 버튼을 누르면 충전을 시작한다. (커서가 풀려 있으면 GameInput이 입력 없음으로 돌려준다.)
                 if (GameInput.BombPressed)
                 {
                     StartCharge();
@@ -118,7 +118,7 @@ public class PlayerBombFire : MonoBehaviour
         }
     }
 
-    // G를 누른 순간: 충전을 시작하고, 던지는 모션의 첫 자세에서 멈춘 채 시작한다.
+    // 버튼을 누른 순간: 충전을 시작하고, 던지는 모션의 첫 자세에서 멈춘 채 시작한다.
     private void StartCharge()
     {
         _phase = Phase.Charging;
@@ -136,7 +136,7 @@ public class PlayerBombFire : MonoBehaviour
 
     private void UpdateCharging()
     {
-        // G를 뗐다: 그 즉시 충전한 만큼의 힘으로 던진다.
+        // 버튼을 뗐다: 그 즉시 충전한 만큼의 힘으로 던진다.
         if (GameInput.BombReleased)
         {
             ReleaseBomb();
@@ -153,7 +153,7 @@ public class PlayerBombFire : MonoBehaviour
         _chargeTime = Mathf.Min(_chargeTime + Time.deltaTime, _maxChargeTime);
     }
 
-    // G를 뗀 순간: 폭탄을 바로 던지고, 멈춰 있던 던지는 모션을 이어서 재생한다.
+    // 버튼을 뗀 순간: 폭탄을 바로 던지고, 멈춰 있던 던지는 모션을 이어서 재생한다.
     private void ReleaseBomb()
     {
         SpawnBomb(EvaluateThrowPower());

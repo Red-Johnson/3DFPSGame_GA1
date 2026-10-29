@@ -19,7 +19,7 @@ Unity 6 (에디터 버전 `6000.3.22f1`)와 C#으로 만드는 3D FPS 게임이�
 - **풀링과 이펙트:** `PrefabPool<T>`가 오브젝트를 재사용한다. 파티클 이펙트는 `EffectPool.For(prefab).Play(...)`로 꺼내 쓰고, `PooledEffect`가 재생이 끝나면 스스로 돌아간다. 자주 터지는 이펙트(총알 자국, 폭발)의 `Instantiate`/`Destroy` 반복을 줄이려고 쓴다. `PooledEffect`가 프리팹의 Stop Action(Destroy)을 꺼서 재사용한다. 폭발 대미지는 `ExplosionDamage.Apply`를 함께 쓴다.
 - **미니맵:** `MinimapCamera`(플레이어 머리 위에서 따라다니는 직교 카메라)가 `MinimapRenderTexture`에 그리고, `UI_Minimap`이 `orthographicSize`를 바꿔 확대/축소한다. 확대/축소 로직이 `MinimapCamera.Update`(키 입력)에 임시로 남아 있고 Todo로 `UI_Minimap` 쪽으로 옮기는 중이다.
 - **커서:** `CursorManager`가 커서를 잠그고, 왼쪽 Alt를 누르는 동안 풀어준다. 발사와 폭탄은 커서가 보이는 동안 입력되지 않는다(`GameInput`이 커서 상태를 확인).
-- **입력:** 레거시 `UnityEngine.Input`을 쓰되, 플레이어 입력은 정적 클래스 `GameInput`(이동, 시점, 점프, 달리기, 장전 R, 발사 마우스 왼쪽, 폭탄 G: 누르고 있으면 충전, 떼면 던짐)이 한곳에서 읽는다. 게임이 진행 중이 아니면 입력 없음으로 돌려준다. `MinimapCamera`와 `CursorManager`만 아직 `Input`을 직접 읽는다. `InputSystem_Actions.inputactions`가 있지만 코드는 새 Input System을 쓰지 않는다.
+- **입력:** 레거시 `UnityEngine.Input`을 쓰되, 플레이어 입력은 정적 클래스 `GameInput`(이동, 시점, 점프, 달리기, 장전 R, 발사 마우스 왼쪽, 폭탄 마우스 오른쪽: 누르고 있으면 충전, 떼면 던짐)이 한곳에서 읽는다. 게임이 진행 중이 아니면 입력 없음으로 돌려준다. `MinimapCamera`와 `CursorManager`만 아직 `Input`을 직접 읽는다. `InputSystem_Actions.inputactions`가 있지만 코드는 새 Input System을 쓰지 않는다.
 
 ## 코드 컨벤션
 
