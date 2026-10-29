@@ -4,6 +4,9 @@ using UnityEngine;
 // 마우스 오른쪽 버튼을 누르고 있으면 폭탄을 들고 충전하고, 떼는 즉시 충전한 만큼 세게 던진다.
 // 던지는 모션(Throw Layer, 상체만)은 누르면 첫 자세에서 멈춘 채 시작하고, 떼면 이어서 재생된다.
 // 폭탄은 모션이 끝나길 기다리지 않고 버튼을 떼자마자 손을 떠난다.
+// 무기 모드가 Normal일 때만 던질 수 있다. 충전 중에 다른 모드로 바뀌면 던지지 않고 충전을 취소한다.
+
+[RequireComponent(typeof(PlayerWeaponMode))]
 public class PlayerBombFire : MonoBehaviour
 {
     private const int BombPoolDefaultCapacity = 5;
@@ -44,6 +47,7 @@ public class PlayerBombFire : MonoBehaviour
     private PrefabPool<Bomb> _bombPool;
     private Camera _camera;
     private Animator _animator;
+    private PlayerWeaponMode _weaponMode;
     private int _throwLayerIndex = -1;
 
     private Phase _phase = Phase.Idle;
@@ -55,14 +59,23 @@ public class PlayerBombFire : MonoBehaviour
     // 던지는 모션이 있는지. 컨트롤러에 Throw Layer가 없으면 모션 없이 떼는 즉시 던진다.
     private bool HasThrowAnimation => _animator != null && _throwLayerIndex >= 0;
 
+    // 폭탄은 무기 모드가 Normal일 때만 던질 수 있다. (PlayerWeaponMode가 없으면 막지 않는다.)
+    private bool CanThrowInCurrentMode => _weaponMode == null || _weaponMode.Mode == WeaponMode.Normal;
+
     // 폭탄 충전을 시작하면 구독자(총기의 재장전 취소 등)에게 알린다.
     public event Action OnChargeStarted;
 
     private void Awake()
     {
         _animator = GetComponentInChildren<Animator>();
+        _weaponMode = GetComponent<PlayerWeaponMode>();
         _camera = Camera.main;
         _bombPool = new PrefabPool<Bomb>(_bombPrefab, "BombPool", BombPoolDefaultCapacity, BombPoolMaxSize);
+
+        if (_weaponMode == null)
+        {
+            GameLogger.LogError("[PlayerBombFire] PlayerWeaponMode가 없어 무기 모드와 상관없이 던집니다.");
+        }
 
         if (_animator != null)
         {
@@ -98,7 +111,8 @@ public class PlayerBombFire : MonoBehaviour
         {
             case Phase.Idle:
                 // 버튼을 누르면 충전을 시작한다. (커서가 풀려 있으면 GameInput이 입력 없음으로 돌려준다.)
-                if (GameInput.BombPressed)
+                // 무기 모드가 Normal이 아니면 눌러도 시작하지 않는다.
+                if (CanThrowInCurrentMode && GameInput.BombPressed)
                 {
                     StartCharge();
                 }
@@ -136,6 +150,13 @@ public class PlayerBombFire : MonoBehaviour
 
     private void UpdateCharging()
     {
+        // 충전 중에 무기 모드가 바뀌었다: 던지지 않고 취소한다.
+        if (!CanThrowInCurrentMode)
+        {
+            CancelCharge();
+            return;
+        }
+
         // 버튼을 뗐다: 그 즉시 충전한 만큼의 힘으로 던진다.
         if (GameInput.BombReleased)
         {
