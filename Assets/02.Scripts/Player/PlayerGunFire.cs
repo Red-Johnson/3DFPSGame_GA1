@@ -3,6 +3,7 @@ using UnityEngine;
 
 
 // 마우스 왼쪽 버튼을 누르면 바라보는 방향으로 총알을 발사하고 싶다.
+[RequireComponent(typeof(PlayerAnimator))]
 public class PlayerGunFire : MonoBehaviour
 {
     [SerializeField] private ParticleSystem _hitEffectPrefab;
@@ -17,12 +18,15 @@ public class PlayerGunFire : MonoBehaviour
     [SerializeField] private float _damage = 10f;            // 공격력
     [SerializeField] private float _fireInterval = 0.1f;     // 발사 속도
 
+    [SerializeField] private GameObject[] _muzzleFlashes;
+    [SerializeField] private float _flashTime = 0.05f;
+
     private float _fireTimer = 0f;
     private int _bulletCount = 0;
     private Coroutine _reloadCoroutine = null;
     private Camera _camera;
     private PlayerBombFire _bombFire;
-    private Animator _animator;
+    private PlayerAnimator _playerAnimator;
 
     private bool IsReloading => _reloadCoroutine != null;
 
@@ -39,7 +43,7 @@ public class PlayerGunFire : MonoBehaviour
     {
         _camera = Camera.main;
         _bombFire = GetComponent<PlayerBombFire>();
-        _animator = GetComponentInChildren<Animator>();
+        _playerAnimator = GetComponent<PlayerAnimator>();
 
         // UI가 Start에서 총알 수를 읽어도 되도록 Awake에서 채운다. (Start 실행 순서에 의존하지 않는다.)
         _bulletCount = _maxBulletCount;
@@ -68,7 +72,12 @@ public class PlayerGunFire : MonoBehaviour
 
     private void Update()
     {
-        if (!GameManager.Instance.IsPlaying) return;
+        if (!GameManager.Instance.IsPlaying)
+        {
+            // 게임이 끝났을 때 사격 모션이 켜진 채 남지 않게 한다.
+            _playerAnimator.SetFiring(false);
+            return;
+        }
 
         // 0. 발사 타이머를 지난 시간만큼 줄인다.
         _fireTimer -= Time.deltaTime;
@@ -85,11 +94,11 @@ public class PlayerGunFire : MonoBehaviour
             OnBulletChanged?.Invoke(_bulletCount, _maxBulletCount);
             _fireTimer = _fireInterval;
             Shoot();
-            _animator.SetBool("Fire", true);
+            _playerAnimator.SetFiring(true);
         }
         else
         {
-            _animator.SetBool("Fire", false);
+            _playerAnimator.SetFiring(false);
         }
 
         // 2. R키 누르면 총알 재장전 시작 (탄창이 가득 차 있거나 이미 재장전 중이거나 폭탄을 충전 중이면 시작하지 않는다.)
@@ -126,6 +135,8 @@ public class PlayerGunFire : MonoBehaviour
 
     private void Shoot()
     {
+        StartCoroutine(MuzzleFlash_Coroutine());
+
         // Ray: 레이저(시작위치, 날아갈 방향)
         // Physics.RayCast: 레이저를 발사
         // RayCastHit: 레이저가 물체와 부딛히면 그 정보를 저장하는 구조체
@@ -156,12 +167,21 @@ public class PlayerGunFire : MonoBehaviour
             }
 
             // 대미지 구조체 만들기
-            DamageInfo damageInfo = new DamageInfo();
-            damageInfo.Value = _damage;
-            damageInfo.HitPoint = hitInfo.point;
-            damageInfo.HitNormal = hitInfo.normal;
-
-            target?.TakeDamage(damageInfo);
+            target?.TakeDamage(new DamageInfo(_damage, hitInfo.point, hitInfo.normal));
         }
+    }
+
+    private IEnumerator MuzzleFlash_Coroutine()
+    {
+        // 총구 화염 오브젝트를 아직 연결하지 않았다면 아무것도 하지 않는다.
+        if (_muzzleFlashes == null || _muzzleFlashes.Length == 0) yield break;
+
+        int randomIndex = UnityEngine.Random.Range(0, _muzzleFlashes.Length);
+        GameObject flash = _muzzleFlashes[randomIndex];
+        flash.SetActive(true);
+
+        yield return new WaitForSeconds(_flashTime);
+
+        flash.SetActive(false);
     }
 }
