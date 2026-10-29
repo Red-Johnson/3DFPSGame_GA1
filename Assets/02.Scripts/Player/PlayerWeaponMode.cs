@@ -1,18 +1,13 @@
 using UnityEngine;
-using TMPro;
+
+// 무기 모드: 1·2키로 모드를 바꾸고, 바뀌면 구독자(UI 등)에게 알린다.
+// 모드 이름과 아이콘 표시는 UI_WeaponStatus가 맡는다. (이 클래스는 UI를 모른다.)
 public class PlayerWeaponMode : MonoBehaviour
 {
-    [SerializeField] private TextMeshProUGUI _modeText;
-
     private WeaponMode _mode = WeaponMode.Normal;
     public WeaponMode Mode => _mode;
 
     public event System.Action<WeaponMode> OnModeChanged;
-
-    private void Start()
-    {
-        ShowMode();
-    }
 
     private void Update()
     {
@@ -30,22 +25,7 @@ public class PlayerWeaponMode : MonoBehaviour
     private void ChangeMode(WeaponMode mode)
     {
         _mode = mode;
-        ShowMode();
         OnModeChanged?.Invoke(mode);
-        Debug.Log($"무기 모드: {mode}");
-    }
-
-    private void ShowMode()
-    {
-        switch (_mode)
-        {
-            case WeaponMode.Normal:
-                _modeText.text = "일반 모드";
-                break;
-            case WeaponMode.Sniper:
-                _modeText.text = "저격 모드";
-                break;
-
-        }
+        GameLogger.Log($"무기 모드: {mode}");
     }
 }
