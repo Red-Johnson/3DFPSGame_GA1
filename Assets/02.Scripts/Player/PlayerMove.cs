@@ -23,6 +23,9 @@ public class PlayerMove : MonoBehaviour
     [SerializeField] private float _sprintCost = 10f;
     [SerializeField] private float _jumpCost   = 20f;
 
+    [Header("시점")]
+    [SerializeField] private CameraViewManager _cameraView;     // 비워두면 항상 1인칭 방식으로 이동한다.
+
     private CharacterController _characterController;
 
     private void Awake()
@@ -53,7 +56,16 @@ public class PlayerMove : MonoBehaviour
         // 캐릭터의 회전 방향을 기준으로 로컬 방향 벡터를 월드 방향 벡터로 변환한다.
 
         _playerAnimator.SetMove(direction.magnitude);
-        direction = transform.TransformDirection(direction);
+
+        // 1인칭은 플레이어가 바라보는 방향이 기준이고, 3인칭은 카메라가 바라보는 방향이 기준이다.
+        if (_cameraView != null && _cameraView.IsThirdPerson)
+        {
+            direction = Quaternion.Euler(0f, _cameraView.ThirdPersonYaw, 0f) * direction;
+        }
+        else
+        {
+            direction = transform.TransformDirection(direction);
+        }
         // 로컬 좌표계: 한 대상을 중심
         // 월드 좌표계: 세상을 중심
 
