@@ -1022,7 +1022,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &287160918
 RectTransform:
   m_ObjectHideFlags: 0
@@ -3141,7 +3141,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &814702174
 RectTransform:
   m_ObjectHideFlags: 0
@@ -3548,7 +3548,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &903922853
 RectTransform:
   m_ObjectHideFlags: 0
@@ -4823,6 +4823,7 @@ GameObject:
   - component: {fileID: 1620558218}
   - component: {fileID: 1620558219}
   - component: {fileID: 1620558220}
+  - component: {fileID: 1620558221}
   m_Layer: 7
   m_Name: Player
   m_TagString: Player
@@ -4969,7 +4970,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1620558207}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 183b3262da03a6a44ac1d69576a73d25, type: 3}
   m_Name: 
@@ -5058,7 +5059,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1620558207}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 135c06d9eed25bc4bbe0f6255fabf083, type: 3}
   m_Name: 
@@ -5070,7 +5071,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1620558207}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2e09270d5505770488525c20574d4fe0, type: 3}
   m_Name: 
@@ -5091,6 +5092,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d7cf4e54326192645b6a64398f89fdd9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerAnimator
+--- !u!114 &1620558221
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1620558207}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd8017d5de86e104d8e9cc058c7b4418, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerMeleeAttack
+  _damage: 15
+  _range: 3.5
+  _angle: 120
+  _attackInterval: 0.6
+  _hitDelay: 0.2
+  _originOffset: {x: 0, y: -0.1, z: 0}
+  _hitLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  _slashEffect: {fileID: 0}
 --- !u!1 &1667874670
 GameObject:
   m_ObjectHideFlags: 0
