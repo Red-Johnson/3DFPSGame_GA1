@@ -10,6 +10,7 @@ public enum GameState
     GameOver
 }
 
+[DefaultExecutionOrder(-100)]   // 다른 컴포넌트가 OnEnable에서 Instance를 써도 되도록 가장 먼저 초기화한다.
 public class GameManager : MonoBehaviour
 {
     private static GameManager _instance = null;
@@ -23,13 +24,11 @@ public class GameManager : MonoBehaviour
     public event Action<GameState> OnStateChanged;
 
     [SerializeField] private TextMeshProUGUI _stateText;
-    [SerializeField] private Animator _playerAnimator;
+    [SerializeField] private Player _player;    // 비워두면 씬에서 찾는다.
 
     [Header("시작 연출")]
     [SerializeField] private float _readyDuration = 1.5f;   // "준비" 표시 시간
     [SerializeField] private float _startDuration = 0.5f;   // "시작!" 표시 시간
-
-    private Player _player;
 
     private void Awake()
     {
@@ -45,7 +44,12 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
         // 플레이어가 죽으면 게임 오버로 넘어간다. (플레이어는 게임 흐름을 직접 알지 못한다.)
-        _player = FindAnyObjectByType<Player>();
+        if (_player == null)
+        {
+            _player = FindAnyObjectByType<Player>();
+            GameLogger.LogWarning("[GameManager] _player가 연결되지 않아 씬에서 찾았습니다. 인스펙터에서 연결하세요.");
+        }
+
         if (_player != null)
         {
             _player.OnDied += GameOver;
@@ -83,8 +87,6 @@ public class GameManager : MonoBehaviour
         _stateText.gameObject.SetActive(true);
         _stateText.text = "게임오버";
         _stateText.color = Color.red;
-
-        _playerAnimator.SetFloat("MoveMotion", 0f);
     }
 
     private void SetState(GameState state)

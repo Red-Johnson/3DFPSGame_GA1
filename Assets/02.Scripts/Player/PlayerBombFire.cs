@@ -2,28 +2,16 @@ using System;
 using UnityEngine;
 
 // 마우스 오른쪽 버튼을 누르고 있으면 폭탄을 들고 충전하고, 떼는 즉시 충전한 만큼 세게 던진다.
-// 던지는 모션(Throw Layer, 상체만)은 누르면 첫 자세에서 멈춘 채 시작하고, 떼면 이어서 재생된다.
+// 던지는 모션(상체만)은 누르면 첫 자세에서 멈춘 채 시작하고, 떼면 이어서 재생된다. (애니메이터 호출은 PlayerAnimator가 맡는다.)
 // 폭탄은 모션이 끝나길 기다리지 않고 버튼을 떼자마자 손을 떠난다.
 // 무기 모드가 Normal일 때만 던질 수 있다. 충전 중에 다른 모드로 바뀌면 던지지 않고 충전을 취소한다.
-
-[RequireComponent(typeof(PlayerWeaponMode))]
+[RequireComponent(typeof(PlayerWeaponMode), typeof(PlayerAnimator))]
 public class PlayerBombFire : MonoBehaviour
 {
     private const int BombPoolDefaultCapacity = 5;
     private const int BombPoolMaxSize = 20;
 
-    // 애니메이터 컨트롤러의 이름과 똑같아야 한다.
-    private const string ThrowLayerName = "Throw Layer";
-    private const string ThrowParameter = "Throw";              // 던지기 모션을 시작하는 트리거
-    private const string ThrowSpeedParameter = "ThrowSpeed";    // Throw 상태의 재생 속도(0이면 멈춤, 1이면 재생)
-    private const string ThrowStateName = "Throw";
-    private const string EmptyStateName = "Empty";
-
-    private const float CancelFadeDuration = 0.15f;     // 충전을 취소했을 때 모션이 풀리는 시간
     private const float MinReleaseAnimationSpeed = 0.1f;
-
-    private static readonly int ThrowStateHash = Animator.StringToHash(ThrowStateName);
-    private static readonly int EmptyStateHash = Animator.StringToHash(EmptyStateName);
 
     private enum Phase
     {
@@ -48,9 +36,8 @@ public class PlayerBombFire : MonoBehaviour
 
     private PrefabPool<Bomb> _bombPool;
     private Camera _camera;
-    private Animator _animator;
+    private PlayerAnimator _playerAnimator;
     private PlayerWeaponMode _weaponMode;
-    private int _throwLayerIndex = -1;
     private int _bombCount;
 
     private Phase _phase = Phase.Idle;
@@ -59,9 +46,6 @@ public class PlayerBombFire : MonoBehaviour
     public bool IsCharging => _phase == Phase.Charging;
     public bool IsThrowing => _phase == Phase.Throwing;
 
-    // 던지는 모션이 있는지. 컨트롤러에 Throw Layer가 없으면 모션 없이 떼는 즉시 던진다.
-    private bool HasThrowAnimation => _animator != null && _throwLayerIndex >= 0;
-
     // 폭탄은 무기 모드가 Normal일 때만 던질 수 있다. (PlayerWeaponMode가 없으면 막지 않는다.)
     private bool CanThrowInCurrentMode => _weaponMode == null || _weaponMode.Mode == WeaponMode.Normal;
 
@@ -69,11 +53,11 @@ public class PlayerBombFire : MonoBehaviour
     public event Action OnChargeStarted;
 
     public int BombCount => _bombCount;
-    public event System.Action<int> OnBombChanged;
+    public event Action<int> OnBombChanged;
 
     private void Awake()
     {
-        _animator = GetComponentInChildren<Animator>();
+        _playerAnimator = GetComponent<PlayerAnimator>();
         _weaponMode = GetComponent<PlayerWeaponMode>();
         _camera = Camera.main;
         _bombPool = new PrefabPool<Bomb>(_bombPrefab, "BombPool", BombPoolDefaultCapacity, BombPoolMaxSize);
@@ -83,15 +67,7 @@ public class PlayerBombFire : MonoBehaviour
             GameLogger.LogError("[PlayerBombFire] PlayerWeaponMode가 없어 무기 모드와 상관없이 던집니다.");
         }
 
-        if (_animator != null)
-        {
-            _throwLayerIndex = _animator.GetLayerIndex(ThrowLayerName);
-            if (_throwLayerIndex < 0)
-            {
-                GameLogger.LogError($"[PlayerBombFire] 애니메이터에 '{ThrowLayerName}' 레이어가 없어 던지는 모션 없이 던집니다.");
-            }
-        }
-
+        // UI가 Start에서 폭탄 수를 읽어도 되도록 Awake에서 채운다.
         _bombCount = _maxBombCount;
     }
 
@@ -119,7 +95,7 @@ public class PlayerBombFire : MonoBehaviour
         {
             case Phase.Idle:
                 // 버튼을 누르면 충전을 시작한다. (커서가 풀려 있으면 GameInput이 입력 없음으로 돌려준다.)
-                // 무기 모드가 Normal이 아니면 눌러도 시작하지 않는다.
+                // 무기 모드가 Normal이 아니거나 폭탄이 없으면 눌러도 시작하지 않는다.
                 if (CanThrowInCurrentMode && GameInput.BombPressed && _bombCount > 0)
                 {
                     StartCharge();
@@ -132,7 +108,7 @@ public class PlayerBombFire : MonoBehaviour
 
             case Phase.Throwing:
                 // 던지는 모션이 끝나면 다음 던지기를 받는다.
-                if (!IsThrowStatePlaying())
+                if (!_playerAnimator.IsThrowPlaying())
                 {
                     _phase = Phase.Idle;
                 }
@@ -146,12 +122,7 @@ public class PlayerBombFire : MonoBehaviour
         _phase = Phase.Charging;
         _chargeTime = 0f;
 
-        if (HasThrowAnimation)
-        {
-            // 속도를 0으로 둔 채 트리거를 켜서, 모션이 첫 자세에서 멈추게 한다.
-            _animator.SetFloat(ThrowSpeedParameter, 0f);
-            _animator.SetTrigger(ThrowParameter);
-        }
+        _playerAnimator.StartThrow();
 
         OnChargeStarted?.Invoke();
     }
@@ -187,18 +158,19 @@ public class PlayerBombFire : MonoBehaviour
     {
         SpawnBomb(EvaluateThrowPower());
 
-        if (!HasThrowAnimation)
+        // 던지는 모션이 있든 없든 폭탄은 하나 줄어든다.
+        _bombCount--;
+        OnBombChanged?.Invoke(_bombCount);
+
+        if (!_playerAnimator.HasThrowAnimation)
         {
             _phase = Phase.Idle;
             return;
         }
 
-        _bombCount--;
-        OnBombChanged?.Invoke(_bombCount);
-
         // 모션이 끝날 때까지는 사격과 다음 던지기가 막힌다. 빨리 풀리도록 배속으로 재생한다.
         _phase = Phase.Throwing;
-        _animator.SetFloat(ThrowSpeedParameter, _releaseAnimationSpeed);
+        _playerAnimator.ReleaseThrow(_releaseAnimationSpeed);
     }
 
     // 던지지 않고 충전만 취소한다. 멈춰 있던 모션도 풀어서 원래 자세로 돌린다.
@@ -206,11 +178,7 @@ public class PlayerBombFire : MonoBehaviour
     {
         _phase = Phase.Idle;
 
-        if (!HasThrowAnimation) return;
-
-        _animator.SetFloat(ThrowSpeedParameter, 1f);
-        _animator.ResetTrigger(ThrowParameter);     // 모션이 시작되기 전에 취소해도 트리거가 남아 나중에 재생되지 않게 한다.
-        _animator.CrossFadeInFixedTime(EmptyStateHash, CancelFadeDuration, _throwLayerIndex);
+        _playerAnimator.CancelThrow();
     }
 
     // 충전한 시간에 따라 최소 힘과 최대 힘 사이의 힘을 구한다.
@@ -218,17 +186,6 @@ public class PlayerBombFire : MonoBehaviour
     {
         float charge = _maxChargeTime > 0f ? Mathf.Clamp01(_chargeTime / _maxChargeTime) : 1f;
         return Mathf.Lerp(_minThrowPower, _maxThrowPower, _chargeCurve.Evaluate(charge));
-    }
-
-    // 던지는 모션이 아직 재생 중(또는 재생을 시작하는 중)인지
-    private bool IsThrowStatePlaying()
-    {
-        AnimatorStateInfo current = _animator.GetCurrentAnimatorStateInfo(_throwLayerIndex);
-        if (current.shortNameHash == ThrowStateHash) return true;
-
-        // 상태가 바뀌는 중에는 다음 상태가 Throw인지도 본다.
-        return _animator.IsInTransition(_throwLayerIndex)
-            && _animator.GetNextAnimatorStateInfo(_throwLayerIndex).shortNameHash == ThrowStateHash;
     }
 
     private void SpawnBomb(float power)
