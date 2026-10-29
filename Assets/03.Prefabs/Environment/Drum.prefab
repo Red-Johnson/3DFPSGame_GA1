@@ -161,7 +161,7 @@ MonoBehaviour:
   - {fileID: 3526351206343364894, guid: 9f5b9cde382f64340935f2dc3ead248e, type: 3}
   - {fileID: 1995777233858436456, guid: 100dbd2ffdf99f7439fa40f8d270beb0, type: 3}
   - {fileID: 8878639991374550428, guid: 14f749f6114ac2840b290c4d48cf1570, type: 3}
-  _visualScaleMultiplier: 1
+  _visualScaleMultiplier: 0.7
   _damage: 100
   _health: 30
   _launchPower: 20
