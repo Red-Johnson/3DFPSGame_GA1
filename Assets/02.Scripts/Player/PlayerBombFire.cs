@@ -26,7 +26,8 @@ public class PlayerBombFire : MonoBehaviour
     [Header("충전")]
     [SerializeField] private float _minThrowPower = 5f;     // 충전하지 않고 바로 뗐을 때의 힘
     [SerializeField] private float _maxThrowPower = 20f;    // 최대로 충전했을 때의 힘
-    [SerializeField] private float _maxChargeTime = 2f;     // 이 시간 이상 눌러도 더 세지지 않는다.
+    [SerializeField] private float _throwUpAngle = 20f;     // 시선보다 위로 던지는 각도(도). 클수록 높게 뜨는 포물선이 된다.
+    [SerializeField] private float _maxChargeTime = 2f;    // 이 시간 이상 눌러도 더 세지지 않는다.
     [SerializeField] private AnimationCurve _chargeCurve = AnimationCurve.Linear(0f, 0f, 1f, 1f);   // 충전 정도(0~1)에 따른 힘의 증가 모양
 
     [Header("던지는 모션")]
@@ -193,7 +194,9 @@ public class PlayerBombFire : MonoBehaviour
         // 발사 위치에서 수류탄 꺼내기 (풀에서 재사용)
         Bomb bomb = _bombPool.Get(_firePoint.position, Quaternion.identity);
 
-        // 꺼낸 수류탄을 시선 방향으로 던지기
-        bomb.Launch(_camera.transform.forward * power);
+        // 꺼낸 수류탄을 시선보다 조금 위로 비스듬히 던져서 포물선을 그리게 한다.
+        Transform cameraTransform = _camera.transform;
+        Vector3 direction = Quaternion.AngleAxis(-_throwUpAngle, cameraTransform.right) * cameraTransform.forward;
+        bomb.Launch(direction * power);
     }
 }

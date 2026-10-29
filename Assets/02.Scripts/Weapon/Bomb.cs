@@ -18,17 +18,22 @@ public class Bomb : MonoBehaviour, IPoolable<Bomb>
     [SerializeField, Range(0f, 1f)] private float _spinRandomness = 0.3f;   // 회전축이 흔들리는 정도
     [SerializeField] private float _landedAngularDamping = 1f;  // 부딛힌 뒤 구르는 회전이 줄어드는 정도
 
+    [Header("구르기")]
+    [SerializeField] private float _landedLinearDamping = 2.5f; // 부딛힌 뒤 이동 속도가 줄어드는 정도. 클수록 빨리 멈춘다.
+
     private Rigidbody _rigidbody;
 
     // 풀에서 꺼낸 폭탄이면 값이 있다. 직접 배치한 폭탄은 null이라 Destroy로 없앤다.
     private IObjectPool<Bomb> _pool;
     private bool _fuseStarted;
     private float _flyingAngularDamping;
+    private float _flyingLinearDamping;
 
     private void Awake()
     {
         _rigidbody = GetComponent<Rigidbody>();
         _flyingAngularDamping = _rigidbody.angularDamping;
+        _flyingLinearDamping = _rigidbody.linearDamping;
     }
 
     // 꺼냈을 때마다 이전에 던지던 속도와 신관 상태를 지운다.
@@ -36,6 +41,7 @@ public class Bomb : MonoBehaviour, IPoolable<Bomb>
     {
         _fuseStarted = false;
         _rigidbody.angularDamping = _flyingAngularDamping;
+        _rigidbody.linearDamping = _flyingLinearDamping;
         _rigidbody.linearVelocity = Vector3.zero;
         _rigidbody.angularVelocity = Vector3.zero;
     }
@@ -68,8 +74,9 @@ public class Bomb : MonoBehaviour, IPoolable<Bomb>
         if (_fuseStarted) return;
         _fuseStarted = true;
 
-        // 공중에서 얻은 회전이 땅에서 서서히 줄도록 한다.
+        // 공중에서 얻은 속도와 회전이 땅에서 서서히 줄어 멈추도록 한다.
         _rigidbody.angularDamping = _landedAngularDamping;
+        _rigidbody.linearDamping = _landedLinearDamping;
 
         StartCoroutine(Fuse_Coroutine());
     }
