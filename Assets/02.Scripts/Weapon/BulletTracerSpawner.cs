@@ -8,8 +8,6 @@ public class BulletTracerSpawner
     private const int PoolDefaultCapacity = 20;
     private const int PoolMaxSize = 50;
 
-    [SerializeField] private Transform _muzzle;                                        // 궤적이 시작될 총구. 비워두면 카메라 기준 오프셋을 쓴다.
-    [SerializeField] private Vector3 _originOffset = new Vector3(0.3f, -0.2f, 0.5f);
     [SerializeField] private Material _material;                                       // 비워두면 Sprites/Default를 쓴다.
     [SerializeField] private Color _color = new Color(1f, 0.25f, 0.2f, 1f);
     [SerializeField] private float _width = 0.05f;
@@ -24,13 +22,9 @@ public class BulletTracerSpawner
         _pool = new PrefabPool<BulletTracer>(CreateTracer, "TracerPool", PoolDefaultCapacity, PoolMaxSize);
     }
 
-    // 총구 위치에서 목표 지점까지 날아가는 궤적을 쏜다.
-    public void Fire(Transform cameraTransform, Vector3 endPoint)
+    // 시작 지점(총구)에서 목표 지점까지 날아가는 궤적을 쏜다.
+    public void Fire(Vector3 start, Vector3 endPoint)
     {
-        Vector3 start = _muzzle != null
-            ? _muzzle.position
-            : cameraTransform.position + cameraTransform.TransformDirection(_originOffset);
-
         BulletTracer tracer = _pool.Get(start, Quaternion.identity);
         tracer.Fire(start, endPoint, _speed, _length);
     }

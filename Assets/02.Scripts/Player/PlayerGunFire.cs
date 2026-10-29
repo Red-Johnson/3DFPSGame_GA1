@@ -18,8 +18,12 @@ public class PlayerGunFire : MonoBehaviour
     [SerializeField] private float _damage = 10f;            // 공격력
     [SerializeField] private float _fireInterval = 0.1f;     // 발사 속도
 
+    [Header("총구")]
+    [SerializeField] private Transform _muzzlePosition;      // 총알과 궤적이 나가는 총구. 화염은 이 아래에 둔다.
     [SerializeField] private GameObject[] _muzzleFlashes;
     [SerializeField] private float _flashTime = 0.05f;
+
+    private const float AimPointMargin = 0.1f;
 
     private float _fireTimer = 0f;
     private int _bulletCount = 0;
@@ -47,6 +51,9 @@ public class PlayerGunFire : MonoBehaviour
 
         // UI가 Start에서 총알 수를 읽어도 되도록 Awake에서 채운다. (Start 실행 순서에 의존하지 않는다.)
         _bulletCount = _maxBulletCount;
+
+        // 총구 화염은 쏠 때만 잠깐 켜므로, 시작할 때는 모두 꺼 둔다. (씬에는 켜진 채로 배치되어 있다.)
+        HideMuzzleFlashes();
 
         // 직렬화 데이터가 없는 오래된 씬에서도 동작하도록 한다.
         _tracer ??= new BulletTracerSpawner();
@@ -141,19 +148,28 @@ public class PlayerGunFire : MonoBehaviour
         // Physics.RayCast: 레이저를 발사
         // RayCastHit: 레이저가 물체와 부딛히면 그 정보를 저장하는 구조체
 
-        // 2. 레이(광선)를 생성하고 발사될 위치와 진행 방향 설정하기
+        // 1. 조준점 찾기: 화면 중앙(조준점)이 가리키는 곳을 카메라에서 쏜 레이로 먼저 정한다.
+        // 트리거 콜라이더와 Ignore Raycast 레이어(경계 벽)는 총알이 맞지 않는다.
         Transform cameraTransform = _camera.transform;
-        Ray ray = new Ray(cameraTransform.position, cameraTransform.forward);
+        Ray aimRay = new Ray(cameraTransform.position, cameraTransform.forward);
+        Vector3 aimPoint = Physics.Raycast(aimRay, out RaycastHit aimHit, _range, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore)
+            ? aimHit.point
+            : aimRay.GetPoint(_range);
+
+        // 2. 실제 총알 레이는 총구에서 조준점을 향해 쏜다. (총구가 없으면 카메라에서 그대로 쏜다.)
+        Vector3 muzzle = _muzzlePosition != null ? _muzzlePosition.position : cameraTransform.position;
+        Vector3 toAim = aimPoint - muzzle;
+        Ray ray = new Ray(muzzle, toAim);
 
         // 3. 레이가 부딛힌 대상의 정보를 저장할 변수 생성하기
         RaycastHit hitInfo = new RaycastHit();
 
         // 4. 레이를 발사하고, 만일 부딛힌 물체가 있다면 이펙트 표시하기
-        // 트리거 콜라이더와 Ignore Raycast 레이어(경계 벽)는 총알이 맞지 않는다.
-        bool isHit = Physics.Raycast(ray, out hitInfo, _range, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+        // 조준점 바로 앞에서 끊기지 않도록 조준점까지의 거리에 여유를 조금 둔다.
+        bool isHit = Physics.Raycast(ray, out hitInfo, toAim.magnitude + AimPointMargin, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
 
-        // 맞았으면 맞은 자리까지, 허공이면 사거리 끝까지 궤적을 날린다.
-        _tracer.Fire(cameraTransform, isHit ? hitInfo.point : ray.GetPoint(_range));
+        // 맞았으면 맞은 자리까지, 허공이면 조준점(사거리 끝)까지 궤적을 날린다.
+        _tracer.Fire(muzzle, isHit ? hitInfo.point : aimPoint);
 
         if (isHit)
         {
@@ -168,6 +184,19 @@ public class PlayerGunFire : MonoBehaviour
 
             // 대미지 구조체 만들기
             target?.TakeDamage(new DamageInfo(_damage, hitInfo.point, hitInfo.normal));
+        }
+    }
+
+    private void HideMuzzleFlashes()
+    {
+        if (_muzzleFlashes == null) return;
+
+        foreach (GameObject flash in _muzzleFlashes)
+        {
+            if (flash != null)
+            {
+                flash.SetActive(false);
+            }
         }
     }
 
