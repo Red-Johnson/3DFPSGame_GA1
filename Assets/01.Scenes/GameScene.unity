@@ -1336,6 +1336,8 @@ GameObject:
   - component: {fileID: 330585547}
   - component: {fileID: 330585548}
   - component: {fileID: 330585549}
+  - component: {fileID: 330585551}
+  - component: {fileID: 330585550}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -1488,6 +1490,44 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CameraFollow
   _target: {fileID: 220785613}
+--- !u!114 &330585550
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 330585543}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3539218d542a8a44e99669b0b8659779, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CameraViewManager
+  _startMode: 0
+  _crosshair: {fileID: 1923320526}
+--- !u!114 &330585551
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 330585543}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 556f52896da0d4644996d1c51c7d4291, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ThirdPersonCamera
+  _target: {fileID: 1620558211}
+  _pivotOffset: {x: 0, y: 0.6, z: 0}
+  _distance: 3.5
+  _sensitivity: 3.3
+  _minPitch: -20
+  _maxPitch: 60
+  _followSmoothTime: 0.06
+  _collisionRadius: 0.25
+  _collisionPadding: 0.15
+  _collisionLayers:
+    serializedVersion: 2
+    m_Bits: 257
 --- !u!1 &335956373
 GameObject:
   m_ObjectHideFlags: 0
@@ -3799,7 +3839,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1082396935
 RectTransform:
   m_ObjectHideFlags: 0
@@ -4920,6 +4960,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerRotate
   _sensitivity: 3.3
+  _turnSpeed: 720
+  _cameraView: {fileID: 330585550}
 --- !u!114 &1620558213
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4938,6 +4980,7 @@ MonoBehaviour:
   _staminaRecovery: 15
   _sprintCost: 20
   _jumpCost: 20
+  _cameraView: {fileID: 330585550}
 --- !u!143 &1620558214
 CharacterController:
   m_ObjectHideFlags: 0
