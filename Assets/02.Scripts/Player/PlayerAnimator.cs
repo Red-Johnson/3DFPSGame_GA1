@@ -8,6 +8,7 @@ public class PlayerAnimator : MonoBehaviour
     // 애니메이터 컨트롤러의 이름과 똑같아야 한다.
     private const string MoveParameter = "MoveMotion";          // 걷기/달리기 블렌드 (0~1)
     private const string FireParameter = "Fire";                // 사격 중인지
+    private const string SlashParameter = "Slash";              // 칼 휘두르기 모션을 시작하는 트리거
     private const string ThrowParameter = "Throw";              // 던지는 모션을 시작하는 트리거
     private const string ThrowSpeedParameter = "ThrowSpeed";    // Throw 상태의 재생 속도(0이면 멈춤, 1이면 재생)
     private const string InjuredLayerName = "Injured Layer";    // 체력이 낮을 때 하체가 절뚝거리는 레이어
@@ -19,6 +20,7 @@ public class PlayerAnimator : MonoBehaviour
 
     private static readonly int MoveHash = Animator.StringToHash(MoveParameter);
     private static readonly int FireHash = Animator.StringToHash(FireParameter);
+    private static readonly int SlashHash = Animator.StringToHash(SlashParameter);
     private static readonly int ThrowHash = Animator.StringToHash(ThrowParameter);
     private static readonly int ThrowSpeedHash = Animator.StringToHash(ThrowSpeedParameter);
     private static readonly int ThrowStateHash = Animator.StringToHash(ThrowStateName);
@@ -57,6 +59,14 @@ public class PlayerAnimator : MonoBehaviour
         if (_animator == null) return;
 
         _animator.SetBool(FireHash, isFiring);
+    }
+
+    // 칼을 한 번 휘두르는 모션(상체만)을 처음부터 재생한다. 휘두르는 중에 다시 불러도 처음부터 다시 시작한다.
+    public void TriggerSlash()
+    {
+        if (_animator == null) return;
+
+        _animator.SetTrigger(SlashHash);
     }
 
     // 부상 정도 (0: 정상, 1: 최대). 하체가 절뚝거리는 레이어의 가중치로 쓴다.
