@@ -10,22 +10,38 @@ public class UI_PlayerStats : MonoBehaviour
     [SerializeField] private Player _player;
     [SerializeField] private PlayerMove _playerMove;
 
-    private void Start()
+    private void OnEnable()
     {
         _player.OnDamaged += RefreshHealth; // OnDamaged 함수에 RefreshHealth 함수를 등록!
-
-        RefreshHealth();    // 처음 표시할 체력을 맞춘다.
     }
 
-    private void OnDestroy()
+    private void OnDisable()
     {
         _player.OnDamaged -= RefreshHealth;
+    }
+
+    private void Start()
+    {
+        // 모든 컴포넌트의 Awake가 끝난 뒤 한 번 전부 갱신해서, 처음부터 정확한 값을 보여 준다.
+        RefreshAll();
     }
 
     private void Update()
     {
         // RefreshHealth(); // 폴링 방식
 
+        // 기력은 매 프레임 변하므로 계속 갱신한다.
+        RefreshStamina();
+    }
+
+    private void RefreshAll()
+    {
+        RefreshHealth();
+        RefreshStamina();
+    }
+
+    private void RefreshStamina()
+    {
         _staminaSlider.value = _playerMove.Stamina / PlayerMove.MaxStamina;
     }
 

@@ -26,6 +26,7 @@ Unity 6 (에디터 버전 `6000.3.22f1`)와 C#으로 만드는 3D FPS 게임이�
 
 - 한국어 주석을 쓰고, 설명 주석은 클래스 위에 요약 형태로 단다.
 - 비공개 필드는 `_camelCase`, 인스펙터 노출은 `[SerializeField] private`, 코루틴 메서드 이름은 `_Coroutine`으로 끝낸다.
+- 초기화 순서: 체력, 기력, 총알, 폭탄 같은 상태는 `Awake`에서 채우고, UI는 `OnEnable`/`OnDisable`에서 이벤트를 구독하고 `Start`에서 한 번 전부 갱신한다(`RefreshAll`). `Start`는 컴포넌트 사이의 실행 순서가 보장되지 않으므로, 다른 컴포넌트가 `Start`에서 채우는 값을 UI가 `Start`에서 읽지 않는다.
 - 튜닝 값(체력, 속도, 쿨타임 등)은 매직 넘버로 두지 않고 `[SerializeField]` 필드나 상수로 둔다. 자세한 기준은 `Docs/CodeReviewGuide.md`를 따른다.
 
 ## 코드 리뷰와 협업 규칙
