@@ -20,6 +20,9 @@ public class ZombieAnimator
     {
         _animator = animator;
         _fadeDuration = fadeDuration;
+
+        // 이동은 NavMeshAgent가 맡는다. 애니메이션이 모델만 따로 움직이면 콜라이더와 모델이 어긋난다.
+        _animator.applyRootMotion = false;
     }
 
     public void PlayIdle() => Play(IdleHash);
