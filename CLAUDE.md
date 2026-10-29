@@ -14,19 +14,20 @@ Unity 6 (에디터 버전 `6000.3.22f1`)와 C#으로 만드는 3D FPS 게임이�
 
 - **전역 상태:** `GameManager`는 싱글톤(`GameManager.Instance`)이며 `GameState`(`Ready` → `Playing` → `GameOver`)를 들고 있다. 시작 연출 코루틴이 끝나야 `Playing`이 된다. 게임 상태를 따르는 스크립트는 `!GameManager.Instance.IsPlaying`이면 일찍 반환하고, 상태가 바뀌면 `OnStateChanged` 이벤트로 알 수 있다. 플레이어는 `GameManager`를 직접 부르지 않고 체력이 0이 되면 `Player.OnDied` 이벤트만 알린다. `GameManager`가 이를 구독해 `GameOver()`를 처리한다.
 - **대미지 전달:** `IDamageable.TakeDamage(DamageInfo)` 인터페이스가 공통 규약이다. `Player`, `Zombie`, `Box`, `Drum` 같은 피격 대상이 이를 구현하고, `PlayerGunFire`·`Bomb` 등 공격 쪽은 `DamageInfo`(값, 맞은 위치, 법선)를 만들어 넘긴다. 새 피격 대상은 구체 클래스가 아니라 이 인터페이스에 맞춘다.
-- **플레이어:** 기능별로 컴포넌트가 분리되어 있다(`PlayerMove`, `PlayerRotate`, `PlayerGunFire`, `PlayerBombFire`, `Player`는 스탯·피격). 좌우 시점은 `PlayerRotate`만 누적하고, `CameraRotate`는 위아래만 누적하며 좌우는 `PlayerRotate.Yaw`를 따른다. 마우스 입력에는 `Time.deltaTime`을 곱하지 않는다.
-- **무기 모드:** `PlayerWeaponMode`가 `WeaponMode`(`Normal`, `Sniper`)를 들고 1·2키로 바꾼다. `Normal`에서만 폭탄을 던질 수 있고(`PlayerBombFire`가 모드를 확인하며, 충전 중에 모드가 바뀌면 던지지 않고 충전을 취소한다), `Sniper`에서는 마우스 오른쪽을 누르는 동안 `PlayerZoom`이 줌(FOV 변경, 조준점 숨김)한다.
+- **플레이어:** 기능별로 컴포넌트가 분리되어 있다(`PlayerMove`, `PlayerRotate`, `PlayerGunFire`, `PlayerBombFire`, `Player`는 스탯·피격). 애니메이터의 파라미터, 레이어, 상태 이름은 `PlayerAnimator`(Player 오브젝트에 붙이는 컴포넌트) 한곳에 모여 있고, 나머지 컴포넌트는 그 메서드(`SetMove`, `SetFiring`, `StartThrow`, `SetInjured` 등)만 부른다. 컨트롤러 이름을 바꾸면 `PlayerAnimator`의 상수만 고친다. 좌우 시점은 `PlayerRotate`만 누적하고, `CameraRotate`는 위아래만 누적하며 좌우는 `PlayerRotate.Yaw`를 따른다. 마우스 입력에는 `Time.deltaTime`을 곱하지 않는다.
+- **무기 모드:** `PlayerWeaponMode`가 `WeaponMode`(`Normal`, `Sniper`)를 들고 1·2키로 바꾸고, 모드 이름과 아이콘 표시는 `UI_WeaponStatus`가 맡는다(`PlayerWeaponMode`는 UI를 모른다). `Normal`에서만 폭탄을 던질 수 있고(`PlayerBombFire`가 모드를 확인하며, 충전 중에 모드가 바뀌면 던지지 않고 충전을 취소한다), `Sniper`에서는 마우스 오른쪽을 누르는 동안 `PlayerZoom`이 줌(FOV 변경, 조준점 숨김)한다.
 - **좀비:** `Zombie`(상태 머신, 체력·피격, 풀링)가 책임을 나눠 쓴다. 설정값은 `ZombieStats`(ScriptableObject 에셋, 프리팹에 연결), 이동·점프는 `ZombieMotor`(`NavMeshAgent` 감싸기), 애니메이션은 `ZombieAnimator`(애니메이터 상태 이름으로 `CrossFade`)가 맡는다. 마지막 둘은 컴포넌트가 아닌 일반 클래스라 씬에 붙일 것이 없다. 상태는 `States/`의 클래스로 나뉘고, 공격 대미지는 `Z_Attack` 클립의 애니메이션 이벤트(`ZombieAnimationEvents.OnAttackHit`, 모델 오브젝트에 붙임)가 정한다. 스포너가 좀비를 꺼낼 때 `SetTarget`으로 쫓을 대상을 넘긴다.
 - **풀링과 이펙트:** `PrefabPool<T>`가 오브젝트를 재사용한다. 파티클 이펙트는 `EffectPool.For(prefab).Play(...)`로 꺼내 쓰고, `PooledEffect`가 재생이 끝나면 스스로 돌아간다. 자주 터지는 이펙트(총알 자국, 폭발)의 `Instantiate`/`Destroy` 반복을 줄이려고 쓴다. `PooledEffect`가 프리팹의 Stop Action(Destroy)을 꺼서 재사용한다. 폭발 대미지는 `ExplosionDamage.Apply`를 함께 쓴다.
 - **미니맵:** `MinimapCamera`(플레이어 머리 위에서 따라다니는 직교 카메라)가 `MinimapRenderTexture`에 그리고, `UI_Minimap`이 `orthographicSize`를 바꿔 확대/축소한다. 확대/축소 로직이 `MinimapCamera.Update`(키 입력)에 임시로 남아 있고 Todo로 `UI_Minimap` 쪽으로 옮기는 중이다.
 - **커서:** `CursorManager`가 커서를 잠그고, 왼쪽 Alt를 누르는 동안 풀어준다. 발사와 폭탄은 커서가 보이는 동안 입력되지 않는다(`GameInput`이 커서 상태를 확인).
-- **입력:** 레거시 `UnityEngine.Input`을 쓰되, 플레이어 입력은 정적 클래스 `GameInput`(이동, 시점, 점프, 달리기, 장전 R, 발사 마우스 왼쪽, 폭탄 마우스 오른쪽: 누르고 있으면 충전, 떼면 던짐, 무기 모드 전환 1·2키, 저격 줌 마우스 오른쪽)이 한곳에서 읽는다. 게임이 진행 중이 아니면 입력 없음으로 돌려준다. `MinimapCamera`와 `CursorManager`만 아직 `Input`을 직접 읽는다. `InputSystem_Actions.inputactions`가 있지만 코드는 새 Input System을 쓰지 않는다.
+- **입력:** 레거시 `UnityEngine.Input`을 쓰되, 플레이어 입력은 정적 클래스 `GameInput`(이동, 시점, 점프, 달리기, 장전 R, 발사 마우스 왼쪽, 폭탄 마우스 오른쪽: 누르고 있으면 충전, 떼면 던짐, 무기 모드 전환 1·2키, 저격 줌 마우스 오른쪽)이 한곳에서 읽는다. 게임이 진행 중이 아니면 입력 없음으로 돌려준다. 커서를 푸는 Alt와 미니맵 확대·축소 키(0, 9), 무기 모드 전환 키도 모두 `GameInput`의 상수로 정하므로, `GameInput` 밖에서는 `Input`을 직접 읽지 않는다. 사격은 Input Manager의 `Fire1`(left ctrl도 포함) 대신 마우스 왼쪽 버튼을 직접 읽는다. `InputSystem_Actions.inputactions`가 있지만 코드는 새 Input System을 쓰지 않는다.
 
 ## 코드 컨벤션
 
 - 한국어 주석을 쓰고, 설명 주석은 클래스 위에 요약 형태로 단다.
 - 비공개 필드는 `_camelCase`, 인스펙터 노출은 `[SerializeField] private`, 코루틴 메서드 이름은 `_Coroutine`으로 끝낸다.
-- 초기화 순서: 체력, 기력, 총알, 폭탄 같은 상태는 `Awake`에서 채우고, UI는 `OnEnable`/`OnDisable`에서 이벤트를 구독하고 `Start`에서 한 번 전부 갱신한다(`RefreshAll`). `Start`는 컴포넌트 사이의 실행 순서가 보장되지 않으므로, 다른 컴포넌트가 `Start`에서 채우는 값을 UI가 `Start`에서 읽지 않는다.
+- 초기화 순서: 체력, 기력, 총알, 폭탄 같은 상태는 `Awake`에서 채우고, UI는 `OnEnable`/`OnDisable`에서 이벤트를 구독하고 `Start`에서 한 번 전부 갱신한다(`RefreshAll`). `Start`는 컴포넌트 사이의 실행 순서가 보장되지 않으므로, 다른 컴포넌트가 `Start`에서 채우는 값을 UI가 `Start`에서 읽지 않는다. `GameManager`와 `ZombieManager`는 `[DefaultExecutionOrder(-100)]`으로 가장 먼저 초기화하므로, 다른 컴포넌트가 `OnEnable`에서 `Instance`를 써도 된다. 같은 오브젝트의 다른 컴포넌트에 의존하는 경우(예: `ZombieHealthBar`가 `Zombie`의 값을 쓰는 경우)는 그 컴포넌트의 `Awake`가 끝난 뒤인 `Start`에서 구독한다.
+- 참조: 같은 오브젝트의 컴포넌트는 `Awake`에서 `GetComponent`로, 씬의 다른 오브젝트는 `[SerializeField]`로 인스펙터에서 연결한다. `Find` 계열은 연결을 빠뜨렸을 때의 안전장치로만 한 번 쓰고 경고 로그를 남긴다. 프리팹은 씬 오브젝트를 직렬화할 수 없으므로 스포너가 `SetTarget`처럼 코드로 넘겨 준다. `Camera.main`은 `Awake`에서 한 번만 캐시한다.
 - 튜닝 값(체력, 속도, 쿨타임 등)은 매직 넘버로 두지 않고 `[SerializeField]` 필드나 상수로 둔다. 자세한 기준은 `Docs/CodeReviewGuide.md`를 따른다.
 
 ## 코드 리뷰와 협업 규칙
