@@ -16778,11 +16778,20 @@ MonoBehaviour:
     _width: 0.05
     _speed: 200
     _length: 5
-  _maxBulletCount: 60
-  _reloadingTime: 1
-  _range: 100
-  _damage: 10
-  _fireInterval: 0.1
+  _assaultRifle:
+    _maxBulletCount: 60
+    _reloadingTime: 1
+    _range: 100
+    _damage: 10
+    _fireInterval: 0.1
+    _isAutomatic: 1
+  _marksmanRifle:
+    _maxBulletCount: 12
+    _reloadingTime: 3
+    _range: 150
+    _damage: 20
+    _fireInterval: 1
+    _isAutomatic: 0
   _muzzlePosition: {fileID: 842281521}
   _muzzleFlashes:
   - {fileID: 502244813}
@@ -16872,7 +16881,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2e09270d5505770488525c20574d4fe0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerZoom
-  _sniperZoom: {fileID: 1082396934}
+  _scopeOverlay: {fileID: 1082396934}
   _crosshair: {fileID: 1923320526}
   _normalFov: 60
   _zoomFov: 15
@@ -16913,6 +16922,7 @@ MonoBehaviour:
   _slashEffectScale: 1.2
   _slashEffectOffset: {x: 0, y: 0.2, z: 0.8}
   _slashEffectRotation: {x: 0, y: 0, z: 0}
+  _effectHitRadiusScale: 1
   _slashEffect: {fileID: 0}
 --- !u!114 &1620558222
 MonoBehaviour:
@@ -20883,6 +20893,7 @@ MonoBehaviour:
   _modeIcons:
   - {fileID: -1106090705, guid: ac990ce673376c24e8a12c86aa10a0ac, type: 3}
   - {fileID: -554932874, guid: 198a4aba8f3012c448ff58875130eb3d, type: 3}
+  - {fileID: 1246625491, guid: cc27fdc1e703a584d817becbb583a369, type: 3}
   _modeText: {fileID: 287160919}
   _bulletText: {fileID: 814702175}
   _bombText: {fileID: 1517810344}
