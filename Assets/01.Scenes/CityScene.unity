@@ -17034,6 +17034,7 @@ GameObject:
   - component: {fileID: 1620558220}
   - component: {fileID: 1620558221}
   - component: {fileID: 1620558222}
+  - component: {fileID: 1620558223}
   m_Layer: 7
   m_Name: Player
   m_TagString: Player
@@ -17203,14 +17204,24 @@ MonoBehaviour:
     _fireInterval: 0.1
     _isAutomatic: 1
     _weakPointDamage: 20
+    _cameraRecoilPitch: 0.5
+    _cameraRecoilSide: 0.2
+    _bodyRecoilAngle: 1.5
+    _aimAssistRadius: 0
+    _aimAssistStrength: 0
   _marksmanRifle:
     _maxBulletCount: 12
     _reloadingTime: 1.5
     _range: 150
     _damage: 20
-    _fireInterval: 1
+    _fireInterval: 0.5
     _isAutomatic: 0
     _weakPointDamage: 40
+    _cameraRecoilPitch: 3
+    _cameraRecoilSide: 0.4
+    _bodyRecoilAngle: 5
+    _aimAssistRadius: 0.6
+    _aimAssistStrength: 1
   _muzzlePosition: {fileID: 842281521}
   _muzzleFlashes:
   - {fileID: 502244813}
@@ -17358,6 +17369,23 @@ MonoBehaviour:
   _meleeWeaponModel: {fileID: 1310904406}
   _gunWeaponModel: {fileID: 1159403232}
   _cameraView: {fileID: 330585550}
+--- !u!114 &1620558223
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1620558207}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd3e55e7f0a41d948beab3c471712357, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerRecoil
+  _recoverySpeed: 12
+  _maxCameraPitch: 6
+  _maxCameraSide: 2
+  _maxBodyAngle: 12
+  _chestRatio: 0.4
 --- !u!1001 &1627139681
 PrefabInstance:
   m_ObjectHideFlags: 0
