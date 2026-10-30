@@ -44,6 +44,9 @@ public class PlayerGunFire : MonoBehaviour
     public int MaxBulletCount => CurrentSpec.MaxBulletCount;
     public event System.Action<int, int> OnBulletChanged;
 
+    // 총알이 몬스터(좀비)에 맞았을 때 알린다. 인자는 약점에 맞았는지다. (명중 표시 UI가 구독한다. 이 클래스는 UI를 모른다.)
+    public event System.Action<bool> OnHit;
+
     // 폭탄을 충전하거나 던지는 모션이 재생되는 동안은 쏠 수 없다. 재장전은 충전 중에만 막는다.
     private bool IsFireBlockedByBomb => _bombFire != null && (_bombFire.IsCharging || _bombFire.IsThrowing);
     private bool IsReloadBlockedByBomb => _bombFire != null && _bombFire.IsCharging;
@@ -201,7 +204,8 @@ public class PlayerGunFire : MonoBehaviour
         // 트리거 콜라이더와 Ignore Raycast 레이어(경계 벽)는 총알이 맞지 않는다.
         Transform cameraTransform = _camera.transform;
         Ray aimRay = new Ray(cameraTransform.position, cameraTransform.forward);
-        Vector3 aimPoint = RaycastIgnoringSelf(aimRay, spec.Range, out RaycastHit aimHit)
+        // 약점을 맞출 수 있는 총은 조준점도 몸통 안쪽의 약점 판정까지 들어가서 잡아야, 총구에서 쏜 총알도 약점에 닿는다.
+        Vector3 aimPoint = RaycastIgnoringSelf(aimRay, spec.Range, spec.CanHitWeakPoint, out RaycastHit aimHit)
             ? aimHit.point
             : aimRay.GetPoint(spec.Range);
 
@@ -215,14 +219,17 @@ public class PlayerGunFire : MonoBehaviour
 
         // 4. 레이를 발사하고, 만일 부딛힌 물체가 있다면 이펙트 표시하기
         // 조준점 바로 앞에서 끊기지 않도록 조준점까지의 거리에 여유를 조금 둔다.
-        bool isHit = RaycastIgnoringSelf(ray, toAim.magnitude + AimPointMargin, out hitInfo);
+        bool isHit = RaycastIgnoringSelf(ray, toAim.magnitude + AimPointMargin, spec.CanHitWeakPoint, out hitInfo);
 
         // 맞았으면 맞은 자리까지, 허공이면 조준점(사거리 끝)까지 궤적을 날린다.
         _tracer.Fire(muzzle, isHit ? hitInfo.point : aimPoint);
 
         if (isHit)
         {
-            IDamageable target = hitInfo.collider.GetComponent<IDamageable>();
+            IDamageable target = hitInfo.collider.GetComponentInParent<IDamageable>();
+
+            // 약점을 맞출 수 있는 총이 약점 판정(WeakPointHitbox)에 맞았으면 약점 공격이다.
+            bool isWeakPointHit = spec.CanHitWeakPoint && target != null && hitInfo.collider.GetComponent<WeakPointHitbox>() != null;
 
             // 맞은 자리에 총알 자국 이펙트 만들기 (끝나면 풀로 돌아가 재사용된다.)
             // 좀비는 맞으면 피가 튀므로, 벽에 맞은 자국 이펙트는 내지 않는다.
@@ -232,18 +239,29 @@ public class PlayerGunFire : MonoBehaviour
             }
 
             // 대미지 구조체 만들기
-            target?.TakeDamage(new DamageInfo(spec.Damage, hitInfo.point, hitInfo.normal));
+            float damage = isWeakPointHit ? spec.WeakPointDamage : spec.Damage;
+            target?.TakeDamage(new DamageInfo(damage, hitInfo.point, hitInfo.normal, isWeakPointHit));
+
+            // 몬스터(좀비)에 맞았을 때만 명중으로 친다. 벽, 드럼통, 박스 같은 것에 맞은 것은 표시하지 않는다.
+            if (target is Zombie)
+            {
+                OnHit?.Invoke(isWeakPointHit);
+            }
         }
     }
 
     // 가장 가까운 맞은 물체를 찾되 플레이어 자신의 콜라이더는 건너뛴다. (3인칭에서는 카메라가 플레이어 뒤에 있어 레이가 자신부터 맞기 때문)
-    private bool RaycastIgnoringSelf(Ray ray, float distance, out RaycastHit result)
+    // preferWeakPoint가 켜져 있으면, 맞은 대상의 약점 판정(WeakPointHitbox)이 레이 위에 있을 때 몸통 대신 약점을 맞은 것으로 돌려준다.
+    // (약점 판정은 몸통 콜라이더 안쪽에 있을 수 있어서, 가장 가까운 것만 고르면 항상 몸통이 먼저 잡히기 때문)
+    private bool RaycastIgnoringSelf(Ray ray, float distance, bool preferWeakPoint, out RaycastHit result)
     {
         result = default;
         float nearest = float.MaxValue;
         bool found = false;
 
-        foreach (RaycastHit hit in Physics.RaycastAll(ray, distance, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
+        RaycastHit[] hits = Physics.RaycastAll(ray, distance, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+
+        foreach (RaycastHit hit in hits)
         {
             if (hit.collider.transform.root == transform.root || hit.distance >= nearest) continue;
 
@@ -252,7 +270,22 @@ public class PlayerGunFire : MonoBehaviour
             found = true;
         }
 
-        return found;
+        if (!found || !preferWeakPoint) return found;
+
+        IDamageable owner = result.collider.GetComponentInParent<IDamageable>();
+        if (owner == null) return true;
+
+        float nearestWeakPoint = float.MaxValue;
+        foreach (RaycastHit hit in hits)
+        {
+            if (hit.distance >= nearestWeakPoint || hit.collider.GetComponent<WeakPointHitbox>() == null) continue;
+            if (hit.collider.GetComponentInParent<IDamageable>() != owner) continue;
+
+            nearestWeakPoint = hit.distance;
+            result = hit;
+        }
+
+        return true;
     }
 
     private void HideMuzzleFlashes()

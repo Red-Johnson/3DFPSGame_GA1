@@ -29,7 +29,7 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
 
     private ZombieMotor _motor;
     private ZombieAnimator _anim;
-    private Collider _collider;
+    private Collider[] _colliders;     // 몸통과 약점 등 피격 판정 콜라이더 전부
     private Transform _target;
     private IDamageable _targetDamageable;
     private float _health;
@@ -79,7 +79,7 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
             _stats = GetFallbackStats();
         }
 
-        _collider = GetComponent<Collider>();
+        _colliders = GetComponentsInChildren<Collider>(true);
         _motor = new ZombieMotor(GetComponent<NavMeshAgent>(), _stats);
         _anim = new ZombieAnimator(GetComponentInChildren<Animator>(), _stats.AnimationFadeDuration);
 
@@ -95,7 +95,7 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
     private void OnEnable()
     {
         _health = _stats.MaxHealth;
-        _collider.enabled = true;
+        SetCollidersEnabled(true);
         _motor.Enable();
 
         OnHealthChanged?.Invoke();
@@ -233,7 +233,15 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
     public void DisableMovement()
     {
         _motor.Disable();
-        _collider.enabled = false;
+        SetCollidersEnabled(false);
+    }
+
+    private void SetCollidersEnabled(bool isEnabled)
+    {
+        foreach (Collider collider in _colliders)
+        {
+            collider.enabled = isEnabled;
+        }
     }
 
     public void StartDespawn()
