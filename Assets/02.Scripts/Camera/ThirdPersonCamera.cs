@@ -7,8 +7,9 @@ using UnityEngine;
 public class ThirdPersonCamera : MonoBehaviour
 {
     [SerializeField] private Transform _target;                                 // 따라다닐 플레이어
-    [SerializeField] private Vector3 _pivotOffset = new Vector3(0f, 0.6f, 0f);  // 카메라가 도는 중심(플레이어 위치 기준, 어깨 높이)
-    [SerializeField] private float _distance = 3.5f;                            // 중심에서 카메라까지의 거리
+    [SerializeField] private Vector3 _pivotOffset = new Vector3(0f, 4f, 0f);  // 카메라가 도는 중심(플레이어 위치 기준, 어깨 높이)
+    [SerializeField] private float _shoulderOffset = 0.8f;                      // 카메라가 도는 방향 기준 오른쪽(+)/왼쪽(-)으로 비켜 서는 거리(숄더뷰)
+    [SerializeField] private float _distance = 4f;                           // 중심에서 카메라까지의 거리
     [SerializeField] private float _sensitivity = 3.3f;                         // 마우스 한 칸당 회전 각도
     [SerializeField] private float _minPitch = -20f;                            // 아래에서 올려다보는 한계
     [SerializeField] private float _maxPitch = 60f;                             // 위에서 내려다보는 한계
@@ -64,13 +65,16 @@ public class ThirdPersonCamera : MonoBehaviour
         Quaternion rotation = Quaternion.Euler(_pitch, _yaw, 0f);
         Vector3 backward = rotation * Vector3.back;
 
+        // 숄더뷰: 월드 좌표가 아니라 카메라 좌우 방향(yaw)을 기준으로 옆으로 비켜 서야 플레이어가 돌아도 상대 위치가 변하지 않는다.
+        Vector3 shoulderPivot = _pivot + (Quaternion.Euler(0f, _yaw, 0f) * Vector3.right * _shoulderOffset);
+
         // 중심에서 카메라 자리까지 가로막는 것이 있으면 그 앞까지만 물러난다.
         float distance = _distance;
-        if (Physics.SphereCast(_pivot, _collisionRadius, backward, out RaycastHit hit, _distance, _collisionLayers, QueryTriggerInteraction.Ignore))
+        if (Physics.SphereCast(shoulderPivot, _collisionRadius, backward, out RaycastHit hit, _distance, _collisionLayers, QueryTriggerInteraction.Ignore))
         {
             distance = Mathf.Max(0.3f, hit.distance - _collisionPadding);
         }
 
-        transform.SetPositionAndRotation(_pivot + (backward * distance), rotation);
+        transform.SetPositionAndRotation(shoulderPivot + (backward * distance), rotation);
     }
 }
