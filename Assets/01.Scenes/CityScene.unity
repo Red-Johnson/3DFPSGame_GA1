@@ -16909,6 +16909,10 @@ MonoBehaviour:
   _hitLayers:
     serializedVersion: 2
     m_Bits: 4294967295
+  _slashEffectPrefab: {fileID: 258295244375626962, guid: 3fee2e03e4bdc854bb38f7bcbca7c75d, type: 3}
+  _slashEffectScale: 1.2
+  _slashEffectOffset: {x: 0, y: 0.2, z: 0.8}
+  _slashEffectRotation: {x: 0, y: 0, z: 0}
   _slashEffect: {fileID: 0}
 --- !u!114 &1620558222
 MonoBehaviour:
