@@ -54,8 +54,8 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 0.4
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Radius: 0.2
+  m_Center: {x: 0, y: -0.2, z: 0}
 --- !u!54 &3757119833967233115
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -102,6 +102,7 @@ MonoBehaviour:
   _spinSpeed: 12
   _spinRandomness: 0.3
   _landedAngularDamping: 1
+  _landedLinearDamping: 2.5
 --- !u!1001 &6134278844928095942
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -116,15 +117,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7905790638360762157, guid: 87e9231213ec44719864caab8127dd3b, type: 3}
       propertyPath: m_LocalScale.x
-      value: 10
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 7905790638360762157, guid: 87e9231213ec44719864caab8127dd3b, type: 3}
       propertyPath: m_LocalScale.y
-      value: 10
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 7905790638360762157, guid: 87e9231213ec44719864caab8127dd3b, type: 3}
       propertyPath: m_LocalScale.z
-      value: 10
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 7905790638360762157, guid: 87e9231213ec44719864caab8127dd3b, type: 3}
       propertyPath: m_LocalPosition.x
