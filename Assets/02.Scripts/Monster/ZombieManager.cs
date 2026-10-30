@@ -22,6 +22,9 @@ public class ZombieManager : MonoBehaviour
     // 남은 좀비 수, 최대 좀비 수
     public event Action<int, int> OnCountChanged;
 
+    // 좀비가 죽었을 때(총, 칼, 폭탄 등 원인과 상관없이) 알린다. 풀로 돌아가거나 꺼지는 것은 죽음이 아니라 알리지 않는다.
+    public event Action<Zombie> OnZombieKilled;
+
     private void Awake()
     {
         if (_instance != null)
@@ -47,6 +50,11 @@ public class ZombieManager : MonoBehaviour
         {
             NotifyCountChanged();
         }
+    }
+
+    public void NotifyKilled(Zombie zombie)
+    {
+        OnZombieKilled?.Invoke(zombie);
     }
 
     private void NotifyCountChanged()

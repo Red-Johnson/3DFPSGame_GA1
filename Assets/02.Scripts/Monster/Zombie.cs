@@ -211,6 +211,12 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
             UnregisterFromManager();
             OnDied?.Invoke();
 
+            // 처치를 알린다. (콤보 UI 등이 구독한다. 풀로 돌아가거나 꺼지는 것과는 다르다.)
+            if (ZombieManager.Instance != null)
+            {
+                ZombieManager.Instance.NotifyKilled(this);
+            }
+
             // 쓰러지기 시작하면 출혈 이펙트를 바로 없앤다. (좀비는 쓰러지는데 피만 공중에 남지 않게)
             ClearBloodSprays();
             ChangeState(_deathState);
