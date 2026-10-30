@@ -11,6 +11,8 @@ public class PlayerAnimator : MonoBehaviour
     private const string SlashParameter = "Slash";              // 칼 휘두르기 모션을 시작하는 트리거
     private const string ThrowParameter = "Throw";              // 던지는 모션을 시작하는 트리거
     private const string ThrowSpeedParameter = "ThrowSpeed";    // Throw 상태의 재생 속도(0이면 멈춤, 1이면 재생)
+    private const string MeleeIdleLayerName = "Melee Idle Layer";   // 근접 모드에서 서 있을 때 온몸이 battle stance가 되는 레이어
+    private const string StanceLayerName = "Stance Layer";          // 근접 모드에서 움직일 때 상체만 battle stance가 되는 레이어
     private const string InjuredLayerName = "Injured Layer";    // 체력이 낮을 때 하체가 절뚝거리는 레이어
     private const string ThrowLayerName = "Throw Layer";        // 던지는 모션(상체만)을 재생하는 레이어
     private const string ThrowStateName = "Throw";
@@ -27,6 +29,10 @@ public class PlayerAnimator : MonoBehaviour
     private static readonly int EmptyStateHash = Animator.StringToHash(EmptyStateName);
 
     private Animator _animator;
+    private int _meleeIdleLayerIndex = -1;
+    private int _stanceLayerIndex = -1;
+    private bool _isMeleeStance;
+    private float _moveAmount;
     private int _injuredLayerIndex = -1;
     private int _throwLayerIndex = -1;
 
@@ -42,6 +48,8 @@ public class PlayerAnimator : MonoBehaviour
             return;
         }
 
+        _meleeIdleLayerIndex = FindLayer(MeleeIdleLayerName, "근접 서 있는 자세");
+        _stanceLayerIndex = FindLayer(StanceLayerName, "근접 상체 자세");
         _injuredLayerIndex = FindLayer(InjuredLayerName, "부상 애니메이션");
         _throwLayerIndex = FindLayer(ThrowLayerName, "던지는 모션");
     }
@@ -51,7 +59,32 @@ public class PlayerAnimator : MonoBehaviour
     {
         if (_animator == null) return;
 
+        _moveAmount = amount;
         _animator.SetFloat(MoveHash, amount);
+        RefreshMeleeStanceWeights();
+    }
+
+    // 근접 자세 여부. 켜면 서 있을 때는 온몸이, 움직일 때는 상체만 battle stance가 된다. (총 모드에서는 끈다.)
+    public void SetMeleeStance(bool isMelee)
+    {
+        _isMeleeStance = isMelee;
+        RefreshMeleeStanceWeights();
+    }
+
+    // 서 있을수록 온몸 자세 레이어를, 근접 모드인 동안은 상체 자세 레이어를 항상 켠다.
+    private void RefreshMeleeStanceWeights()
+    {
+        if (_animator == null) return;
+
+        if (_meleeIdleLayerIndex >= 0)
+        {
+            _animator.SetLayerWeight(_meleeIdleLayerIndex, _isMeleeStance ? 1f - Mathf.Clamp01(_moveAmount) : 0f);
+        }
+
+        if (_stanceLayerIndex >= 0)
+        {
+            _animator.SetLayerWeight(_stanceLayerIndex, _isMeleeStance ? 1f : 0f);
+        }
     }
 
     public void SetFiring(bool isFiring)

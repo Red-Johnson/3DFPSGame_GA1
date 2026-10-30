@@ -14,6 +14,7 @@ public static class GameInput
 
     private const KeyCode NormalModeKey = KeyCode.Alpha1;       // 무기 모드: 일반
     private const KeyCode SniperModeKey = KeyCode.Alpha2;       // 무기 모드: 저격
+    private const KeyCode MeleeModeKey = KeyCode.Alpha3;        // 무기 모드: 근접
     private const KeyCode CursorUnlockKey = KeyCode.LeftAlt;    // 누르고 있는 동안 커서를 푼다.
     private const KeyCode ViewToggleKey = KeyCode.V;            // 1인칭 / 3인칭 시점 전환
     private const KeyCode MinimapZoomInKey = KeyCode.Alpha0;    // 미니맵 확대
@@ -23,7 +24,8 @@ public static class GameInput
     public static Vector2 MoveAxis => IsPlaying ? new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical")) : Vector2.zero;
 
     // 이번 프레임에 마우스가 움직인 양. x: 좌우, y: 위아래 (프레임 시간을 곱하지 않는다.)
-    public static Vector2 LookDelta => IsPlaying ? new Vector2(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y")) : Vector2.zero;
+    // 커서가 보이는 동안(Alt)에는 시점이 돌지 않는다.
+    public static Vector2 LookDelta => CanUseWeapon ? new Vector2(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y")) : Vector2.zero;
 
     public static bool JumpPressed => IsPlaying && Input.GetButtonDown("Jump");
     public static bool SprintHeld => IsPlaying && Input.GetButton("Sprint");
@@ -38,6 +40,7 @@ public static class GameInput
 
     public static bool NormalModePressed => IsPlaying && Input.GetKeyDown(NormalModeKey);
     public static bool SniperModePressed => IsPlaying && Input.GetKeyDown(SniperModeKey);
+    public static bool MeleeModePressed => IsPlaying && Input.GetKeyDown(MeleeModeKey);
 
     public static bool CursorUnlockPressed => IsPlaying && Input.GetKeyDown(CursorUnlockKey);
     public static bool CursorUnlockReleased => IsPlaying && Input.GetKeyUp(CursorUnlockKey);
@@ -49,6 +52,6 @@ public static class GameInput
 
     private static bool IsPlaying => GameManager.Instance != null && GameManager.Instance.IsPlaying;
 
-    // 무기(발사, 폭탄, 줌)는 게임 중이고 커서가 잠겨 있을 때만 쓸 수 있다.
+    // 무기(발사, 폭탄, 줌)와 시점 조절은 게임 중이고 커서가 잠겨 있을 때만 쓸 수 있다.
     private static bool CanUseWeapon => IsPlaying && !Cursor.visible;
 }

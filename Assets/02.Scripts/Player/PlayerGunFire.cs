@@ -152,7 +152,7 @@ public class PlayerGunFire : MonoBehaviour
         // 트리거 콜라이더와 Ignore Raycast 레이어(경계 벽)는 총알이 맞지 않는다.
         Transform cameraTransform = _camera.transform;
         Ray aimRay = new Ray(cameraTransform.position, cameraTransform.forward);
-        Vector3 aimPoint = Physics.Raycast(aimRay, out RaycastHit aimHit, _range, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore)
+        Vector3 aimPoint = RaycastIgnoringSelf(aimRay, _range, out RaycastHit aimHit)
             ? aimHit.point
             : aimRay.GetPoint(_range);
 
@@ -166,7 +166,7 @@ public class PlayerGunFire : MonoBehaviour
 
         // 4. 레이를 발사하고, 만일 부딛힌 물체가 있다면 이펙트 표시하기
         // 조준점 바로 앞에서 끊기지 않도록 조준점까지의 거리에 여유를 조금 둔다.
-        bool isHit = Physics.Raycast(ray, out hitInfo, toAim.magnitude + AimPointMargin, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+        bool isHit = RaycastIgnoringSelf(ray, toAim.magnitude + AimPointMargin, out hitInfo);
 
         // 맞았으면 맞은 자리까지, 허공이면 조준점(사거리 끝)까지 궤적을 날린다.
         _tracer.Fire(muzzle, isHit ? hitInfo.point : aimPoint);
@@ -185,6 +185,25 @@ public class PlayerGunFire : MonoBehaviour
             // 대미지 구조체 만들기
             target?.TakeDamage(new DamageInfo(_damage, hitInfo.point, hitInfo.normal));
         }
+    }
+
+    // 가장 가까운 맞은 물체를 찾되 플레이어 자신의 콜라이더는 건너뛴다. (3인칭에서는 카메라가 플레이어 뒤에 있어 레이가 자신부터 맞기 때문)
+    private bool RaycastIgnoringSelf(Ray ray, float distance, out RaycastHit result)
+    {
+        result = default;
+        float nearest = float.MaxValue;
+        bool found = false;
+
+        foreach (RaycastHit hit in Physics.RaycastAll(ray, distance, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
+        {
+            if (hit.collider.transform.root == transform.root || hit.distance >= nearest) continue;
+
+            nearest = hit.distance;
+            result = hit;
+            found = true;
+        }
+
+        return found;
     }
 
     private void HideMuzzleFlashes()

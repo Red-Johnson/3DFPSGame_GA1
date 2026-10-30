@@ -44,7 +44,16 @@ public class UI_WeaponStatus : MonoBehaviour
 
     private void RefreshMode(WeaponMode mode)
     {
-        _weaponIcon.sprite = _modeIcons[(int)mode];
+        // 아이콘이 준비된 모드만 보여 준다. (근접 모드처럼 아이콘이 없으면 숨긴다.)
+        bool hasIcon = (int)mode < _modeIcons.Length && _modeIcons[(int)mode] != null;
+        _weaponIcon.gameObject.SetActive(hasIcon);
+        if (hasIcon)
+        {
+            _weaponIcon.sprite = _modeIcons[(int)mode];
+        }
+
+        // 근접 모드에는 총알이 없으므로 총알 수를 숨긴다.
+        _bulletText.gameObject.SetActive(mode != WeaponMode.Melee);
 
         // 텍스트 오브젝트를 아직 연결하지 않았어도 나머지 UI는 동작하게 한다.
         if (_modeText != null)
@@ -71,6 +80,8 @@ public class UI_WeaponStatus : MonoBehaviour
                 return "일반 모드";
             case WeaponMode.Sniper:
                 return "저격 모드";
+            case WeaponMode.Melee:
+                return "근접 모드";
             default:
                 return mode.ToString();
         }

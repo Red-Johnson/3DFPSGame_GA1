@@ -1,6 +1,6 @@
 using UnityEngine;
 
-// 무기 모드: 1·2키로 모드를 바꾸고, 바뀌면 구독자(UI 등)에게 알린다.
+// 무기 모드: 1·2·3키로 모드(일반, 저격, 근접)를 바꾸고, 바뀌면 구독자(UI 등)에게 알린다.
 // 모드 이름과 아이콘 표시는 UI_WeaponStatus가 맡는다. (이 클래스는 UI를 모른다.)
 public class PlayerWeaponMode : MonoBehaviour
 {
@@ -19,6 +19,10 @@ public class PlayerWeaponMode : MonoBehaviour
         else if (GameInput.SniperModePressed)
         {
             ChangeMode(WeaponMode.Sniper);
+        }
+        else if (GameInput.MeleeModePressed)
+        {
+            ChangeMode(WeaponMode.Melee);
         }
     }
 

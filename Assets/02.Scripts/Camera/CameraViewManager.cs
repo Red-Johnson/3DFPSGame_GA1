@@ -28,6 +28,23 @@ public class CameraViewManager : MonoBehaviour
 
     public event Action<CameraViewMode> OnViewChanged;
 
+    private bool _showCrosshairInThirdPerson;
+
+    // 3인칭에서도 조준점을 보여야 하는지. 총을 쏘는 모드에서는 켜고, 칼 모드에서는 끈다.
+    public void SetThirdPersonCrosshair(bool show)
+    {
+        _showCrosshairInThirdPerson = show;
+        ApplyCrosshair();
+    }
+
+    private void ApplyCrosshair()
+    {
+        if (_crosshair != null)
+        {
+            _crosshair.SetActive(!IsThirdPerson || _showCrosshairInThirdPerson);
+        }
+    }
+
     private void Awake()
     {
         _firstPersonFollow = GetComponent<CameraFollow>();
@@ -63,7 +80,7 @@ public class CameraViewManager : MonoBehaviour
         if (_firstPersonFollow != null) _firstPersonFollow.enabled = !toThird;
         if (_firstPersonRotate != null) _firstPersonRotate.enabled = !toThird;
         if (_thirdPerson != null) _thirdPerson.enabled = toThird;
-        if (_crosshair != null) _crosshair.SetActive(!toThird);
+        ApplyCrosshair();
 
         OnViewChanged?.Invoke(Mode);
     }
