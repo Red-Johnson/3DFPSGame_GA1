@@ -6,4 +6,13 @@ using UnityEngine;
 [RequireComponent(typeof(Collider))]
 public class WeakPointHitbox : MonoBehaviour
 {
+    private Collider _collider;
+
+    // 약점의 월드 중심 위치. 애니메이션을 따라 움직이는 뼈 아래에 있어도 지금 위치를 돌려준다. (조준 보정이 쓴다.)
+    public Vector3 Center => _collider.bounds.center;
+
+    private void Awake()
+    {
+        _collider = GetComponent<Collider>();
+    }
 }

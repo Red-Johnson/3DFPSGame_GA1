@@ -6,7 +6,7 @@ using UnityEngine;
 // 마우스 왼쪽 버튼을 누르면 바라보는 방향으로 총알을 발사하고 싶다.
 // 총은 돌격소총(1번)과 지정사수소총(2번) 두 자루이고, 성능(GunSpec)과 잔탄은 총마다 따로 가진다.
 // 무기를 바꿨다가 돌아와도 잔탄이 유지되고, 다른 총으로 바꾸면 진행 중인 재장전은 취소된다.
-[RequireComponent(typeof(PlayerAnimator), typeof(PlayerWeaponMode))]
+[RequireComponent(typeof(PlayerWeaponMode))]
 public class PlayerGunFire : MonoBehaviour
 {
     [SerializeField] private ParticleSystem _hitEffectPrefab;
@@ -15,10 +15,10 @@ public class PlayerGunFire : MonoBehaviour
     [SerializeField] private BulletTracerSpawner _tracer;
 
     [Header("돌격소총 (1번): 누르고 있으면 연사")]
-    [SerializeField] private GunSpec _assaultRifle = new GunSpec(60, 1f, 100f, 10f, 0.1f, true);
+    [SerializeField] private GunSpec _assaultRifle = new GunSpec(60, 1f, 100f, 10f, 0.1f, true, 20f, 0.5f, 0.2f, 1.5f);
 
     [Header("지정사수소총 (2번): 한 번 누를 때마다 한 발")]
-    [SerializeField] private GunSpec _marksmanRifle = new GunSpec(12, 3f, 150f, 40f, 1f, false);
+    [SerializeField] private GunSpec _marksmanRifle = new GunSpec(12, 3f, 150f, 20f, 1f, false, 40f, 3f, 0.4f, 5f, 0.6f, 0.6f);
 
     [Header("총구")]
     [SerializeField] private Transform _muzzlePosition;      // 총알과 궤적이 나가는 총구. 화염은 이 아래에 둔다.
@@ -35,7 +35,7 @@ public class PlayerGunFire : MonoBehaviour
     private Camera _camera;
     private PlayerWeaponMode _weaponMode;
     private PlayerBombFire _bombFire;
-    private PlayerAnimator _playerAnimator;
+    private PlayerMarksmanZoom _zoom;       // 줌 중에만 조준 보정을 쓴다. 없으면 보정하지 않는다.
 
     private bool IsReloading => _reloadCoroutine != null;
     private GunSpec CurrentSpec => GetSpec(_gunMode);
@@ -43,6 +43,9 @@ public class PlayerGunFire : MonoBehaviour
     public int BulletCount => _bulletCounts[_gunMode];
     public int MaxBulletCount => CurrentSpec.MaxBulletCount;
     public event System.Action<int, int> OnBulletChanged;
+
+    // 총알이 한 발 나갈 때마다 알린다. (반동 연출이 구독한다. 이 클래스는 반동을 모른다.)
+    public event System.Action<GunSpec> OnShot;
 
     // 총알이 몬스터(좀비)에 맞았을 때 알린다. 인자는 약점에 맞았는지다. (명중 표시 UI가 구독한다. 이 클래스는 UI를 모른다.)
     public event System.Action<bool> OnHit;
@@ -57,7 +60,7 @@ public class PlayerGunFire : MonoBehaviour
         _camera = Camera.main;
         _weaponMode = GetComponent<PlayerWeaponMode>();
         _bombFire = GetComponent<PlayerBombFire>();
-        _playerAnimator = GetComponent<PlayerAnimator>();
+        _zoom = GetComponent<PlayerMarksmanZoom>();
 
         // UI가 Start에서 총알 수를 읽어도 되도록 Awake에서 채운다. (Start 실행 순서에 의존하지 않는다.)
         _bulletCounts[WeaponMode.AssaultRifle] = _assaultRifle.MaxBulletCount;
@@ -104,12 +107,7 @@ public class PlayerGunFire : MonoBehaviour
 
     private void Update()
     {
-        if (!GameManager.Instance.IsPlaying)
-        {
-            // 게임이 끝났을 때 사격 모션이 켜진 채 남지 않게 한다.
-            _playerAnimator.SetFiring(false);
-            return;
-        }
+        if (!GameManager.Instance.IsPlaying) return;
 
         GunSpec spec = CurrentSpec;
 
@@ -128,11 +126,7 @@ public class PlayerGunFire : MonoBehaviour
             OnBulletChanged?.Invoke(BulletCount, MaxBulletCount);
             _nextFireTimes[_gunMode] = Time.time + spec.FireInterval;
             Shoot(spec);
-            _playerAnimator.SetFiring(true);
-        }
-        else
-        {
-            _playerAnimator.SetFiring(false);
+            OnShot?.Invoke(spec);
         }
 
         // 2. R키 누르면 총알 재장전 시작 (탄창이 가득 차 있거나 이미 재장전 중이거나 폭탄을 충전 중이면 시작하지 않는다.)
@@ -203,7 +197,7 @@ public class PlayerGunFire : MonoBehaviour
         // 1. 조준점 찾기: 화면 중앙(조준점)이 가리키는 곳을 카메라에서 쏜 레이로 먼저 정한다.
         // 트리거 콜라이더와 Ignore Raycast 레이어(경계 벽)는 총알이 맞지 않는다.
         Transform cameraTransform = _camera.transform;
-        Ray aimRay = new Ray(cameraTransform.position, cameraTransform.forward);
+        Ray aimRay = new Ray(cameraTransform.position, ApplyAimAssist(cameraTransform.position, cameraTransform.forward, spec));
         // 약점을 맞출 수 있는 총은 조준점도 몸통 안쪽의 약점 판정까지 들어가서 잡아야, 총구에서 쏜 총알도 약점에 닿는다.
         Vector3 aimPoint = RaycastIgnoringSelf(aimRay, spec.Range, spec.CanHitWeakPoint, out RaycastHit aimHit)
             ? aimHit.point
@@ -248,6 +242,50 @@ public class PlayerGunFire : MonoBehaviour
                 OnHit?.Invoke(isWeakPointHit);
             }
         }
+    }
+
+    // 조준 보정: 줌 중에 조준점이 약점 근처로 지나가면 총알이 나가는 방향만 그 약점 쪽으로 끌어당긴다. (화면과 시점은 바뀌지 않는다.)
+    // 조준선이 약점 중심에서 얼마나 벗어나 지나가는지를 약점이 있는 거리에서 미터로 재서, 반지름 안에서 가장 가까운 약점 하나를 고른다.
+    // 고른 약점 쪽으로 그 어긋남의 세기(0~1)만큼을 지운다. (0.5면 어긋남이 절반으로, 1이면 약점 중심으로 맞춘다.)
+    // 다른 물체에 가려진 약점, 사거리 밖의 약점, 뒤쪽의 약점은 고르지 않는다.
+    private Vector3 ApplyAimAssist(Vector3 origin, Vector3 direction, GunSpec spec)
+    {
+        if (!spec.HasAimAssist || _zoom == null || !_zoom.IsZooming || ZombieManager.Instance == null) return direction;
+
+        float bestMiss = spec.AimAssistRadius;
+        Vector3 bestDirection = direction;
+        bool found = false;
+
+        foreach (Zombie zombie in ZombieManager.Instance.AliveZombies)
+        {
+            foreach (WeakPointHitbox weakPoint in zombie.WeakPoints)
+            {
+                Vector3 center = weakPoint.Center;
+                Vector3 toWeakPoint = center - origin;
+                float distance = toWeakPoint.magnitude;
+                if (distance > spec.Range) continue;
+
+                // 조준선 위에서 약점과 가장 가까운 지점까지의 거리(미터). 약점이 뒤쪽에 있으면 제외한다.
+                float along = Vector3.Dot(toWeakPoint, direction);
+                if (along <= 0f) continue;
+
+                float miss = (center - (origin + (direction * along))).magnitude;
+                if (miss >= bestMiss) continue;
+
+                // 약점으로 쏜 레이가 같은 좀비에게 먼저 닿아야 보이는 것이다. (벽이나 다른 물체에 가리면 제외)
+                bool isVisible = RaycastIgnoringSelf(new Ray(origin, toWeakPoint), distance + AimPointMargin, true, out RaycastHit hit)
+                    && hit.collider.GetComponentInParent<Zombie>() == zombie;
+                if (!isVisible) continue;
+
+                bestMiss = miss;
+                bestDirection = toWeakPoint / distance;
+                found = true;
+            }
+        }
+
+        if (!found) return direction;
+
+        return Vector3.Slerp(direction, bestDirection, spec.AimAssistStrength).normalized;
     }
 
     // 가장 가까운 맞은 물체를 찾되 플레이어 자신의 콜라이더는 건너뛴다. (3인칭에서는 카메라가 플레이어 뒤에 있어 레이가 자신부터 맞기 때문)

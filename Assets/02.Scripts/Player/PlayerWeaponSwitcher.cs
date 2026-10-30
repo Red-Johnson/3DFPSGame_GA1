@@ -49,8 +49,7 @@ public class PlayerWeaponSwitcher : MonoBehaviour
         if (_meleeWeaponModel != null) _meleeWeaponModel.SetActive(isMelee);
         if (_gunWeaponModel != null) _gunWeaponModel.SetActive(!isMelee);
 
-        // 모드를 바꾸는 순간 사격 모션이 켜진 채 남지 않게 하고, 근접 자세를 맞춘다.
-        _playerAnimator.SetFiring(false);
+        // 근접 자세를 맞춘다.
         _playerAnimator.SetMeleeStance(isMelee);
 
         if (_cameraView != null)

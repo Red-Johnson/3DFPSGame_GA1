@@ -30,12 +30,14 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
     private ZombieMotor _motor;
     private ZombieAnimator _anim;
     private Collider[] _colliders;     // 몸통과 약점 등 피격 판정 콜라이더 전부
+    private WeakPointHitbox[] _weakPoints;
     private Transform _target;
     private IDamageable _targetDamageable;
     private float _health;
 
     public ZombieStats Stats => _stats;
     public ZombieMotor Motor => _motor;
+    public IReadOnlyList<WeakPointHitbox> WeakPoints => _weakPoints;
     public ZombieAnimator Anim => _anim;
     public Transform Target => _target;
     public IDamageable TargetDamageable => _targetDamageable;
@@ -80,6 +82,7 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
         }
 
         _colliders = GetComponentsInChildren<Collider>(true);
+        _weakPoints = GetComponentsInChildren<WeakPointHitbox>(true);
         _motor = new ZombieMotor(GetComponent<NavMeshAgent>(), _stats);
         _anim = new ZombieAnimator(GetComponentInChildren<Animator>(), _stats.AnimationFadeDuration);
 

@@ -16,6 +16,8 @@ public class PlayerMarksmanZoom : MonoBehaviour
     private Camera _camera;
     private bool _isZooming;
 
+    public bool IsZooming => _isZooming;
+
     // 시점 감도에 곱할 배율. 줌 중에는 화면에 보이는 크기 비율(tan(FOV/2) 비)만큼 줄여서, 마우스를 같은 만큼 움직이면 화면에서 같은 만큼 움직이게 한다.
     public float LookSensitivityScale => _isZooming
         ? Mathf.Tan(_zoomFov * 0.5f * Mathf.Deg2Rad) / Mathf.Tan(_normalFov * 0.5f * Mathf.Deg2Rad)

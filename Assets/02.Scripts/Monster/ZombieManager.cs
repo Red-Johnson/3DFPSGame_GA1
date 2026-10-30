@@ -19,6 +19,9 @@ public class ZombieManager : MonoBehaviour
     public int MaxCount => _maxCount;
     public bool HasRoom => _aliveZombies.Count < _maxCount;
 
+    // 살아 있는 좀비들. (조준 보정이 약점을 찾을 때 쓴다. 순회하는 동안 목록을 바꾸지 않는다.)
+    public IEnumerable<Zombie> AliveZombies => _aliveZombies;
+
     // 남은 좀비 수, 최대 좀비 수
     public event Action<int, int> OnCountChanged;
 
