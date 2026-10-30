@@ -10,10 +10,10 @@ public static class GameInput
     // Input Manager의 Fire1은 left ctrl, Fire2는 left alt도 포함하므로 쓰지 않고 마우스 버튼을 직접 읽는다.
     private const int FireMouseButton = 0;      // 사격
     private const int BombMouseButton = 1;      // 폭탄 던지기(누르고 있으면 충전)
-    private const int ZoomMouseButton = 1;      // 저격 모드 줌. 폭탄과 같은 버튼이지만 무기 모드가 달라 겹치지 않는다.
+    private const int ZoomMouseButton = 1;      // 지정사수소총 줌. 폭탄과 같은 버튼이지만 무기 모드가 달라 겹치지 않는다.
 
-    private const KeyCode NormalModeKey = KeyCode.Alpha1;       // 무기 모드: 일반
-    private const KeyCode SniperModeKey = KeyCode.Alpha2;       // 무기 모드: 저격
+    private const KeyCode AssaultRifleModeKey = KeyCode.Alpha1;    // 무기 모드: 돌격소총
+    private const KeyCode MarksmanRifleModeKey = KeyCode.Alpha2;  // 무기 모드: 지정사수소총
     private const KeyCode MeleeModeKey = KeyCode.Alpha3;        // 무기 모드: 근접
     private const KeyCode CursorUnlockKey = KeyCode.LeftAlt;    // 누르고 있는 동안 커서를 푼다.
     private const KeyCode ViewToggleKey = KeyCode.V;            // 1인칭 / 3인칭 시점 전환
@@ -31,15 +31,16 @@ public static class GameInput
     public static bool SprintHeld => IsPlaying && Input.GetButton("Sprint");
     public static bool ReloadPressed => IsPlaying && Input.GetKeyDown(KeyCode.R);
 
-    public static bool FireHeld => CanUseWeapon && Input.GetMouseButton(FireMouseButton);
+    public static bool FireHeld => CanUseWeapon && Input.GetMouseButton(FireMouseButton);        // 연사 총, 근접 공격
+    public static bool FirePressed => CanUseWeapon && Input.GetMouseButtonDown(FireMouseButton);   // 단발 총
     public static bool BombPressed => CanUseWeapon && Input.GetMouseButtonDown(BombMouseButton);
     public static bool BombHeld => CanUseWeapon && Input.GetMouseButton(BombMouseButton);
     public static bool BombReleased => CanUseWeapon && Input.GetMouseButtonUp(BombMouseButton);
 
     public static bool ZoomHeld => CanUseWeapon && Input.GetMouseButton(ZoomMouseButton);
 
-    public static bool NormalModePressed => IsPlaying && Input.GetKeyDown(NormalModeKey);
-    public static bool SniperModePressed => IsPlaying && Input.GetKeyDown(SniperModeKey);
+    public static bool AssaultRifleModePressed => IsPlaying && Input.GetKeyDown(AssaultRifleModeKey);
+    public static bool MarksmanRifleModePressed => IsPlaying && Input.GetKeyDown(MarksmanRifleModeKey);
     public static bool MeleeModePressed => IsPlaying && Input.GetKeyDown(MeleeModeKey);
 
     public static bool CursorUnlockPressed => IsPlaying && Input.GetKeyDown(CursorUnlockKey);

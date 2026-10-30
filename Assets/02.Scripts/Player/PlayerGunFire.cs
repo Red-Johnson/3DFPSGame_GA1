@@ -1,9 +1,12 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 
 // 마우스 왼쪽 버튼을 누르면 바라보는 방향으로 총알을 발사하고 싶다.
-[RequireComponent(typeof(PlayerAnimator))]
+// 총은 돌격소총(1번)과 지정사수소총(2번) 두 자루이고, 성능(GunSpec)과 잔탄은 총마다 따로 가진다.
+// 무기를 바꿨다가 돌아와도 잔탄이 유지되고, 다른 총으로 바꾸면 진행 중인 재장전은 취소된다.
+[RequireComponent(typeof(PlayerAnimator), typeof(PlayerWeaponMode))]
 public class PlayerGunFire : MonoBehaviour
 {
     [SerializeField] private ParticleSystem _hitEffectPrefab;
@@ -11,12 +14,11 @@ public class PlayerGunFire : MonoBehaviour
     [Header("총알 궤적")]
     [SerializeField] private BulletTracerSpawner _tracer;
 
-    [Header("스탯")]
-    [SerializeField] private int _maxBulletCount = 30;
-    [SerializeField] private float _reloadingTime = 3f;
-    [SerializeField] private float _range = 100f;            // 사거리
-    [SerializeField] private float _damage = 10f;            // 공격력
-    [SerializeField] private float _fireInterval = 0.1f;     // 발사 속도
+    [Header("돌격소총 (1번): 누르고 있으면 연사")]
+    [SerializeField] private GunSpec _assaultRifle = new GunSpec(60, 1f, 100f, 10f, 0.1f, true);
+
+    [Header("지정사수소총 (2번): 한 번 누를 때마다 한 발")]
+    [SerializeField] private GunSpec _marksmanRifle = new GunSpec(12, 3f, 150f, 40f, 1f, false);
 
     [Header("총구")]
     [SerializeField] private Transform _muzzlePosition;      // 총알과 궤적이 나가는 총구. 화염은 이 아래에 둔다.
@@ -25,17 +27,21 @@ public class PlayerGunFire : MonoBehaviour
 
     private const float AimPointMargin = 0.1f;
 
-    private float _fireTimer = 0f;
-    private int _bulletCount = 0;
+    private readonly Dictionary<WeaponMode, int> _bulletCounts = new Dictionary<WeaponMode, int>();      // 총마다 따로 남은 총알
+    private readonly Dictionary<WeaponMode, float> _nextFireTimes = new Dictionary<WeaponMode, float>(); // 총마다 따로 다음에 쏠 수 있는 시각
+
+    private WeaponMode _gunMode = WeaponMode.AssaultRifle;      // 지금 들고 있는 총. (근접 모드일 때는 마지막으로 들었던 총)
     private Coroutine _reloadCoroutine = null;
     private Camera _camera;
+    private PlayerWeaponMode _weaponMode;
     private PlayerBombFire _bombFire;
     private PlayerAnimator _playerAnimator;
 
     private bool IsReloading => _reloadCoroutine != null;
+    private GunSpec CurrentSpec => GetSpec(_gunMode);
 
-    public int BulletCount => _bulletCount;
-    public int MaxBulletCount => _maxBulletCount;
+    public int BulletCount => _bulletCounts[_gunMode];
+    public int MaxBulletCount => CurrentSpec.MaxBulletCount;
     public event System.Action<int, int> OnBulletChanged;
 
     // 폭탄을 충전하거나 던지는 모션이 재생되는 동안은 쏠 수 없다. 재장전은 충전 중에만 막는다.
@@ -46,11 +52,20 @@ public class PlayerGunFire : MonoBehaviour
     private void Awake()
     {
         _camera = Camera.main;
+        _weaponMode = GetComponent<PlayerWeaponMode>();
         _bombFire = GetComponent<PlayerBombFire>();
         _playerAnimator = GetComponent<PlayerAnimator>();
 
         // UI가 Start에서 총알 수를 읽어도 되도록 Awake에서 채운다. (Start 실행 순서에 의존하지 않는다.)
-        _bulletCount = _maxBulletCount;
+        _bulletCounts[WeaponMode.AssaultRifle] = _assaultRifle.MaxBulletCount;
+        _bulletCounts[WeaponMode.MarksmanRifle] = _marksmanRifle.MaxBulletCount;
+        _nextFireTimes[WeaponMode.AssaultRifle] = 0f;
+        _nextFireTimes[WeaponMode.MarksmanRifle] = 0f;
+
+        if (IsGun(_weaponMode.Mode))
+        {
+            _gunMode = _weaponMode.Mode;
+        }
 
         // 총구 화염은 쏠 때만 잠깐 켜므로, 시작할 때는 모두 꺼 둔다. (씬에는 켜진 채로 배치되어 있다.)
         HideMuzzleFlashes();
@@ -67,6 +82,10 @@ public class PlayerGunFire : MonoBehaviour
         {
             _bombFire.OnChargeStarted += CancelReload;
         }
+
+        // 근접 모드에서 돌아오면 꺼져 있던 동안 바뀐 총을 맞춘다.
+        _weaponMode.OnModeChanged += Equip;
+        Equip(_weaponMode.Mode);
     }
 
     private void OnDisable()
@@ -75,6 +94,9 @@ public class PlayerGunFire : MonoBehaviour
         {
             _bombFire.OnChargeStarted -= CancelReload;
         }
+
+        _weaponMode.OnModeChanged -= Equip;
+        CancelReload();
     }
 
     private void Update()
@@ -86,21 +108,23 @@ public class PlayerGunFire : MonoBehaviour
             return;
         }
 
-        // 0. 발사 타이머를 지난 시간만큼 줄인다.
-        _fireTimer -= Time.deltaTime;
+        GunSpec spec = CurrentSpec;
 
         // 1. 마우스 왼쪽 버튼 입력 받기 (커서가 풀려 있는 동안은 GameInput이 입력 없음으로 돌려준다.)
+        // 연사 총은 누르고 있는 동안, 단발 총은 누르는 순간에만 쏜다. 단발 총을 쿨타임 중에 눌러도 나중에 쏘지 않는다.
         // 잔탄이 있으면 재장전 중에도 쏠 수 있고, 쏘면 재장전이 취소된다.
         // 잔탄이 없으면 쏠 수 없으므로(빈 탄창으로 시작한 재장전 포함) 발사 시도로는 재장전이 취소되지 않는다.
         // 폭탄을 충전하거나 던지는 모션이 재생되는 동안은 쏠 수 없다.
-        if (GameInput.FireHeld && _fireTimer <= 0f && _bulletCount > 0 && !IsFireBlockedByBomb)
+        bool isTriggered = spec.IsAutomatic ? GameInput.FireHeld : GameInput.FirePressed;
+
+        if (isTriggered && Time.time >= _nextFireTimes[_gunMode] && BulletCount > 0 && !IsFireBlockedByBomb)
         {
             CancelReload();
 
-            _bulletCount--;
-            OnBulletChanged?.Invoke(_bulletCount, _maxBulletCount);
-            _fireTimer = _fireInterval;
-            Shoot();
+            _bulletCounts[_gunMode]--;
+            OnBulletChanged?.Invoke(BulletCount, MaxBulletCount);
+            _nextFireTimes[_gunMode] = Time.time + spec.FireInterval;
+            Shoot(spec);
             _playerAnimator.SetFiring(true);
         }
         else
@@ -109,10 +133,35 @@ public class PlayerGunFire : MonoBehaviour
         }
 
         // 2. R키 누르면 총알 재장전 시작 (탄창이 가득 차 있거나 이미 재장전 중이거나 폭탄을 충전 중이면 시작하지 않는다.)
-        if (GameInput.ReloadPressed && !IsReloading && _bulletCount < _maxBulletCount && !IsReloadBlockedByBomb)
+        if (GameInput.ReloadPressed && !IsReloading && BulletCount < MaxBulletCount && !IsReloadBlockedByBomb)
         {
-            _reloadCoroutine = StartCoroutine(Reloading_Coroutine());
+            _reloadCoroutine = StartCoroutine(Reloading_Coroutine(_gunMode));
         }
+    }
+
+    // 무기 모드가 바뀌면 들고 있는 총을 바꾼다. 근접 모드는 총이 아니므로 무시한다.
+    private void Equip(WeaponMode mode)
+    {
+        if (!IsGun(mode)) return;
+
+        // 다른 총으로 바꾸면 진행 중인 재장전은 취소한다. (잔탄은 총마다 따로 남아 있다.)
+        if (mode != _gunMode)
+        {
+            CancelReload();
+            _gunMode = mode;
+        }
+
+        OnBulletChanged?.Invoke(BulletCount, MaxBulletCount);
+    }
+
+    private static bool IsGun(WeaponMode mode)
+    {
+        return mode == WeaponMode.AssaultRifle || mode == WeaponMode.MarksmanRifle;
+    }
+
+    private GunSpec GetSpec(WeaponMode mode)
+    {
+        return mode == WeaponMode.MarksmanRifle ? _marksmanRifle : _assaultRifle;
     }
 
     // 진행 중인 재장전을 취소한다. 재장전 중이 아니면 아무 일도 없다.
@@ -126,21 +175,21 @@ public class PlayerGunFire : MonoBehaviour
         GameLogger.Log("재장전 취소!");
     }
 
-    private IEnumerator Reloading_Coroutine()
+    private IEnumerator Reloading_Coroutine(WeaponMode mode)
     {
         GameLogger.Log("재장전 시작!");
 
-        yield return new WaitForSeconds(_reloadingTime);
+        yield return new WaitForSeconds(GetSpec(mode).ReloadingTime);
 
-        _bulletCount = _maxBulletCount;
-        OnBulletChanged?.Invoke(_bulletCount, _maxBulletCount);
+        _bulletCounts[mode] = GetSpec(mode).MaxBulletCount;
+        OnBulletChanged?.Invoke(BulletCount, MaxBulletCount);
 
         GameLogger.Log("재장전 완료!");
         _reloadCoroutine = null;
     }
 
 
-    private void Shoot()
+    private void Shoot(GunSpec spec)
     {
         StartCoroutine(MuzzleFlash_Coroutine());
 
@@ -152,9 +201,9 @@ public class PlayerGunFire : MonoBehaviour
         // 트리거 콜라이더와 Ignore Raycast 레이어(경계 벽)는 총알이 맞지 않는다.
         Transform cameraTransform = _camera.transform;
         Ray aimRay = new Ray(cameraTransform.position, cameraTransform.forward);
-        Vector3 aimPoint = RaycastIgnoringSelf(aimRay, _range, out RaycastHit aimHit)
+        Vector3 aimPoint = RaycastIgnoringSelf(aimRay, spec.Range, out RaycastHit aimHit)
             ? aimHit.point
-            : aimRay.GetPoint(_range);
+            : aimRay.GetPoint(spec.Range);
 
         // 2. 실제 총알 레이는 총구에서 조준점을 향해 쏜다. (총구가 없으면 카메라에서 그대로 쏜다.)
         Vector3 muzzle = _muzzlePosition != null ? _muzzlePosition.position : cameraTransform.position;
@@ -183,7 +232,7 @@ public class PlayerGunFire : MonoBehaviour
             }
 
             // 대미지 구조체 만들기
-            target?.TakeDamage(new DamageInfo(_damage, hitInfo.point, hitInfo.normal));
+            target?.TakeDamage(new DamageInfo(spec.Damage, hitInfo.point, hitInfo.normal));
         }
     }
 

@@ -18,6 +18,7 @@ public class ThirdPersonCamera : MonoBehaviour
     [SerializeField] private float _collisionPadding = 0.15f;                   // 가린 물체 앞에서 띄울 거리
     [SerializeField] private LayerMask _collisionLayers = ~0;                   // 카메라를 가로막는 레이어(플레이어, 좀비 등은 제외)
 
+    private PlayerRotate _playerRotate;     // 줌 중 시점 감도 배율을 읽는다.
     private float _yaw;
     private float _pitch = 15f;
     private Vector3 _pivot;
@@ -30,6 +31,10 @@ public class ThirdPersonCamera : MonoBehaviour
         if (_target == null)
         {
             GameLogger.LogWarning("[ThirdPersonCamera] 따라다닐 대상(_target)이 연결되지 않았습니다.");
+        }
+        else
+        {
+            _playerRotate = _target.GetComponent<PlayerRotate>();
         }
     }
 
@@ -50,9 +55,11 @@ public class ThirdPersonCamera : MonoBehaviour
         if (!GameManager.Instance.IsPlaying) return;
 
         // 마우스 입력은 이미 프레임마다 움직인 양이라 프레임 시간을 곱하지 않는다.
+        // 줌 중에는 감도를 낮춰서 줌하지 않을 때와 조작감이 비슷하게 한다.
+        float sensitivity = _sensitivity * (_playerRotate != null ? _playerRotate.LookSensitivityScale : 1f);
         Vector2 look = GameInput.LookDelta;
-        _yaw += look.x * _sensitivity;
-        _pitch = Mathf.Clamp(_pitch - (look.y * _sensitivity), _minPitch, _maxPitch);
+        _yaw += look.x * sensitivity;
+        _pitch = Mathf.Clamp(_pitch - (look.y * sensitivity), _minPitch, _maxPitch);
     }
 
     // 플레이어가 움직인 뒤에 카메라를 옮겨야 떨리지 않는다.

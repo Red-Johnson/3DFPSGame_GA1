@@ -76,10 +76,10 @@ public class UI_WeaponStatus : MonoBehaviour
     {
         switch (mode)
         {
-            case WeaponMode.Normal:
-                return "일반 모드";
-            case WeaponMode.Sniper:
-                return "저격 모드";
+            case WeaponMode.AssaultRifle:
+                return "돌격소총 모드";
+            case WeaponMode.MarksmanRifle:
+                return "지정사수소총 모드";
             case WeaponMode.Melee:
                 return "근접 모드";
             default:

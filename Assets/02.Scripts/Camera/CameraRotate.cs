@@ -27,7 +27,7 @@ public class CameraRotate : MonoBehaviour
         if (!GameManager.Instance.IsPlaying) return;
 
         // 1. 마우스 입력만큼 위아래 회전값을 누적하고 -90 ~ 90도로 제한한다.
-        _pitch += -GameInput.LookDelta.y * _sensitivity;
+        _pitch += -GameInput.LookDelta.y * _sensitivity * (_playerRotate != null ? _playerRotate.LookSensitivityScale : 1f);
         _pitch = Mathf.Clamp(_pitch, -MaxPitch, MaxPitch);
 
         // 2. 좌우는 플레이어가 바라보는 방향을 따른다.

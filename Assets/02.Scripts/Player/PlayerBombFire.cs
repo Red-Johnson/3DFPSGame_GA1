@@ -4,7 +4,7 @@ using UnityEngine;
 // 마우스 오른쪽 버튼을 누르고 있으면 폭탄을 들고 충전하고, 떼는 즉시 충전한 만큼 세게 던진다.
 // 던지는 모션(상체만)은 누르면 첫 자세에서 멈춘 채 시작하고, 떼면 이어서 재생된다. (애니메이터 호출은 PlayerAnimator가 맡는다.)
 // 폭탄은 모션이 끝나길 기다리지 않고 버튼을 떼자마자 손을 떠난다.
-// 무기 모드가 Normal일 때만 던질 수 있다. 충전 중에 다른 모드로 바뀌면 던지지 않고 충전을 취소한다.
+// 무기 모드가 MarksmanRifle가 아닐 때만 던질 수 있다. 충전 중에 다른 모드로 바뀌면 던지지 않고 충전을 취소한다.
 [RequireComponent(typeof(PlayerWeaponMode), typeof(PlayerAnimator))]
 public class PlayerBombFire : MonoBehaviour
 {
@@ -47,8 +47,8 @@ public class PlayerBombFire : MonoBehaviour
     public bool IsCharging => _phase == Phase.Charging;
     public bool IsThrowing => _phase == Phase.Throwing;
 
-    // 폭탄은 무기 모드가 Normal이나 Melee일 때 던질 수 있다. (Sniper는 같은 마우스 버튼이 줌이다. PlayerWeaponMode가 없으면 막지 않는다.)
-    private bool CanThrowInCurrentMode => _weaponMode == null || _weaponMode.Mode != WeaponMode.Sniper;
+    // 폭탄은 무기 모드가 AssaultRifle이나 Melee일 때 던질 수 있다. (MarksmanRifle는 같은 마우스 버튼이 줌이다. PlayerWeaponMode가 없으면 막지 않는다.)
+    private bool CanThrowInCurrentMode => _weaponMode == null || _weaponMode.Mode != WeaponMode.MarksmanRifle;
 
     // 폭탄 충전을 시작하면 구독자(총기의 재장전 취소 등)에게 알린다.
     public event Action OnChargeStarted;
@@ -96,7 +96,7 @@ public class PlayerBombFire : MonoBehaviour
         {
             case Phase.Idle:
                 // 버튼을 누르면 충전을 시작한다. (커서가 풀려 있으면 GameInput이 입력 없음으로 돌려준다.)
-                // 무기 모드가 Normal이 아니거나 폭탄이 없으면 눌러도 시작하지 않는다.
+                // 무기 모드가 MarksmanRifle이거나 폭탄이 없으면 눌러도 시작하지 않는다.
                 if (CanThrowInCurrentMode && GameInput.BombPressed && _bombCount > 0)
                 {
                     StartCharge();

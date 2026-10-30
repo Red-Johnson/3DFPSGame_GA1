@@ -11,8 +11,17 @@ public class PlayerRotate : MonoBehaviour
     [SerializeField] private CameraViewManager _cameraView; // 비워두면 항상 1인칭 방식으로 돈다.
 
     private float _yaw = 0f; // 좌우 회전 각도
+    private PlayerMarksmanZoom _zoom;
 
     public float Yaw => _yaw;
+
+    // 시점 감도에 곱할 배율. 줌 중에는 줄어든다. 카메라 회전(CameraRotate, ThirdPersonCamera)도 같은 배율을 쓴다.
+    public float LookSensitivityScale => _zoom != null ? _zoom.LookSensitivityScale : 1f;
+
+    private void Awake()
+    {
+        _zoom = GetComponent<PlayerMarksmanZoom>();
+    }
 
     private void Update()
     {
@@ -24,7 +33,7 @@ public class PlayerRotate : MonoBehaviour
         }
         else
         {
-            _yaw += GameInput.LookDelta.x * _sensitivity;
+            _yaw += GameInput.LookDelta.x * _sensitivity * LookSensitivityScale;
         }
 
         transform.eulerAngles = new Vector3(0f, _yaw, 0f);
