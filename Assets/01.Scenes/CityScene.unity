@@ -1138,6 +1138,7 @@ RectTransform:
   - {fileID: 1082396935}
   - {fileID: 1304316517}
   - {fileID: 1923320527}
+  - {fileID: 1126475461}
   - {fileID: 152117606}
   - {fileID: 659341659}
   - {fileID: 486625966}
@@ -12297,6 +12298,122 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3137587247405040803, guid: dc010488c79022e489f975537f336766, type: 3}
   m_PrefabInstance: {fileID: 1125156081}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1126475460
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1126475461}
+  - component: {fileID: 1126475465}
+  - component: {fileID: 1126475464}
+  - component: {fileID: 1126475463}
+  - component: {fileID: 1126475462}
+  m_Layer: 5
+  m_Name: HitMarker
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1126475461
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1126475460}
+  m_LocalRotation: {x: 0, y: 0, z: 0.38268346, w: 0.9238795}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 119406144}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 64, y: 64}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1126475462
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1126475460}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bab3f9504d5a31347915219b0fa7001f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UI_HeadshotMarker
+  _gunFire: {fileID: 1620558215}
+  _hitStyle:
+    _color: {r: 1, g: 1, b: 1, a: 1}
+    _size: 1
+    _startScale: 1.5
+    _popTime: 0.06
+    _holdTime: 0.05
+    _fadeTime: 0.2
+  _weakPointStyle:
+    _color: {r: 1, g: 0, b: 0, a: 1}
+    _size: 1.5
+    _startScale: 2
+    _popTime: 0.06
+    _holdTime: 0.05
+    _fadeTime: 0.2
+--- !u!225 &1126475463
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1126475460}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
+--- !u!114 &1126475464
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1126475460}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 0
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 21300000, guid: a2ef69d66217b804d9f244ef76388f19, type: 3}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &1126475465
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1126475460}
+  m_CullTransparentMesh: 1
 --- !u!1001 &1129407555
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -16785,13 +16902,15 @@ MonoBehaviour:
     _damage: 10
     _fireInterval: 0.1
     _isAutomatic: 1
+    _weakPointDamage: 20
   _marksmanRifle:
     _maxBulletCount: 12
-    _reloadingTime: 3
+    _reloadingTime: 1.5
     _range: 150
     _damage: 20
     _fireInterval: 1
     _isAutomatic: 0
+    _weakPointDamage: 40
   _muzzlePosition: {fileID: 842281521}
   _muzzleFlashes:
   - {fileID: 502244813}
