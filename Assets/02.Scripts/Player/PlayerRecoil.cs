@@ -23,8 +23,12 @@ public class PlayerRecoil : MonoBehaviour
     [Header("몸")]
     [SerializeField, Range(0f, 1f)] private float _chestRatio = 0.4f;   // 팔이 젖혀지는 각도에 대한 가슴의 비율
 
+    [Header("줌")]
+    [SerializeField] private float _zoomRecoilMultiplier = 1.5f;        // 줌 중 화면 반동에 곱하는 배율. 줌 중에는 시야각에 맞춰 줄어든 반동이 더 약하게 느껴질 때 키운다.
+
     private PlayerGunFire _gunFire;
     private PlayerRotate _playerRotate;
+    private PlayerMarksmanZoom _zoom;
     private Camera _camera;
     private Transform _chest;
     private Transform _rightUpperArm;
@@ -40,6 +44,7 @@ public class PlayerRecoil : MonoBehaviour
     {
         _gunFire = GetComponent<PlayerGunFire>();
         _playerRotate = GetComponent<PlayerRotate>();
+        _zoom = GetComponent<PlayerMarksmanZoom>();
         _camera = Camera.main;
 
         // 모델이 Humanoid 아바타라서 뼈를 바로 얻을 수 있다. 없으면 몸 반동은 나오지 않는다.
@@ -99,6 +104,13 @@ public class PlayerRecoil : MonoBehaviour
 
         // 줌 중에는 같은 각도가 화면에서 훨씬 크게 보이므로 시점 감도와 같은 비율로 줄인다.
         float scale = _playerRotate != null ? _playerRotate.LookSensitivityScale : 1f;
+
+        // 줄어든 반동이 너무 약하게 느껴질 수 있어서, 줌 중에만 따로 배율을 곱해 키운다.
+        if (_zoom != null && _zoom.IsZooming)
+        {
+            scale *= _zoomRecoilMultiplier;
+        }
+
         if (Mathf.Abs(_cameraPitch) < 0.001f && Mathf.Abs(_cameraSide) < 0.001f) return;
 
         Transform cameraTransform = _camera.transform;
