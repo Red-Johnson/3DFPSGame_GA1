@@ -1284,6 +1284,11 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 9185992779246544228, guid: 008228716434e64449b15a1cdf43b8f7, type: 3}
   m_PrefabInstance: {fileID: 123895508}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &126405345 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1049787233113196042, guid: ff60e6cbfd0ed6e4bace0ea2a2f5a238, type: 3}
+  m_PrefabInstance: {fileID: 1016654603}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &128234328
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1409,7 +1414,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 52932905164622209, guid: 640b94cf88de4ef459ce14645b2736d9, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 532371448}
   m_SourcePrefab: {fileID: 100100000, guid: 640b94cf88de4ef459ce14645b2736d9, type: 3}
 --- !u!4 &138457066 stripped
 Transform:
@@ -2766,6 +2774,16 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 2353656505555169697, guid: 4cd46b062033fff4391fcbb6bd8a242f, type: 3}
   m_PrefabInstance: {fileID: 253309064}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &256654526 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 787257008305991662, guid: 6fda6d14dbbf5c54fb01d830757a8d1f, type: 3}
+  m_PrefabInstance: {fileID: 2111801860}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &259003033 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6797269430195769530, guid: 0f2505a3f5e77fa44a6703470cc30543, type: 3}
+  m_PrefabInstance: {fileID: 1990037139}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &262387876
 GameObject:
   m_ObjectHideFlags: 0
@@ -2972,6 +2990,11 @@ PrefabInstance:
 Transform:
   m_CorrespondingSourceObject: {fileID: 2353656505555169697, guid: 4cd46b062033fff4391fcbb6bd8a242f, type: 3}
   m_PrefabInstance: {fileID: 266590235}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &282124719 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 787257008305991662, guid: 6fda6d14dbbf5c54fb01d830757a8d1f, type: 3}
+  m_PrefabInstance: {fileID: 1903159249}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &284037862
 PrefabInstance:
@@ -4493,7 +4516,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 5272454072200437660, guid: 4be47a48b47d6224ebb6430561872389, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 532045411}
   m_SourcePrefab: {fileID: 100100000, guid: 4be47a48b47d6224ebb6430561872389, type: 3}
 --- !u!4 &375355878 stripped
 Transform:
@@ -5227,7 +5253,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 52932905164622209, guid: 640b94cf88de4ef459ce14645b2736d9, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1324555141}
   m_SourcePrefab: {fileID: 100100000, guid: 640b94cf88de4ef459ce14645b2736d9, type: 3}
 --- !u!4 &423348769 stripped
 Transform:
@@ -5753,7 +5782,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 6797269430195769530, guid: 0f2505a3f5e77fa44a6703470cc30543, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1207315258}
   m_SourcePrefab: {fileID: 100100000, guid: 0f2505a3f5e77fa44a6703470cc30543, type: 3}
 --- !u!4 &459295820 stripped
 Transform:
@@ -5912,6 +5944,11 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4075144031829033817, guid: a1621b43246e9a44289bb939df55dca0, type: 3}
   m_PrefabInstance: {fileID: 474573231}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &480176027 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1049787233113196042, guid: ff60e6cbfd0ed6e4bace0ea2a2f5a238, type: 3}
+  m_PrefabInstance: {fileID: 2064105255}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &482218614
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6037,7 +6074,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 52932905164622209, guid: 640b94cf88de4ef459ce14645b2736d9, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1620286125}
   m_SourcePrefab: {fileID: 100100000, guid: 640b94cf88de4ef459ce14645b2736d9, type: 3}
 --- !u!4 &482897644 stripped
 Transform:
@@ -6348,6 +6388,68 @@ Transform:
   m_Children: []
   m_Father: {fileID: 2098790276}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &532045407 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5272454072200437660, guid: 4be47a48b47d6224ebb6430561872389, type: 3}
+  m_PrefabInstance: {fileID: 375355877}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &532045411
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 532045407}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 986e48ae78478c946b6424c828e0f8e0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DestructibleCar
+  _health: 100
+  _smokeStartHealth: 70
+  _explosionDamage: 100
+  _explosionRange: 8
+  _burnTimeBeforeExplosion: 2
+  _blackSmokePrefab: {fileID: 854517572230075777, guid: 4b38b1b3e38ed7e499c047067beb6122, type: 3}
+  _firePrefab: {fileID: 1097031286348149302, guid: c2f6a8962aac3814aa56cb9647c93470, type: 3}
+  _explosionEffectPrefab: {fileID: 7077444635568206804, guid: 7a12b40fb78f3694ea3ba5830db032b4, type: 3}
+  _shockwaveName: Shockwave
+  _smokeScale: 3
+  _fireScale: 3
+  _effectForwardRatio: 0.6
+  _effectHeightRatio: 0.6
+  _effectOffset: {x: 0, y: 0, z: 0}
+--- !u!1 &532371444 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 52932905164622209, guid: 640b94cf88de4ef459ce14645b2736d9, type: 3}
+  m_PrefabInstance: {fileID: 138457065}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &532371448
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 532371444}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 986e48ae78478c946b6424c828e0f8e0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DestructibleCar
+  _health: 100
+  _smokeStartHealth: 70
+  _explosionDamage: 100
+  _explosionRange: 8
+  _burnTimeBeforeExplosion: 2
+  _blackSmokePrefab: {fileID: 854517572230075777, guid: 4b38b1b3e38ed7e499c047067beb6122, type: 3}
+  _firePrefab: {fileID: 1097031286348149302, guid: c2f6a8962aac3814aa56cb9647c93470, type: 3}
+  _explosionEffectPrefab: {fileID: 7077444635568206804, guid: 7a12b40fb78f3694ea3ba5830db032b4, type: 3}
+  _shockwaveName: Shockwave
+  _smokeScale: 3
+  _fireScale: 3
+  _effectForwardRatio: 0.6
+  _effectHeightRatio: 0.6
+  _effectOffset: {x: 0, y: 0, z: 0}
 --- !u!1001 &538729971
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6830,6 +6932,11 @@ PrefabInstance:
 Transform:
   m_CorrespondingSourceObject: {fileID: 2722735462829109436, guid: ccab6c8306a6dae4d9688eb372e59639, type: 3}
   m_PrefabInstance: {fileID: 592335151}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &592797915 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1049787233113196042, guid: ff60e6cbfd0ed6e4bace0ea2a2f5a238, type: 3}
+  m_PrefabInstance: {fileID: 1550886494}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &597635848
 PrefabInstance:
@@ -7838,6 +7945,11 @@ PrefabInstance:
 Transform:
   m_CorrespondingSourceObject: {fileID: 2850042417042873959, guid: d2d360664b1d55c4584ee3bc8ec31be8, type: 3}
   m_PrefabInstance: {fileID: 687720651}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &692954152 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 787257008305991662, guid: 6fda6d14dbbf5c54fb01d830757a8d1f, type: 3}
+  m_PrefabInstance: {fileID: 874408465}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &695460266
 PrefabInstance:
@@ -10119,13 +10231,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 787257008305991662, guid: 6fda6d14dbbf5c54fb01d830757a8d1f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 874408470}
   m_SourcePrefab: {fileID: 100100000, guid: 6fda6d14dbbf5c54fb01d830757a8d1f, type: 3}
 --- !u!4 &874408466 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 119124110955754836, guid: 6fda6d14dbbf5c54fb01d830757a8d1f, type: 3}
   m_PrefabInstance: {fileID: 874408465}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &874408470
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 692954152}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 986e48ae78478c946b6424c828e0f8e0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DestructibleCar
+  _health: 100
+  _smokeStartHealth: 70
+  _explosionDamage: 100
+  _explosionRange: 8
+  _burnTimeBeforeExplosion: 2
+  _blackSmokePrefab: {fileID: 854517572230075777, guid: 4b38b1b3e38ed7e499c047067beb6122, type: 3}
+  _firePrefab: {fileID: 1097031286348149302, guid: c2f6a8962aac3814aa56cb9647c93470, type: 3}
+  _explosionEffectPrefab: {fileID: 7077444635568206804, guid: 7a12b40fb78f3694ea3ba5830db032b4, type: 3}
+  _shockwaveName: Shockwave
+  _smokeScale: 3
+  _fireScale: 3
+  _effectForwardRatio: 0.6
+  _effectHeightRatio: 0.6
+  _effectOffset: {x: 0, y: 0, z: 0}
 --- !u!1001 &877172541
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -10742,6 +10883,11 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 903922852}
   m_CullTransparentMesh: 1
+--- !u!1 &906433581 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5272454072200437660, guid: 4be47a48b47d6224ebb6430561872389, type: 3}
+  m_PrefabInstance: {fileID: 2007862375}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &907426002
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -11205,7 +11351,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 5272454072200437660, guid: 4be47a48b47d6224ebb6430561872389, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1179857562}
   m_SourcePrefab: {fileID: 100100000, guid: 4be47a48b47d6224ebb6430561872389, type: 3}
 --- !u!4 &956734136 stripped
 Transform:
@@ -11537,7 +11686,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 787257008305991662, guid: 6fda6d14dbbf5c54fb01d830757a8d1f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1222563878}
   m_SourcePrefab: {fileID: 100100000, guid: 6fda6d14dbbf5c54fb01d830757a8d1f, type: 3}
 --- !u!4 &978725197 stripped
 Transform:
@@ -11867,13 +12019,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 1049787233113196042, guid: ff60e6cbfd0ed6e4bace0ea2a2f5a238, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1016654608}
   m_SourcePrefab: {fileID: 100100000, guid: ff60e6cbfd0ed6e4bace0ea2a2f5a238, type: 3}
 --- !u!4 &1016654604 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 421727862660504752, guid: ff60e6cbfd0ed6e4bace0ea2a2f5a238, type: 3}
   m_PrefabInstance: {fileID: 1016654603}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1016654608
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 126405345}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 986e48ae78478c946b6424c828e0f8e0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DestructibleCar
+  _health: 100
+  _smokeStartHealth: 70
+  _explosionDamage: 100
+  _explosionRange: 8
+  _burnTimeBeforeExplosion: 2
+  _blackSmokePrefab: {fileID: 854517572230075777, guid: 4b38b1b3e38ed7e499c047067beb6122, type: 3}
+  _firePrefab: {fileID: 1097031286348149302, guid: c2f6a8962aac3814aa56cb9647c93470, type: 3}
+  _explosionEffectPrefab: {fileID: 7077444635568206804, guid: 7a12b40fb78f3694ea3ba5830db032b4, type: 3}
+  _shockwaveName: Shockwave
+  _smokeScale: 3
+  _fireScale: 3
+  _effectForwardRatio: 0.6
+  _effectHeightRatio: 0.6
+  _effectOffset: {x: 0, y: 0, z: 0}
 --- !u!1001 &1024869870
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -11939,6 +12120,11 @@ PrefabInstance:
 Transform:
   m_CorrespondingSourceObject: {fileID: 8114779456001814890, guid: deb873aff7828b1468f493b3920708ff, type: 3}
   m_PrefabInstance: {fileID: 1024869870}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1029943675 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 400323601965181187, guid: fc1e359a90d4e6542b4d8022c50429ce, type: 3}
+  m_PrefabInstance: {fileID: 1620444847}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &1041682431
 GameObject:
@@ -13246,6 +13432,73 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 5173546059787432228, guid: a1621b43246e9a44289bb939df55dca0, type: 3}
   m_PrefabInstance: {fileID: 1159403230}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1179857558 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5272454072200437660, guid: 4be47a48b47d6224ebb6430561872389, type: 3}
+  m_PrefabInstance: {fileID: 956734135}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1179857562
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1179857558}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 986e48ae78478c946b6424c828e0f8e0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DestructibleCar
+  _health: 100
+  _smokeStartHealth: 70
+  _explosionDamage: 100
+  _explosionRange: 8
+  _burnTimeBeforeExplosion: 2
+  _blackSmokePrefab: {fileID: 854517572230075777, guid: 4b38b1b3e38ed7e499c047067beb6122, type: 3}
+  _firePrefab: {fileID: 1097031286348149302, guid: c2f6a8962aac3814aa56cb9647c93470, type: 3}
+  _explosionEffectPrefab: {fileID: 7077444635568206804, guid: 7a12b40fb78f3694ea3ba5830db032b4, type: 3}
+  _shockwaveName: Shockwave
+  _smokeScale: 3
+  _fireScale: 3
+  _effectForwardRatio: 0.6
+  _effectHeightRatio: 0.6
+  _effectOffset: {x: 0, y: 0, z: 0}
+--- !u!1 &1204671309 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 400323601965181187, guid: fc1e359a90d4e6542b4d8022c50429ce, type: 3}
+  m_PrefabInstance: {fileID: 2039291106}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1207315254 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6797269430195769530, guid: 0f2505a3f5e77fa44a6703470cc30543, type: 3}
+  m_PrefabInstance: {fileID: 459295819}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1207315258
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1207315254}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 986e48ae78478c946b6424c828e0f8e0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DestructibleCar
+  _health: 100
+  _smokeStartHealth: 70
+  _explosionDamage: 100
+  _explosionRange: 8
+  _burnTimeBeforeExplosion: 2
+  _blackSmokePrefab: {fileID: 854517572230075777, guid: 4b38b1b3e38ed7e499c047067beb6122, type: 3}
+  _firePrefab: {fileID: 1097031286348149302, guid: c2f6a8962aac3814aa56cb9647c93470, type: 3}
+  _explosionEffectPrefab: {fileID: 7077444635568206804, guid: 7a12b40fb78f3694ea3ba5830db032b4, type: 3}
+  _shockwaveName: Shockwave
+  _smokeScale: 3
+  _fireScale: 3
+  _effectForwardRatio: 0.6
+  _effectHeightRatio: 0.6
+  _effectOffset: {x: 0, y: 0, z: 0}
 --- !u!1001 &1212352804
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -13519,6 +13772,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1219441851}
   m_CullTransparentMesh: 1
+--- !u!1 &1222563874 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 787257008305991662, guid: 6fda6d14dbbf5c54fb01d830757a8d1f, type: 3}
+  m_PrefabInstance: {fileID: 978725196}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1222563878
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1222563874}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 986e48ae78478c946b6424c828e0f8e0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DestructibleCar
+  _health: 100
+  _smokeStartHealth: 70
+  _explosionDamage: 100
+  _explosionRange: 8
+  _burnTimeBeforeExplosion: 2
+  _blackSmokePrefab: {fileID: 854517572230075777, guid: 4b38b1b3e38ed7e499c047067beb6122, type: 3}
+  _firePrefab: {fileID: 1097031286348149302, guid: c2f6a8962aac3814aa56cb9647c93470, type: 3}
+  _explosionEffectPrefab: {fileID: 7077444635568206804, guid: 7a12b40fb78f3694ea3ba5830db032b4, type: 3}
+  _shockwaveName: Shockwave
+  _smokeScale: 3
+  _fireScale: 3
+  _effectForwardRatio: 0.6
+  _effectHeightRatio: 0.6
+  _effectOffset: {x: 0, y: 0, z: 0}
 --- !u!1 &1225122505
 GameObject:
   m_ObjectHideFlags: 0
@@ -13675,7 +13959,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 52932905164622209, guid: 640b94cf88de4ef459ce14645b2736d9, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1986964243}
   m_SourcePrefab: {fileID: 100100000, guid: 640b94cf88de4ef459ce14645b2736d9, type: 3}
 --- !u!4 &1229459161 stripped
 Transform:
@@ -14432,6 +14719,37 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3137587247405040803, guid: dc010488c79022e489f975537f336766, type: 3}
   m_PrefabInstance: {fileID: 1323181110}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1324555137 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 52932905164622209, guid: 640b94cf88de4ef459ce14645b2736d9, type: 3}
+  m_PrefabInstance: {fileID: 423348768}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1324555141
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1324555137}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 986e48ae78478c946b6424c828e0f8e0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DestructibleCar
+  _health: 100
+  _smokeStartHealth: 70
+  _explosionDamage: 100
+  _explosionRange: 8
+  _burnTimeBeforeExplosion: 2
+  _blackSmokePrefab: {fileID: 854517572230075777, guid: 4b38b1b3e38ed7e499c047067beb6122, type: 3}
+  _firePrefab: {fileID: 1097031286348149302, guid: c2f6a8962aac3814aa56cb9647c93470, type: 3}
+  _explosionEffectPrefab: {fileID: 7077444635568206804, guid: 7a12b40fb78f3694ea3ba5830db032b4, type: 3}
+  _shockwaveName: Shockwave
+  _smokeScale: 3
+  _fireScale: 3
+  _effectForwardRatio: 0.6
+  _effectHeightRatio: 0.6
+  _effectOffset: {x: 0, y: 0, z: 0}
 --- !u!1001 &1325279676
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -14629,6 +14947,11 @@ PrefabInstance:
 Transform:
   m_CorrespondingSourceObject: {fileID: 624367759318784293, guid: 7ad27798a56af29409bfd87e866e6458, type: 3}
   m_PrefabInstance: {fileID: 1346308180}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1353844588 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6797269430195769530, guid: 0f2505a3f5e77fa44a6703470cc30543, type: 3}
+  m_PrefabInstance: {fileID: 1833499283}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1357057289
 PrefabInstance:
@@ -15996,6 +16319,11 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 2722735462829109436, guid: ccab6c8306a6dae4d9688eb372e59639, type: 3}
   m_PrefabInstance: {fileID: 1497143807}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1506791391 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 400323601965181187, guid: fc1e359a90d4e6542b4d8022c50429ce, type: 3}
+  m_PrefabInstance: {fileID: 1677651030}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1517810342
 GameObject:
   m_ObjectHideFlags: 0
@@ -16199,6 +16527,11 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4618557416055468906, guid: 211ee66cf2cc2f444b0ad19bae4e999a, type: 3}
   m_PrefabInstance: {fileID: 1525809439}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1530143109 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 787257008305991662, guid: 6fda6d14dbbf5c54fb01d830757a8d1f, type: 3}
+  m_PrefabInstance: {fileID: 2132768293}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1534343520 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 199458, guid: 4aa4c63f0f9d6a84dbaeed6b9caeca80, type: 3}
@@ -16329,13 +16662,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 1049787233113196042, guid: ff60e6cbfd0ed6e4bace0ea2a2f5a238, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1550886499}
   m_SourcePrefab: {fileID: 100100000, guid: ff60e6cbfd0ed6e4bace0ea2a2f5a238, type: 3}
 --- !u!4 &1550886495 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 421727862660504752, guid: ff60e6cbfd0ed6e4bace0ea2a2f5a238, type: 3}
   m_PrefabInstance: {fileID: 1550886494}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1550886499
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 592797915}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 986e48ae78478c946b6424c828e0f8e0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DestructibleCar
+  _health: 100
+  _smokeStartHealth: 70
+  _explosionDamage: 100
+  _explosionRange: 8
+  _burnTimeBeforeExplosion: 2
+  _blackSmokePrefab: {fileID: 854517572230075777, guid: 4b38b1b3e38ed7e499c047067beb6122, type: 3}
+  _firePrefab: {fileID: 1097031286348149302, guid: c2f6a8962aac3814aa56cb9647c93470, type: 3}
+  _explosionEffectPrefab: {fileID: 7077444635568206804, guid: 7a12b40fb78f3694ea3ba5830db032b4, type: 3}
+  _shockwaveName: Shockwave
+  _smokeScale: 3
+  _fireScale: 3
+  _effectForwardRatio: 0.6
+  _effectHeightRatio: 0.6
+  _effectOffset: {x: 0, y: 0, z: 0}
 --- !u!1001 &1575473506
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -16946,6 +17308,37 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 8573362081540914246, guid: 2844c5493ff643d4aad2cbc9563b1f4b, type: 3}
   m_PrefabInstance: {fileID: 1617754659}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1620286121 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 52932905164622209, guid: 640b94cf88de4ef459ce14645b2736d9, type: 3}
+  m_PrefabInstance: {fileID: 482897643}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1620286125
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1620286121}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 986e48ae78478c946b6424c828e0f8e0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DestructibleCar
+  _health: 100
+  _smokeStartHealth: 70
+  _explosionDamage: 100
+  _explosionRange: 8
+  _burnTimeBeforeExplosion: 2
+  _blackSmokePrefab: {fileID: 854517572230075777, guid: 4b38b1b3e38ed7e499c047067beb6122, type: 3}
+  _firePrefab: {fileID: 1097031286348149302, guid: c2f6a8962aac3814aa56cb9647c93470, type: 3}
+  _explosionEffectPrefab: {fileID: 7077444635568206804, guid: 7a12b40fb78f3694ea3ba5830db032b4, type: 3}
+  _shockwaveName: Shockwave
+  _smokeScale: 3
+  _fireScale: 3
+  _effectForwardRatio: 0.6
+  _effectHeightRatio: 0.6
+  _effectOffset: {x: 0, y: 0, z: 0}
 --- !u!1001 &1620444847
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -17005,13 +17398,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 400323601965181187, guid: fc1e359a90d4e6542b4d8022c50429ce, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1620444852}
   m_SourcePrefab: {fileID: 100100000, guid: fc1e359a90d4e6542b4d8022c50429ce, type: 3}
 --- !u!4 &1620444848 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1064517047891178425, guid: fc1e359a90d4e6542b4d8022c50429ce, type: 3}
   m_PrefabInstance: {fileID: 1620444847}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1620444852
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1029943675}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 986e48ae78478c946b6424c828e0f8e0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DestructibleCar
+  _health: 100
+  _smokeStartHealth: 70
+  _explosionDamage: 100
+  _explosionRange: 8
+  _burnTimeBeforeExplosion: 2
+  _blackSmokePrefab: {fileID: 854517572230075777, guid: 4b38b1b3e38ed7e499c047067beb6122, type: 3}
+  _firePrefab: {fileID: 1097031286348149302, guid: c2f6a8962aac3814aa56cb9647c93470, type: 3}
+  _explosionEffectPrefab: {fileID: 7077444635568206804, guid: 7a12b40fb78f3694ea3ba5830db032b4, type: 3}
+  _shockwaveName: Shockwave
+  _smokeScale: 3
+  _fireScale: 3
+  _effectForwardRatio: 0.6
+  _effectHeightRatio: 0.6
+  _effectOffset: {x: 0, y: 0, z: 0}
 --- !u!1 &1620558207
 GameObject:
   m_ObjectHideFlags: 0
@@ -17386,6 +17808,7 @@ MonoBehaviour:
   _maxCameraSide: 2
   _maxBodyAngle: 12
   _chestRatio: 0.4
+  _zoomRecoilMultiplier: 1.5
 --- !u!1001 &1627139681
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -17913,13 +18336,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 400323601965181187, guid: fc1e359a90d4e6542b4d8022c50429ce, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1677651035}
   m_SourcePrefab: {fileID: 100100000, guid: fc1e359a90d4e6542b4d8022c50429ce, type: 3}
 --- !u!4 &1677651031 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1064517047891178425, guid: fc1e359a90d4e6542b4d8022c50429ce, type: 3}
   m_PrefabInstance: {fileID: 1677651030}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1677651035
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1506791391}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 986e48ae78478c946b6424c828e0f8e0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DestructibleCar
+  _health: 100
+  _smokeStartHealth: 70
+  _explosionDamage: 100
+  _explosionRange: 8
+  _burnTimeBeforeExplosion: 2
+  _blackSmokePrefab: {fileID: 854517572230075777, guid: 4b38b1b3e38ed7e499c047067beb6122, type: 3}
+  _firePrefab: {fileID: 1097031286348149302, guid: c2f6a8962aac3814aa56cb9647c93470, type: 3}
+  _explosionEffectPrefab: {fileID: 7077444635568206804, guid: 7a12b40fb78f3694ea3ba5830db032b4, type: 3}
+  _shockwaveName: Shockwave
+  _smokeScale: 3
+  _fireScale: 3
+  _effectForwardRatio: 0.6
+  _effectHeightRatio: 0.6
+  _effectOffset: {x: 0, y: 0, z: 0}
 --- !u!1001 &1682104418
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -18957,13 +19409,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 6797269430195769530, guid: 0f2505a3f5e77fa44a6703470cc30543, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1833499288}
   m_SourcePrefab: {fileID: 100100000, guid: 0f2505a3f5e77fa44a6703470cc30543, type: 3}
 --- !u!4 &1833499284 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6133638964839483904, guid: 0f2505a3f5e77fa44a6703470cc30543, type: 3}
   m_PrefabInstance: {fileID: 1833499283}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1833499288
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1353844588}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 986e48ae78478c946b6424c828e0f8e0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DestructibleCar
+  _health: 100
+  _smokeStartHealth: 70
+  _explosionDamage: 100
+  _explosionRange: 8
+  _burnTimeBeforeExplosion: 2
+  _blackSmokePrefab: {fileID: 854517572230075777, guid: 4b38b1b3e38ed7e499c047067beb6122, type: 3}
+  _firePrefab: {fileID: 1097031286348149302, guid: c2f6a8962aac3814aa56cb9647c93470, type: 3}
+  _explosionEffectPrefab: {fileID: 7077444635568206804, guid: 7a12b40fb78f3694ea3ba5830db032b4, type: 3}
+  _shockwaveName: Shockwave
+  _smokeScale: 3
+  _fireScale: 3
+  _effectForwardRatio: 0.6
+  _effectHeightRatio: 0.6
+  _effectOffset: {x: 0, y: 0, z: 0}
 --- !u!1001 &1837091186
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -19419,13 +19900,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 787257008305991662, guid: 6fda6d14dbbf5c54fb01d830757a8d1f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1903159254}
   m_SourcePrefab: {fileID: 100100000, guid: 6fda6d14dbbf5c54fb01d830757a8d1f, type: 3}
 --- !u!4 &1903159250 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 119124110955754836, guid: 6fda6d14dbbf5c54fb01d830757a8d1f, type: 3}
   m_PrefabInstance: {fileID: 1903159249}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1903159254
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 282124719}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 986e48ae78478c946b6424c828e0f8e0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DestructibleCar
+  _health: 100
+  _smokeStartHealth: 70
+  _explosionDamage: 100
+  _explosionRange: 8
+  _burnTimeBeforeExplosion: 2
+  _blackSmokePrefab: {fileID: 854517572230075777, guid: 4b38b1b3e38ed7e499c047067beb6122, type: 3}
+  _firePrefab: {fileID: 1097031286348149302, guid: c2f6a8962aac3814aa56cb9647c93470, type: 3}
+  _explosionEffectPrefab: {fileID: 7077444635568206804, guid: 7a12b40fb78f3694ea3ba5830db032b4, type: 3}
+  _shockwaveName: Shockwave
+  _smokeScale: 3
+  _fireScale: 3
+  _effectForwardRatio: 0.6
+  _effectHeightRatio: 0.6
+  _effectOffset: {x: 0, y: 0, z: 0}
 --- !u!1001 &1910875096
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -20100,6 +20610,37 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 471318, guid: 51b76f616384d4946bed4ecc9a6c2c3e, type: 3}
   m_PrefabInstance: {fileID: 1977842079}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1986964239 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 52932905164622209, guid: 640b94cf88de4ef459ce14645b2736d9, type: 3}
+  m_PrefabInstance: {fileID: 1229459160}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1986964243
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1986964239}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 986e48ae78478c946b6424c828e0f8e0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DestructibleCar
+  _health: 100
+  _smokeStartHealth: 70
+  _explosionDamage: 100
+  _explosionRange: 8
+  _burnTimeBeforeExplosion: 2
+  _blackSmokePrefab: {fileID: 854517572230075777, guid: 4b38b1b3e38ed7e499c047067beb6122, type: 3}
+  _firePrefab: {fileID: 1097031286348149302, guid: c2f6a8962aac3814aa56cb9647c93470, type: 3}
+  _explosionEffectPrefab: {fileID: 7077444635568206804, guid: 7a12b40fb78f3694ea3ba5830db032b4, type: 3}
+  _shockwaveName: Shockwave
+  _smokeScale: 3
+  _fireScale: 3
+  _effectForwardRatio: 0.6
+  _effectHeightRatio: 0.6
+  _effectOffset: {x: 0, y: 0, z: 0}
 --- !u!1001 &1990037139
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -20159,13 +20700,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 6797269430195769530, guid: 0f2505a3f5e77fa44a6703470cc30543, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1990037144}
   m_SourcePrefab: {fileID: 100100000, guid: 0f2505a3f5e77fa44a6703470cc30543, type: 3}
 --- !u!4 &1990037140 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6133638964839483904, guid: 0f2505a3f5e77fa44a6703470cc30543, type: 3}
   m_PrefabInstance: {fileID: 1990037139}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1990037144
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 259003033}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 986e48ae78478c946b6424c828e0f8e0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DestructibleCar
+  _health: 100
+  _smokeStartHealth: 70
+  _explosionDamage: 100
+  _explosionRange: 8
+  _burnTimeBeforeExplosion: 2
+  _blackSmokePrefab: {fileID: 854517572230075777, guid: 4b38b1b3e38ed7e499c047067beb6122, type: 3}
+  _firePrefab: {fileID: 1097031286348149302, guid: c2f6a8962aac3814aa56cb9647c93470, type: 3}
+  _explosionEffectPrefab: {fileID: 7077444635568206804, guid: 7a12b40fb78f3694ea3ba5830db032b4, type: 3}
+  _shockwaveName: Shockwave
+  _smokeScale: 3
+  _fireScale: 3
+  _effectForwardRatio: 0.6
+  _effectHeightRatio: 0.6
+  _effectOffset: {x: 0, y: 0, z: 0}
 --- !u!1001 &1993973532
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -20497,13 +21067,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 5272454072200437660, guid: 4be47a48b47d6224ebb6430561872389, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2007862380}
   m_SourcePrefab: {fileID: 100100000, guid: 4be47a48b47d6224ebb6430561872389, type: 3}
 --- !u!4 &2007862376 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4782916983750509862, guid: 4be47a48b47d6224ebb6430561872389, type: 3}
   m_PrefabInstance: {fileID: 2007862375}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &2007862380
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 906433581}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 986e48ae78478c946b6424c828e0f8e0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DestructibleCar
+  _health: 100
+  _smokeStartHealth: 70
+  _explosionDamage: 100
+  _explosionRange: 8
+  _burnTimeBeforeExplosion: 2
+  _blackSmokePrefab: {fileID: 854517572230075777, guid: 4b38b1b3e38ed7e499c047067beb6122, type: 3}
+  _firePrefab: {fileID: 1097031286348149302, guid: c2f6a8962aac3814aa56cb9647c93470, type: 3}
+  _explosionEffectPrefab: {fileID: 7077444635568206804, guid: 7a12b40fb78f3694ea3ba5830db032b4, type: 3}
+  _shockwaveName: Shockwave
+  _smokeScale: 3
+  _fireScale: 3
+  _effectForwardRatio: 0.6
+  _effectHeightRatio: 0.6
+  _effectOffset: {x: 0, y: 0, z: 0}
 --- !u!1001 &2010872022
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -21013,13 +21612,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 400323601965181187, guid: fc1e359a90d4e6542b4d8022c50429ce, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2039291111}
   m_SourcePrefab: {fileID: 100100000, guid: fc1e359a90d4e6542b4d8022c50429ce, type: 3}
 --- !u!4 &2039291107 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1064517047891178425, guid: fc1e359a90d4e6542b4d8022c50429ce, type: 3}
   m_PrefabInstance: {fileID: 2039291106}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &2039291111
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1204671309}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 986e48ae78478c946b6424c828e0f8e0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DestructibleCar
+  _health: 100
+  _smokeStartHealth: 70
+  _explosionDamage: 100
+  _explosionRange: 8
+  _burnTimeBeforeExplosion: 2
+  _blackSmokePrefab: {fileID: 854517572230075777, guid: 4b38b1b3e38ed7e499c047067beb6122, type: 3}
+  _firePrefab: {fileID: 1097031286348149302, guid: c2f6a8962aac3814aa56cb9647c93470, type: 3}
+  _explosionEffectPrefab: {fileID: 7077444635568206804, guid: 7a12b40fb78f3694ea3ba5830db032b4, type: 3}
+  _shockwaveName: Shockwave
+  _smokeScale: 3
+  _fireScale: 3
+  _effectForwardRatio: 0.6
+  _effectHeightRatio: 0.6
+  _effectOffset: {x: 0, y: 0, z: 0}
 --- !u!1001 &2050148193
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -21145,13 +21773,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 1049787233113196042, guid: ff60e6cbfd0ed6e4bace0ea2a2f5a238, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2064105260}
   m_SourcePrefab: {fileID: 100100000, guid: ff60e6cbfd0ed6e4bace0ea2a2f5a238, type: 3}
 --- !u!4 &2064105256 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 421727862660504752, guid: ff60e6cbfd0ed6e4bace0ea2a2f5a238, type: 3}
   m_PrefabInstance: {fileID: 2064105255}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &2064105260
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 480176027}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 986e48ae78478c946b6424c828e0f8e0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DestructibleCar
+  _health: 100
+  _smokeStartHealth: 70
+  _explosionDamage: 100
+  _explosionRange: 8
+  _burnTimeBeforeExplosion: 2
+  _blackSmokePrefab: {fileID: 854517572230075777, guid: 4b38b1b3e38ed7e499c047067beb6122, type: 3}
+  _firePrefab: {fileID: 1097031286348149302, guid: c2f6a8962aac3814aa56cb9647c93470, type: 3}
+  _explosionEffectPrefab: {fileID: 7077444635568206804, guid: 7a12b40fb78f3694ea3ba5830db032b4, type: 3}
+  _shockwaveName: Shockwave
+  _smokeScale: 3
+  _fireScale: 3
+  _effectForwardRatio: 0.6
+  _effectHeightRatio: 0.6
+  _effectOffset: {x: 0, y: 0, z: 0}
 --- !u!1001 &2067527245
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -21705,13 +22362,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 787257008305991662, guid: 6fda6d14dbbf5c54fb01d830757a8d1f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2111801865}
   m_SourcePrefab: {fileID: 100100000, guid: 6fda6d14dbbf5c54fb01d830757a8d1f, type: 3}
 --- !u!4 &2111801861 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 119124110955754836, guid: 6fda6d14dbbf5c54fb01d830757a8d1f, type: 3}
   m_PrefabInstance: {fileID: 2111801860}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &2111801865
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 256654526}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 986e48ae78478c946b6424c828e0f8e0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DestructibleCar
+  _health: 100
+  _smokeStartHealth: 70
+  _explosionDamage: 100
+  _explosionRange: 8
+  _burnTimeBeforeExplosion: 2
+  _blackSmokePrefab: {fileID: 854517572230075777, guid: 4b38b1b3e38ed7e499c047067beb6122, type: 3}
+  _firePrefab: {fileID: 1097031286348149302, guid: c2f6a8962aac3814aa56cb9647c93470, type: 3}
+  _explosionEffectPrefab: {fileID: 7077444635568206804, guid: 7a12b40fb78f3694ea3ba5830db032b4, type: 3}
+  _shockwaveName: Shockwave
+  _smokeScale: 3
+  _fireScale: 3
+  _effectForwardRatio: 0.6
+  _effectHeightRatio: 0.6
+  _effectOffset: {x: 0, y: 0, z: 0}
 --- !u!1001 &2113187155
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -21900,13 +22586,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 787257008305991662, guid: 6fda6d14dbbf5c54fb01d830757a8d1f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2132768298}
   m_SourcePrefab: {fileID: 100100000, guid: 6fda6d14dbbf5c54fb01d830757a8d1f, type: 3}
 --- !u!4 &2132768294 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 119124110955754836, guid: 6fda6d14dbbf5c54fb01d830757a8d1f, type: 3}
   m_PrefabInstance: {fileID: 2132768293}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &2132768298
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1530143109}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 986e48ae78478c946b6424c828e0f8e0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DestructibleCar
+  _health: 100
+  _smokeStartHealth: 70
+  _explosionDamage: 100
+  _explosionRange: 8
+  _burnTimeBeforeExplosion: 2
+  _blackSmokePrefab: {fileID: 854517572230075777, guid: 4b38b1b3e38ed7e499c047067beb6122, type: 3}
+  _firePrefab: {fileID: 1097031286348149302, guid: c2f6a8962aac3814aa56cb9647c93470, type: 3}
+  _explosionEffectPrefab: {fileID: 7077444635568206804, guid: 7a12b40fb78f3694ea3ba5830db032b4, type: 3}
+  _shockwaveName: Shockwave
+  _smokeScale: 3
+  _fireScale: 3
+  _effectForwardRatio: 0.6
+  _effectHeightRatio: 0.6
+  _effectOffset: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
