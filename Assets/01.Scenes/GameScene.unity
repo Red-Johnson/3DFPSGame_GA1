@@ -1552,7 +1552,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ThirdPersonCamera
   _target: {fileID: 1620558211}
   _pivotOffset: {x: 0, y: 0.6, z: 0}
-  _distance: 3.5
+  _shoulderOffset: 0.8
+  _distance: 3
   _sensitivity: 3.3
   _minPitch: -20
   _maxPitch: 60
