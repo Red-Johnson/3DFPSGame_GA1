@@ -34,6 +34,10 @@ public class PlayerMeleeAttack : MonoBehaviour
     private PlayerBombFire _bombFire;
     private readonly HashSet<IDamageable> _hitTargets = new HashSet<IDamageable>();
 
+    // 한 번 벤 결과 몬스터(좀비)가 하나라도 맞으면 알린다. 인자는 그중 죽은 몬스터가 있는지다.
+    // (카메라 흔들림, 히트 스톱, 명중 표시가 구독한다. 이 클래스는 그 연출들을 모른다.)
+    public event System.Action<bool> OnHit;
+
     // 폭탄을 충전하거나 던지는 모션이 재생되는 동안은 벨 수 없다.
     private bool IsBlockedByBomb => _bombFire != null && (_bombFire.IsCharging || _bombFire.IsThrowing);
 
@@ -150,6 +154,8 @@ public class PlayerMeleeAttack : MonoBehaviour
 
         _hitTargets.Clear();
         float halfAngle = _angle * 0.5f;
+        bool hitMonster = false;
+        bool killedMonster = false;
 
         foreach (Collider collider in Physics.OverlapSphere(center, radius, _hitLayers, QueryTriggerInteraction.Ignore))
         {
@@ -175,6 +181,18 @@ public class PlayerMeleeAttack : MonoBehaviour
             _hitTargets.Add(target);
             Vector3 normal = (center - closest).sqrMagnitude > 0.0001f ? (center - closest).normalized : -forward;
             target.TakeDamage(new DamageInfo(_damage, closest, normal));
+
+            // 몬스터(좀비)만 명중으로 친다. 드럼통, 박스는 연출을 내지 않는다.
+            if (target is Zombie zombie)
+            {
+                hitMonster = true;
+                killedMonster |= zombie.Health <= 0f;
+            }
+        }
+
+        if (hitMonster)
+        {
+            OnHit?.Invoke(killedMonster);
         }
     }
 

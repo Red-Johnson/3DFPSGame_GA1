@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
 
-// 명중 표시: 총알이 몬스터(좀비)에 맞으면 기존 조준점과 별개로 45도 기울어진 조준점이 잠깐 커졌다가 사라진다.
+// 명중 표시: 총알이나 근접 공격이 몬스터(좀비)에 맞으면 기존 조준점과 별개로 45도 기울어진 조준점이 잠깐 커졌다가 사라진다.
 // 일반 명중과 약점 공격은 같은 연출을 쓰되 색깔, 크기, 시간을 각각 따로 정한다.
 // 표시할 이미지 오브젝트에 붙이고(같은 오브젝트의 Image, CanvasGroup 사용), 평소에는 투명하게 둔다.
 // 이미지 색은 원본에 곱해지므로 흰색 이미지를 써야 지정한 색이 그대로 나온다.
@@ -41,6 +41,7 @@ public class UI_HitMarker : MonoBehaviour
     }
 
     [SerializeField] private PlayerGunFire _gunFire;
+    [SerializeField] private PlayerMeleeAttack _meleeAttack;     // 근접 타격에도 일반 명중 표시를 낸다. 비워두면 총 명중만 표시한다.
 
     [Header("일반 명중")]
     [SerializeField] private MarkerStyle _hitStyle = new MarkerStyle(Color.white, 0.8f, 1.4f, 0.06f, 0.05f, 0.2f);
@@ -65,13 +66,30 @@ public class UI_HitMarker : MonoBehaviour
     private void OnEnable()
     {
         _gunFire.OnHit += Show;
+
+        if (_meleeAttack != null)
+        {
+            _meleeAttack.OnHit += OnMeleeHit;
+        }
     }
 
     private void OnDisable()
     {
         _gunFire.OnHit -= Show;
+
+        if (_meleeAttack != null)
+        {
+            _meleeAttack.OnHit -= OnMeleeHit;
+        }
+
         _group.alpha = 0f;
         _showCoroutine = null;
+    }
+
+    // 근접 타격은 약점이 없으므로 일반 명중 연출을 쓴다.
+    private void OnMeleeHit(bool killedMonster)
+    {
+        Show(false);
     }
 
     // 이미 표시 중이어도 처음부터 다시 보여 준다.
