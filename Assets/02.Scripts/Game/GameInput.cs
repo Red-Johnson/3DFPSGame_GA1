@@ -43,6 +43,20 @@ public static class GameInput
     public static bool MarksmanRifleModePressed => IsPlaying && Input.GetKeyDown(MarksmanRifleModeKey);
     public static bool MeleeModePressed => IsPlaying && Input.GetKeyDown(MeleeModeKey);
 
+    // 마우스 휠로 무기 모드를 넘긴다. 아래로 굴리면 다음 모드(1), 위로 굴리면 이전 모드(-1), 안 굴리면 0.
+    public static int WeaponScrollStep
+    {
+        get
+        {
+            if (!IsPlaying) return 0;
+
+            float scroll = Input.mouseScrollDelta.y;
+            if (scroll > 0f) return -1;
+            if (scroll < 0f) return 1;
+            return 0;
+        }
+    }
+
     public static bool CursorUnlockPressed => IsPlaying && Input.GetKeyDown(CursorUnlockKey);
     public static bool CursorUnlockReleased => IsPlaying && Input.GetKeyUp(CursorUnlockKey);
 

@@ -24,10 +24,25 @@ public class PlayerWeaponMode : MonoBehaviour
         {
             ChangeMode(WeaponMode.Melee);
         }
+        else if (GameInput.WeaponScrollStep != 0)
+        {
+            ChangeModeByScroll(GameInput.WeaponScrollStep);
+        }
+    }
+
+    // 휠을 굴린 방향으로 다음, 이전 모드로 넘어간다. 끝에서는 반대쪽 끝으로 이어진다.
+    private void ChangeModeByScroll(int step)
+    {
+        int count = System.Enum.GetValues(typeof(WeaponMode)).Length;
+        int next = (((int)_mode + step) % count + count) % count;
+        ChangeMode((WeaponMode)next);
     }
 
     private void ChangeMode(WeaponMode mode)
     {
+        // 이미 그 모드면 아무것도 하지 않는다. (무기를 다시 꺼내는 연출이 되풀이되지 않게)
+        if (mode == _mode) return;
+
         _mode = mode;
         OnModeChanged?.Invoke(mode);
         GameLogger.Log($"무기 모드: {mode}");

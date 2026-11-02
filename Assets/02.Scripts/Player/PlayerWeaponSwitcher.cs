@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 // 무기 모드에 맞춰 무기 컴포넌트를 켜고 끈다.
@@ -11,6 +12,13 @@ public class PlayerWeaponSwitcher : MonoBehaviour
     [SerializeField] private GameObject _gunWeaponModel;        // 일반, 저격 모드에서만 보일 총(총처럼 든 가로등). 비워두면 건드리지 않는다.
     [SerializeField] private CameraViewManager _cameraView;     // 3인칭에서 총 모드일 때 조준점을 보이게 한다. 비워두면 건드리지 않는다.
 
+    [Header("총 꺼내기 연출")]
+    [SerializeField] private float _drawDuration = 0.25f;       // 총이 올라오는 데 걸리는 시간(초)
+    [SerializeField] private float _drawDistance = 0.6f;        // 시작할 때 원래 위치보다 얼마나 아래(월드 기준, m)에서 올라올지
+
+    private Vector3 _gunRestLocalPosition;      // 총이 원래 있어야 할 손 기준 위치
+    private Coroutine _drawCoroutine;
+    private bool _isFirstApply = true;
     private PlayerWeaponMode _weaponMode;
     private PlayerGunFire _gunFire;
     private PlayerMeleeAttack _meleeAttack;
@@ -22,6 +30,11 @@ public class PlayerWeaponSwitcher : MonoBehaviour
         _gunFire = GetComponent<PlayerGunFire>();
         _meleeAttack = GetComponent<PlayerMeleeAttack>();
         _playerAnimator = GetComponent<PlayerAnimator>();
+
+        if (_gunWeaponModel != null)
+        {
+            _gunRestLocalPosition = _gunWeaponModel.transform.localPosition;
+        }
     }
 
     private void OnEnable()
@@ -49,6 +62,13 @@ public class PlayerWeaponSwitcher : MonoBehaviour
         if (_meleeWeaponModel != null) _meleeWeaponModel.SetActive(isMelee);
         if (_gunWeaponModel != null) _gunWeaponModel.SetActive(!isMelee);
 
+        // 총을 들게 되면(처음 시작할 때는 제외) 아래에서 올라오는 연출을 한다.
+        if (!isMelee && !_isFirstApply)
+        {
+            StartDraw();
+        }
+        _isFirstApply = false;
+
         // 근접 자세를 맞춘다.
         _playerAnimator.SetMeleeStance(isMelee);
 
@@ -56,5 +76,40 @@ public class PlayerWeaponSwitcher : MonoBehaviour
         {
             _cameraView.SetThirdPersonCrosshair(!isMelee);
         }
+    }
+
+    private void StartDraw()
+    {
+        if (_gunWeaponModel == null) return;
+
+        if (_drawCoroutine != null)
+        {
+            StopCoroutine(_drawCoroutine);
+        }
+
+        _drawCoroutine = StartCoroutine(Draw_Coroutine());
+    }
+
+    // 총을 손 기준 원래 위치보다 아래에서 시작해 원래 위치로 스윽 올린다. (손 뼈가 움직여도 월드 기준으로 아래에서 올라온다.)
+    private IEnumerator Draw_Coroutine()
+    {
+        Transform gun = _gunWeaponModel.transform;
+        float elapsed = 0f;
+
+        while (elapsed < _drawDuration)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / _drawDuration);
+            float remain = (1f - t) * (1f - t);     // 처음엔 빠르게, 끝에서 부드럽게 멈춘다.
+
+            Vector3 offset = gun.parent.InverseTransformVector(Vector3.down * (_drawDistance * remain));
+            gun.localPosition = _gunRestLocalPosition + offset;
+
+            // 손 뼈는 애니메이터가 매 프레임 움직이므로, 그 뒤에 적용되도록 다음 프레임까지 기다린다.
+            yield return null;
+        }
+
+        gun.localPosition = _gunRestLocalPosition;
+        _drawCoroutine = null;
     }
 }
