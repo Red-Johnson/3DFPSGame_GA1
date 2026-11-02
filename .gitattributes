@@ -1,3 +1,12 @@
 # Auto detect text files and perform LF normalization
 * text=auto
 .husky/* text eol=lf
+# Unity가 직접 저장하는 YAML 에셋은 항상 LF로 둔다. (autocrlf와 엇갈려 변경 없이 수정됨으로 뜨는 것을 막는다.)
+*.unity text eol=lf
+*.asset text eol=lf
+*.prefab text eol=lf
+*.mat text eol=lf
+*.controller text eol=lf
+*.anim text eol=lf
+*.meta text eol=lf
+*.inputactions text eol=lf
