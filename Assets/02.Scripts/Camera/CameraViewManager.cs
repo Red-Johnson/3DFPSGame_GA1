@@ -14,7 +14,7 @@ public enum CameraViewMode
 public class CameraViewManager : MonoBehaviour
 {
     [SerializeField] private CameraViewMode _startMode = CameraViewMode.FirstPerson;
-    [SerializeField] private GameObject _crosshair;     // 3인칭에서는 숨길 조준점. 비워두면 건드리지 않는다.
+    [SerializeField] private GameObject _crosshair;     // 3인칭(근접 모드)에서는 숨길 조준점. 비워두면 건드리지 않는다.
 
     private CameraFollow _firstPersonFollow;
     private CameraRotate _firstPersonRotate;
@@ -31,7 +31,6 @@ public class CameraViewManager : MonoBehaviour
     [SerializeField] private float _transitionDuration = 0.3f;     // 시점이 바뀔 때 카메라가 새 위치로 이동하는 시간(초). 0이면 바로 바뀐다.
 
     private CameraViewTransition _transition;
-    private bool _showCrosshairInThirdPerson;
 
     // 시점을 정한다. (총 모드는 1인칭, 근접 모드는 3인칭. 플레이어가 직접 바꾸는 키는 없다.)
     public void ForceView(CameraViewMode mode)
@@ -43,18 +42,12 @@ public class CameraViewManager : MonoBehaviour
         Apply(target, true);
     }
 
-    // 3인칭에서도 조준점을 보여야 하는지. 총을 쏘는 모드에서는 켜고, 칼 모드에서는 끈다.
-    public void SetThirdPersonCrosshair(bool show)
-    {
-        _showCrosshairInThirdPerson = show;
-        ApplyCrosshair();
-    }
-
+    // 3인칭(근접 모드)에서는 조준점을 숨기고, 1인칭(총 모드)에서는 보인다.
     private void ApplyCrosshair()
     {
         if (_crosshair != null)
         {
-            _crosshair.SetActive(!IsThirdPerson || _showCrosshairInThirdPerson);
+            _crosshair.SetActive(!IsThirdPerson);
         }
     }
 

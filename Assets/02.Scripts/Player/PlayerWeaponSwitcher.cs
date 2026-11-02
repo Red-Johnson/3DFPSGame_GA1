@@ -76,7 +76,6 @@ public class PlayerWeaponSwitcher : MonoBehaviour
         {
             // 근접 모드는 3인칭, 총 모드는 1인칭으로 바꾼다.
             _cameraView.ForceView(isMelee ? CameraViewMode.ThirdPerson : CameraViewMode.FirstPerson);
-            _cameraView.SetThirdPersonCrosshair(!isMelee);
         }
     }
 
