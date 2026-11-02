@@ -29,6 +29,9 @@ public class DestructibleCar : MonoBehaviour, IDamageable
     [SerializeField] private float _explosionRange = 8f;        // 폭발 대미지 범위이자 충격파 이펙트의 반지름(m)
     [SerializeField] private float _burnTimeBeforeExplosion = 2f;   // 체력이 0이 되어 불이 붙은 뒤 폭발하기까지의 시간(초)
 
+    [SerializeField] private float _burnTimeAfterExplosion = 10f;   // 폭발 이펙트 뒤 불이 그대로 타는 시간(초)
+    [SerializeField] private float _fireFadeTime = 5f;              // 불이 서서히 작아져 사라지는 시간(초). 다 사라지면 체력이 회복된다.
+
     [Header("이펙트")]
     [SerializeField] private ParticleSystem _blackSmokePrefab;
     [SerializeField] private ParticleSystem _firePrefab;
@@ -48,11 +51,13 @@ public class DestructibleCar : MonoBehaviour, IDamageable
     private ParticleSystem _smoke;
     private ParticleSystem _fire;
     private bool _isBurning;
+    private float _maxHealth;            // 불이 꺼진 뒤 되돌릴 체력
 
     private bool IsDestroyed => _health <= 0f;
 
     private void Awake()
     {
+        _maxHealth = _health;
         _bodyCollider = GetComponent<Collider>();
         CalculateEffectPositions();
     }
@@ -122,6 +127,47 @@ public class DestructibleCar : MonoBehaviour, IDamageable
 
         // 4. 주위에 폭발을 전달한다. (좀비, 드럼통과 다른 차량에 대미지를 준다.)
         ExplosionDamage.Apply(_centerPosition, _explosionRange, _explosionDamage);
+
+        // 5. 폭발 뒤 일정 시간 불이 타다가, 서서히 작아져 꺼지면 체력을 되돌려 다시 터뜨릴 수 있게 한다.
+        yield return new WaitForSeconds(_burnTimeAfterExplosion);
+        yield return FadeOutFire_Coroutine();
+
+        _health = _maxHealth;
+        _isBurning = false;
+    }
+
+    // 불을 _fireFadeTime 동안 서서히 작게 만들어 없앤다. (크기와 방출량을 함께 줄인다.)
+    private IEnumerator FadeOutFire_Coroutine()
+    {
+        if (_fire != null)
+        {
+            ParticleSystem[] particles = _fire.GetComponentsInChildren<ParticleSystem>(true);
+            float[] baseRates = new float[particles.Length];
+            for (int i = 0; i < particles.Length; i++)
+            {
+                baseRates[i] = particles[i].emission.rateOverTimeMultiplier;
+            }
+
+            float elapsed = 0f;
+            while (elapsed < _fireFadeTime)
+            {
+                elapsed += Time.deltaTime;
+                float remain = 1f - Mathf.Clamp01(elapsed / _fireFadeTime);
+
+                _fire.transform.localScale = Vector3.one * (_fireScale * remain);
+                for (int i = 0; i < particles.Length; i++)
+                {
+                    ParticleSystem.EmissionModule emission = particles[i].emission;
+                    emission.rateOverTimeMultiplier = baseRates[i] * remain;
+                }
+
+                yield return null;
+            }
+
+            _fire.Stop(true, ParticleSystemStopBehavior.StopEmitting);
+            Destroy(_fire.gameObject, GetLongestLifetime(_fire));
+            _fire = null;
+        }
     }
 
     // 폭발 이펙트를 차량마다 한 번만 만들어 쓰고 끝나면 지운다. (풀을 쓰지 않는다.)
