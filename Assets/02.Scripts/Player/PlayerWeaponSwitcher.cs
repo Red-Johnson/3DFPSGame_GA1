@@ -4,7 +4,7 @@ using UnityEngine;
 // 무기 모드에 맞춰 무기 컴포넌트를 켜고 끈다.
 // - 일반, 저격: 총(PlayerGunFire)을 쓰고, 총 모델을 보여 주며, 근접 무기(칼)는 숨긴다.
 // - 근접: 칼 베기(PlayerMeleeAttack)를 쓰고, 칼을 보여 주며, 총과 총 모델은 끈다.
-// 총은 모드에 상관없이 코드를 지우지 않고 컴포넌트만 켜고 끈다. 시점 전환(V)은 모드와 상관없이 항상 된다.
+// 총은 모드에 상관없이 코드를 지우지 않고 컴포넌트만 켜고 끈다. 시점은 모드가 정한다. (총 모드는 1인칭, 근접 모드는 3인칭)
 [RequireComponent(typeof(PlayerWeaponMode))]
 public class PlayerWeaponSwitcher : MonoBehaviour
 {
@@ -74,6 +74,8 @@ public class PlayerWeaponSwitcher : MonoBehaviour
 
         if (_cameraView != null)
         {
+            // 근접 모드는 3인칭, 총 모드는 1인칭으로 바꾼다.
+            _cameraView.ForceView(isMelee ? CameraViewMode.ThirdPerson : CameraViewMode.FirstPerson);
             _cameraView.SetThirdPersonCrosshair(!isMelee);
         }
     }

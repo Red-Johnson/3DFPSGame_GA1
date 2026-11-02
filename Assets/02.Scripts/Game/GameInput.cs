@@ -16,7 +16,6 @@ public static class GameInput
     private const KeyCode MarksmanRifleModeKey = KeyCode.Alpha2;  // 무기 모드: 지정사수소총
     private const KeyCode MeleeModeKey = KeyCode.Alpha3;        // 무기 모드: 근접
     private const KeyCode CursorUnlockKey = KeyCode.LeftAlt;    // 누르고 있는 동안 커서를 푼다.
-    private const KeyCode ViewToggleKey = KeyCode.V;            // 1인칭 / 3인칭 시점 전환
     private const KeyCode MinimapZoomInKey = KeyCode.Alpha0;    // 미니맵 확대
     private const KeyCode MinimapZoomOutKey = KeyCode.Alpha9;   // 미니맵 축소
 
@@ -60,7 +59,6 @@ public static class GameInput
     public static bool CursorUnlockPressed => IsPlaying && Input.GetKeyDown(CursorUnlockKey);
     public static bool CursorUnlockReleased => IsPlaying && Input.GetKeyUp(CursorUnlockKey);
 
-    public static bool ViewTogglePressed => IsPlaying && Input.GetKeyDown(ViewToggleKey);
 
     public static bool MinimapZoomInPressed => IsPlaying && Input.GetKeyDown(MinimapZoomInKey);
     public static bool MinimapZoomOutPressed => IsPlaying && Input.GetKeyDown(MinimapZoomOutKey);
