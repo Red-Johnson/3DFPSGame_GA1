@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 프로젝트 개요
 
-Unity 6 (에디터 버전 `6000.3.22f1`)와 C#으로 만드는 3D FPS 게임이다. 빌드·린트·테스트 스크립트나 테스트 어셈블리는 없다. 빌드와 실행은 Unity 에디터에서 `Assets/01.Scenes/GameScene.unity`를 열어 Play로 확인한다. 씬(`.unity`), 머티리얼, 렌더 텍스처 같은 에셋은 에디터에서 편집하는 파일이므로 텍스트로 직접 고치지 않는다.
+Unity 6 (에디터 버전 `6000.3.22f1`)와 C#으로 만드는 3D FPS 게임이다. 빌드·린트·테스트 스크립트나 테스트 어셈블리는 없다. 빌드와 실행은 Unity 에디터에서 `Assets/01.Scenes/CityScene.unity`(빌드 0번, 메인 씬)를 열어 Play로 확인한다. `GameScene.unity`는 예전 씬이라 빌드에서 꺼 두었다. 씬(`.unity`), 머티리얼, 렌더 텍스처 같은 에셋은 에디터에서 편집하는 파일이므로 텍스트로 직접 고치지 않는다.
 
 ## 폴더 구조
 
@@ -27,6 +27,20 @@ Unity 6 (에디터 버전 `6000.3.22f1`)와 C#으로 만드는 3D FPS 게임이�
 - **미니맵:** `MinimapCamera`(플레이어 머리 위에서 따라다니는 직교 카메라)가 `MinimapRenderTexture`에 그리고, `UI_Minimap`이 `orthographicSize`를 바꿔 확대/축소한다. 확대/축소 로직이 `MinimapCamera.Update`(키 입력)에 임시로 남아 있고 Todo로 `UI_Minimap` 쪽으로 옮기는 중이다.
 - **커서:** `CursorManager`가 커서를 잠그고, 왼쪽 Alt를 누르는 동안 풀어준다. 발사와 폭탄은 커서가 보이는 동안 입력되지 않는다(`GameInput`이 커서 상태를 확인).
 - **입력:** 레거시 `UnityEngine.Input`을 쓰되, 플레이어 입력은 정적 클래스 `GameInput`(이동, 시점, 점프, 달리기, 장전 R, 발사 마우스 왼쪽(연사는 누르고 있는 동안 `FireHeld`, 단발은 누르는 순간 `FirePressed`), 폭탄 마우스 오른쪽: 누르고 있으면 충전, 떼면 던짐, 무기 모드 전환 1·2·3키와 마우스 휠, 지정사수소총 줌 마우스 오른쪽)이 한곳에서 읽는다. 게임이 진행 중이 아니면 입력 없음으로 돌려준다. 커서를 푸는 Alt와 미니맵 확대·축소 키(0, 9), 무기 모드 전환 키도 모두 `GameInput`의 상수로 정하므로, `GameInput` 밖에서는 `Input`을 직접 읽지 않는다. 사격은 Input Manager의 `Fire1`(left ctrl도 포함) 대신 마우스 왼쪽 버튼을 직접 읽는다. `InputSystem_Actions.inputactions`가 있지만 코드는 새 Input System을 쓰지 않는다.
+
+## 씬과 맵
+
+- `CityScene`은 ithappy `Cartoon_City_Free`의 URP 데모 맵(`Assets/ithappy`)에 플레이어, 좀비 스포너, UI를 옮긴 씬이다. 맵은 `Map/Ground`(도로 영역 바닥)와 `NavMeshSurface`(`Assets/01.Scenes/CityScene/NavMesh-Map.asset`)로 좀비가 걷고, `GroundBoundary`(높이 60, 두께 2의 투명 벽)가 플레이어, 좀비, 수류탄이 맵 밖으로 나가지 못하게 막는다.
+- 임포트한 외부 에셋 폴더: `Assets/ithappy`(맵), `Assets/Matthew Guz`(베기 이펙트, URP로 머티리얼 변환), `Assets/Game Assets`(폭발 등 이펙트), `Assets/VFXPACK_FIRE_WALLCOEUR`(불, 연기). 외부 에셋 폴더 안의 파일은 가능하면 고치지 않는다. (`URP_Profile.asset`처럼 Unity가 열 때마다 다시 저장하는 파일은 변경을 되돌린다.)
+- 카메라와 미니맵 카메라는 컬링 마스크를 직접 정해 두어서, 새 레이어를 만들어 오브젝트에 주면 화면에서 사라질 수 있다.
+
+## Unity 작업 요령
+
+- 씬에 저장된 직렬화 값은 코드의 기본값을 덮어쓴다. `[SerializeField]` 기본값을 바꿔도 씬 값이 그대로면 반영되지 않으니 씬의 값을 함께 맞춘다. 파라미터 없는 생성자가 없는 직렬화 클래스(`GunSpec`)는 새 필드에 초기값이 들어가지 않아 값을 따로 채워야 한다.
+- 필드 이름을 바꿀 때는 `[FormerlySerializedAs]`를 달아 씬과 프리팹에 튜닝한 값이 사라지지 않게 한다.
+- Play 중에 스크립트를 고치고 재컴파일하면 실행 상태가 깨져 오류가 난다(`Zombie.OnEnable`의 NullReferenceException 등). Play를 끄고 컴파일한다.
+- 에디터 MCP로 Play를 돌리면 프레임 루프가 멈춰 있을 수 있어서, 코루틴과 실시간 연출(타이머, 이펙트)은 눈으로 확인하지 못하는 경우가 많다. 확인하지 못한 것은 확인했다고 말하지 않는다.
+- `.gitattributes`가 `*.unity`, `*.asset`, `*.prefab` 등 Unity YAML을 LF로 고정한다. Unity는 LF로 저장하는데 `core.autocrlf=true`와 어긋나면 내용 변경 없이 수정됨으로 보이기 때문이다.
 
 ## 코드 컨벤션
 
