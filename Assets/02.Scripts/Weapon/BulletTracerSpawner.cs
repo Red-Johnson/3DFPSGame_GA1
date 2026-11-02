@@ -9,7 +9,7 @@ public class BulletTracerSpawner
     private const int PoolMaxSize = 50;
 
     [SerializeField] private Material _material;                                       // 비워두면 Sprites/Default를 쓴다.
-    [SerializeField] private Color _color = new Color(1f, 0.25f, 0.2f, 1f);
+    [SerializeField] private Color _color = new Color(1f, 0.25f, 0.2f, 1f);            // 색을 따로 주지 않을 때 쓰는 기본 색
     [SerializeField] private float _width = 0.05f;
     [SerializeField] private float _speed = 200f;                                      // 선이 날아가는 속도
     [SerializeField] private float _length = 5f;                                       // 선의 길이
@@ -22,11 +22,19 @@ public class BulletTracerSpawner
         _pool = new PrefabPool<BulletTracer>(CreateTracer, "TracerPool", PoolDefaultCapacity, PoolMaxSize);
     }
 
-    // 시작 지점(총구)에서 목표 지점까지 날아가는 궤적을 쏜다.
+    // 시작 지점(총구)에서 목표 지점까지 날아가는 궤적을 기본 색으로 쏜다.
     public void Fire(Vector3 start, Vector3 endPoint)
     {
+        Fire(start, endPoint, _color);
+    }
+
+    // 시작 지점(총구)에서 목표 지점까지 날아가는 궤적을 주어진 색으로 쏜다. (머리의 선명함은 기본 색의 알파를 따른다.)
+    public void Fire(Vector3 start, Vector3 endPoint, Color color)
+    {
+        color.a = _color.a;
+
         BulletTracer tracer = _pool.Get(start, Quaternion.identity);
-        tracer.Fire(start, endPoint, _speed, _length);
+        tracer.Fire(start, endPoint, _speed, _length, color);
     }
 
     // 프리팹 없이 선 렌더러를 달아서 궤적 오브젝트를 만든다. (보관함 아래에 만들어 꺼낼 때 활성화된다)
@@ -44,13 +52,7 @@ public class BulletTracerSpawner
         line.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
         line.receiveShadows = false;
 
-        // 꼬리는 투명하게, 머리는 선명하게 해서 날아가는 느낌을 낸다.
-        Gradient gradient = new Gradient();
-        gradient.SetKeys(
-            new[] { new GradientColorKey(_color, 0f), new GradientColorKey(_color, 1f) },
-            new[] { new GradientAlphaKey(0f, 0f), new GradientAlphaKey(_color.a, 1f) });
-        line.colorGradient = gradient;
-
+        // 색(꼬리는 투명하게, 머리는 선명하게)은 쏠 때마다 BulletTracer.Fire가 입힌다.
         return tracerObject.AddComponent<BulletTracer>();
     }
 

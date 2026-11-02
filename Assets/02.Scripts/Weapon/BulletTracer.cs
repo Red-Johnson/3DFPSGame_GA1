@@ -25,9 +25,13 @@ public class BulletTracer : MonoBehaviour, IPoolable<BulletTracer>
         _pool = pool;
     }
 
-    public void Fire(Vector3 start, Vector3 end, float speed, float tailLength)
+    // 꼬리는 투명하게, 머리는 선명하게 해서 날아가는 느낌을 낸다. 풀에서 재사용하므로 쏠 때마다 색을 입힌다.
+    public void Fire(Vector3 start, Vector3 end, float speed, float tailLength, Color color)
     {
         Vector3 toEnd = end - start;
+
+        _line.startColor = new Color(color.r, color.g, color.b, 0f);
+        _line.endColor = color;
 
         _start = start;
         _totalLength = toEnd.magnitude;

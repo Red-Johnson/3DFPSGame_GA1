@@ -36,6 +36,7 @@ public class PlayerGunFire : MonoBehaviour
     private PlayerWeaponMode _weaponMode;
     private PlayerBombFire _bombFire;
     private PlayerMarksmanZoom _zoom;       // 줌 중에만 조준 보정을 쓴다. 없으면 보정하지 않는다.
+    private PlayerLampColor _lampColor;     // 총알 궤적 색을 가로등 색에 맞춘다. 없으면 궤적의 기본 색을 쓴다.
 
     private bool IsReloading => _reloadCoroutine != null;
     private GunSpec CurrentSpec => GetSpec(_gunMode);
@@ -61,6 +62,7 @@ public class PlayerGunFire : MonoBehaviour
         _weaponMode = GetComponent<PlayerWeaponMode>();
         _bombFire = GetComponent<PlayerBombFire>();
         _zoom = GetComponent<PlayerMarksmanZoom>();
+        _lampColor = GetComponent<PlayerLampColor>();
 
         // UI가 Start에서 총알 수를 읽어도 되도록 Awake에서 채운다. (Start 실행 순서에 의존하지 않는다.)
         _bulletCounts[WeaponMode.AssaultRifle] = _assaultRifle.MaxBulletCount;
@@ -216,7 +218,16 @@ public class PlayerGunFire : MonoBehaviour
         bool isHit = RaycastIgnoringSelf(ray, toAim.magnitude + AimPointMargin, spec.CanHitWeakPoint, out hitInfo);
 
         // 맞았으면 맞은 자리까지, 허공이면 조준점(사거리 끝)까지 궤적을 날린다.
-        _tracer.Fire(muzzle, isHit ? hitInfo.point : aimPoint);
+        // 궤적 색은 들고 있는 총의 가로등 색을 따른다. (PlayerLampColor가 없으면 궤적의 기본 색을 쓴다.)
+        Vector3 tracerEnd = isHit ? hitInfo.point : aimPoint;
+        if (_lampColor != null)
+        {
+            _tracer.Fire(muzzle, tracerEnd, _lampColor.GetLampColor(_gunMode));
+        }
+        else
+        {
+            _tracer.Fire(muzzle, tracerEnd);
+        }
 
         if (isHit)
         {
