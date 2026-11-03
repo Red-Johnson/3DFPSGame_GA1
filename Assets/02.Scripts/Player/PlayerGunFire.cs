@@ -20,6 +20,10 @@ public class PlayerGunFire : MonoBehaviour
     [SerializeField] private float _flashTime = 0.05f;
 
     private const float AimPointMargin = 0.1f;
+    private const int HitBufferSize = 64;
+
+    // 레이가 맞은 것을 담는 버퍼. 한 번 쓰고 바로 결과를 고르므로(안에서 다시 부르지 않는다) 돌려 써도 안전하다.
+    private readonly RaycastHit[] _hitBuffer = new RaycastHit[HitBufferSize];
 
     private readonly Dictionary<WeaponMode, int> _bulletCounts = new Dictionary<WeaponMode, int>();      // 총마다 따로 남은 총알
     private readonly Dictionary<WeaponMode, float> _nextFireTimes = new Dictionary<WeaponMode, float>(); // 총마다 따로 다음에 쏠 수 있는 시각
@@ -321,10 +325,19 @@ public class PlayerGunFire : MonoBehaviour
         float nearest = float.MaxValue;
         bool found = false;
 
-        RaycastHit[] hits = Physics.RaycastAll(ray, distance, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+        // 매번 배열을 새로 만들지 않도록 버퍼를 재사용한다. 버퍼가 가득 차면 가까운 대상을 놓치지 않도록 새 배열로 다시 쏜다.
+        int hitCount = Physics.RaycastNonAlloc(ray, _hitBuffer, distance, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+        RaycastHit[] hits = _hitBuffer;
 
-        foreach (RaycastHit hit in hits)
+        if (hitCount == HitBufferSize)
         {
+            hits = Physics.RaycastAll(ray, distance, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+            hitCount = hits.Length;
+        }
+
+        for (int i = 0; i < hitCount; i++)
+        {
+            RaycastHit hit = hits[i];
             if (hit.collider.transform.root == transform.root || hit.distance >= nearest) continue;
 
             nearest = hit.distance;
@@ -338,8 +351,9 @@ public class PlayerGunFire : MonoBehaviour
         if (owner == null) return true;
 
         float nearestWeakPoint = float.MaxValue;
-        foreach (RaycastHit hit in hits)
+        for (int i = 0; i < hitCount; i++)
         {
+            RaycastHit hit = hits[i];
             if (hit.distance >= nearestWeakPoint || hit.collider.GetComponent<WeakPointHitbox>() == null) continue;
             if (hit.collider.GetComponentInParent<IDamageable>() != owner) continue;
 

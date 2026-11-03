@@ -25,6 +25,9 @@ public class PlayerMeleeAttack : MonoBehaviour
 
     private const float MeasureStep = 0.03f;            // 이펙트 범위를 잴 때 시뮬레이션하는 시간 간격
     private const float MeasureMaxTime = 3f;            // 이 시간까지만 잰다.
+    private const int ColliderBufferSize = 64;          // 한 번 벨 때 담아 둘 수 있는 콜라이더 수
+
+    private readonly Collider[] _colliderBuffer = new Collider[ColliderBufferSize];
 
     private float _effectRadius;                        // 이펙트 중심에서 이펙트가 그려지는 가장 먼 거리(판정 반경)
     private float _attackTimer;
@@ -154,8 +157,19 @@ public class PlayerMeleeAttack : MonoBehaviour
         bool hitMonster = false;
         bool killedMonster = false;
 
-        foreach (Collider collider in Physics.OverlapSphere(center, radius, _hitLayers, QueryTriggerInteraction.Ignore))
+        // 매번 배열을 새로 만들지 않도록 버퍼를 재사용한다. 버퍼가 가득 차면 놓치는 대상이 없도록 새 배열로 다시 찾는다.
+        int colliderCount = Physics.OverlapSphereNonAlloc(center, radius, _colliderBuffer, _hitLayers, QueryTriggerInteraction.Ignore);
+        Collider[] colliders = _colliderBuffer;
+
+        if (colliderCount == ColliderBufferSize)
         {
+            colliders = Physics.OverlapSphere(center, radius, _hitLayers, QueryTriggerInteraction.Ignore);
+            colliderCount = colliders.Length;
+        }
+
+        for (int i = 0; i < colliderCount; i++)
+        {
+            Collider collider = colliders[i];
             IDamageable target = collider.GetComponentInParent<IDamageable>();
 
             // 자기 자신과 이미 벤 대상은 건너뛴다. (콜라이더가 여러 개인 대상이 한 번만 맞게)
