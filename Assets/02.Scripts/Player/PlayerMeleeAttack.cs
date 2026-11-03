@@ -3,27 +3,25 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // 마우스 왼쪽 버튼을 누르면 칼을 휘둘러 범위를 베는 근접 공격 (총 사격 PlayerGunFire를 대신한다.)
-// 휘두르는 모션을 시작하고 타격 시점이 되면 범위 안의 피격 대상(IDamageable)에게 대미지를 주고 이펙트를 낸다.
-// 이펙트 프리팹을 연결하면 이펙트가 그려지는 구 범위를, 비워두면 앞쪽 부채꼴 범위를 벤다.
+// 휘두르는 모션을 시작하고 타격 시점이 되면 베기 이펙트가 그려지는 구 범위 안의 피격 대상(IDamageable)에게 대미지를 주고 이펙트를 낸다.
+// 베기 이펙트 프리팹은 필수다. 프리팹이 없으면 이 컴포넌트는 꺼진다.
 [RequireComponent(typeof(PlayerAnimator))]
 public class PlayerMeleeAttack : MonoBehaviour
 {
     [Header("공격")]
     [SerializeField] private float _damage = 15f;
-    [SerializeField] private float _range = 3.5f;                   // 부채꼴 반지름
-    [SerializeField, Range(10f, 360f)] private float _angle = 120f; // 부채꼴 각도
+    [SerializeField] private float _range = 3.5f;                   // 이펙트 범위를 재지 못할 때 대신 쓰는 판정 반경
     [SerializeField] private float _attackInterval = 0.6f;          // 공격 간격. 휘두르는 모션 길이에 맞춘다.
     [SerializeField] private float _hitDelay = 0.2f;                // 휘두르기 시작부터 타격이 들어가기까지의 시간
-    [SerializeField] private Vector3 _originOffset = new Vector3(0f, -0.1f, 0f);    // 부채꼴 중심(플레이어 위치 기준)
+    [SerializeField] private Vector3 _originOffset = new Vector3(0f, -0.1f, 0f);    // 베기 기준점(플레이어 위치 기준)
     [SerializeField] private LayerMask _hitLayers = ~0;
 
     [Header("이펙트")]
-    [SerializeField] private ParticleSystem _slashEffectPrefab;     // 베기 이펙트 프리팹(에셋). 연결하면 이것을 쓰고, 비워두면 코드로 만든 부채꼴을 쓴다.
+    [SerializeField] private ParticleSystem _slashEffectPrefab;     // 베기 이펙트 프리팹(에셋). 필수.
     [SerializeField] private float _slashEffectScale = 1.2f;                                // 프리팹 이펙트의 크기 배율
-    [SerializeField] private Vector3 _slashEffectOffset = new Vector3(0f, 0.2f, 0.8f);      // 이펙트 위치(부채꼴 중심 기준, 바라보는 방향이 +Z)
+    [SerializeField] private Vector3 _slashEffectOffset = new Vector3(0f, 0.2f, 0.8f);      // 이펙트 위치(베기 기준점 기준, 바라보는 방향이 +Z)
     [SerializeField] private Vector3 _slashEffectRotation = Vector3.zero;                   // 이펙트 회전 보정(오일러 각도)
     [SerializeField, Range(0.1f, 2f)] private float _effectHitRadiusScale = 1f;             // 이펙트가 그려지는 범위에 곱해 판정 반경을 줄이거나 늘리는 보정
-    [SerializeField] private SlashEffect _slashEffect;      // 프리팹이 없을 때 쓰는 부채꼴. 비워두면 자식으로 하나 만든다.
 
     private const float MeasureStep = 0.03f;            // 이펙트 범위를 잴 때 시뮬레이션하는 시간 간격
     private const float MeasureMaxTime = 3f;            // 이 시간까지만 잰다.
@@ -46,23 +44,20 @@ public class PlayerMeleeAttack : MonoBehaviour
         _playerAnimator = GetComponent<PlayerAnimator>();
         _bombFire = GetComponent<PlayerBombFire>();
 
-        if (_slashEffectPrefab != null)
+        if (_slashEffectPrefab == null)
         {
-            // 프리팹 이펙트를 쓰면 이펙트가 그려지는 구 범위를 재서 판정 반경으로 쓴다.
-            _effectRadius = MeasureEffectRadius() * _effectHitRadiusScale;
-            GameLogger.Log($"[PlayerMeleeAttack] 이펙트 판정 반경: {_effectRadius:F2}m");
+            GameLogger.LogError("[PlayerMeleeAttack] _slashEffectPrefab이 연결되지 않아 근접 공격을 쓸 수 없습니다.");
+            enabled = false;
+            return;
         }
-        else if (_slashEffect == null)
-        {
-            // 프리팹이 없으면 코드로 만든 부채꼴을 쓴다.
-            GameObject effectObject = new GameObject("SlashEffect");
-            effectObject.transform.SetParent(transform, false);
-            _slashEffect = effectObject.AddComponent<SlashEffect>();
-        }
+
+        // 이펙트가 그려지는 구 범위를 재서 판정 반경으로 쓴다.
+        _effectRadius = MeasureEffectRadius() * _effectHitRadiusScale;
+        GameLogger.Log($"[PlayerMeleeAttack] 이펙트 판정 반경: {_effectRadius:F2}m");
     }
 
     // 이펙트를 임시로 하나 만들어 끝까지 시뮬레이션하면서, 이펙트 중심에서 가장 멀리 그려진 거리를 잰다.
-    // 크기 배율과 회전 보정을 실제 재생과 똑같이 적용한다. 재지 못하면 부채꼴 반지름을 대신 쓴다.
+    // 크기 배율과 회전 보정을 실제 재생과 똑같이 적용한다. 재지 못하면 _range를 대신 쓴다.
     private float MeasureEffectRadius()
     {
         ParticleSystem instance = Instantiate(_slashEffectPrefab, Vector3.zero, Quaternion.Euler(_slashEffectRotation));
@@ -93,7 +88,7 @@ public class PlayerMeleeAttack : MonoBehaviour
 
         if (radius <= 0f)
         {
-            GameLogger.LogWarning("[PlayerMeleeAttack] 이펙트 범위를 재지 못해 부채꼴 반지름을 판정 반경으로 씁니다.");
+            GameLogger.LogWarning("[PlayerMeleeAttack] 이펙트 범위를 재지 못해 _range를 판정 반경으로 씁니다.");
             return _range;
         }
 
@@ -125,9 +120,8 @@ public class PlayerMeleeAttack : MonoBehaviour
         Slash();
     }
 
-    // 이펙트가 그려지는 범위에 있는 대상에게 대미지를 주고 이펙트를 낸다.
-    // - 프리팹 이펙트: 이펙트 중심에서 잰 구 범위 전체를 벤다. (이펙트가 플레이어를 감싸므로 방향을 따지지 않는다.)
-    // - 부채꼴 이펙트: 바라보는 방향의 부채꼴 범위만 벤다.
+    // 이펙트가 그려지는 구 범위에 있는 대상에게 대미지를 주고 이펙트를 낸다.
+    // 이펙트 중심에서 잰 구 범위 전체를 벤다. (이펙트가 플레이어를 감싸므로 방향을 따지지 않는다.)
     private void Slash()
     {
         Vector3 origin = transform.position + _originOffset;
@@ -136,24 +130,12 @@ public class PlayerMeleeAttack : MonoBehaviour
         forward.Normalize();
 
         Quaternion facing = Quaternion.LookRotation(forward);
-        bool isSphere = _slashEffectPrefab != null;
 
-        Vector3 center = origin;
-        float radius = _range;
-
-        if (isSphere)
-        {
-            center = origin + (facing * _slashEffectOffset);
-            radius = _effectRadius;
-            EffectPool.For(_slashEffectPrefab).Play(center, facing * Quaternion.Euler(_slashEffectRotation), _slashEffectScale);
-        }
-        else
-        {
-            _slashEffect.Play(origin, facing, _range, _angle);
-        }
+        Vector3 center = origin + (facing * _slashEffectOffset);
+        float radius = _effectRadius;
+        EffectPool.For(_slashEffectPrefab).Play(center, facing * Quaternion.Euler(_slashEffectRotation), _slashEffectScale);
 
         _hitTargets.Clear();
-        float halfAngle = _angle * 0.5f;
         bool hitMonster = false;
         bool killedMonster = false;
 
@@ -166,14 +148,6 @@ public class PlayerMeleeAttack : MonoBehaviour
             if (_hitTargets.Contains(target)) continue;
 
             Vector3 closest = collider.ClosestPoint(center);
-
-            // 부채꼴이면 수평으로 본 부채꼴 안에 있는지 확인한다. (아주 가까운 대상은 방향과 상관없이 맞는다.)
-            if (!isSphere)
-            {
-                Vector3 toTarget = closest - origin;
-                toTarget.y = 0f;
-                if (toTarget.sqrMagnitude > 0.01f && Vector3.Angle(forward, toTarget) > halfAngle) continue;
-            }
 
             // 벽 같은 것에 가려진 대상은 맞지 않는다. (이펙트 중심이 벽 너머에 있을 수 있어 플레이어 몸에서 확인한다.)
             if (IsBlocked(origin, closest, collider)) continue;
