@@ -16,7 +16,7 @@ using UnityEngine.Pool;
 //
 // 역할 분담: 설정값은 ZombieStats(에셋), 이동과 점프는 ZombieMotor, 애니메이션은 ZombieAnimator가 맡고,
 // Zombie는 상태 머신, 체력과 피격, 풀링을 맡는다.
-public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
+public class Zombie : MonoBehaviour, IMonster, IPoolable<Zombie>
 {
     [SerializeField] private ZombieStats _stats;
 
@@ -68,7 +68,7 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
     private int _activeBloodSprayCount;     // 목록 앞에서부터 켜져 있는 출혈 수
     private int _nextBloodSpray;            // 모든 슬롯이 켜진 뒤 다음에 다시 쓸(가장 오래된) 슬롯
 
-    private bool IsDead => _currentState == _deathState;
+    public bool IsDead => _currentState == _deathState;
 
     private void Awake()
     {

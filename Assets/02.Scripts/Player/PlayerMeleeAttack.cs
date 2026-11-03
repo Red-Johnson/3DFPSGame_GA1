@@ -186,10 +186,10 @@ public class PlayerMeleeAttack : MonoBehaviour
             target.TakeDamage(new DamageInfo(_damage, closest, normal));
 
             // 몬스터(좀비)만 명중으로 친다. 드럼통, 박스는 연출을 내지 않는다.
-            if (target is Zombie zombie)
+            if (target is IMonster monster)
             {
                 hitMonster = true;
-                killedMonster |= zombie.Health <= 0f;
+                killedMonster |= monster.IsDead;
             }
         }
 
