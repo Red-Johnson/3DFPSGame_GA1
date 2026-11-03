@@ -10,6 +10,8 @@ public struct ZombieSpawnSettings
     public float SpawnInterval;             // 좀비 생성 간격
     public float SpawnRadius;               // 스포너 주변 좀비 생성 반경
     public float NavMeshSampleDistance;     // NavMesh 위치 보정 최대 거리
+    public float GroundHeight;              // 지면 높이
+    public float MaxSpawnHeight;            // 지면에서 이 높이 이내만 스폰할 수 있다.
 }
 
 // 좀비 스포너: 일정 간격으로 주변 무작위 위치에 좀비를 한 마리씩 생성한다.
@@ -67,6 +69,9 @@ public class ZombieSpawner : MonoBehaviour
         // NavMesh 위의 지면 높이로 맞춘다. 높이가 어긋나 허공/바닥에 끼는 것을 막는다.
         // 피벗과 바닥 사이 높이는 NavMeshAgent의 Base Offset이 맞춰 준다.
         if (!NavMesh.SamplePosition(candidate, out NavMeshHit hit, _settings.NavMeshSampleDistance, NavMesh.AllAreas)) return;
+
+        // 지붕 위나 건물 안으로 보정되었으면 건너뛴다. (스폰만 거르고, 추격은 NavMesh 전체를 쓴다.)
+        if (!SpawnPointValidator.IsGroundLevel(hit.position, _settings.GroundHeight, _settings.MaxSpawnHeight)) return;
 
         Quaternion rotation = Quaternion.Euler(0f, UnityEngine.Random.Range(0f, 360f), 0f);
         CreateZombie(hit.position, rotation);

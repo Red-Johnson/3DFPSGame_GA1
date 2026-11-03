@@ -6,7 +6,6 @@ public class ZombieAnimator
 {
     // 애니메이터 상태 이름. 컨트롤러의 상태 이름과 똑같아야 한다.
     private static readonly int IdleHash = Animator.StringToHash("Idle");
-    private static readonly int WalkHash = Animator.StringToHash("Walk");
     private static readonly int TraceHash = Animator.StringToHash("Trace");
     private static readonly int AttackHash = Animator.StringToHash("Attack");
     private static readonly int AttackDelayHash = Animator.StringToHash("AttackDelay");
@@ -24,11 +23,6 @@ public class ZombieAnimator
         // 이동은 NavMeshAgent가 맡는다. 애니메이션이 모델만 따로 움직이면 콜라이더와 모델이 어긋난다.
         _animator.applyRootMotion = false;
     }
-
-    public void PlayIdle() => Play(IdleHash);
-
-    // 로밍은 걷는 모션을 쓴다. Walk 상태가 없으면 Trace 모션으로 대신한다.
-    public void PlayWalk() => Play(WalkHash, TraceHash);
 
     public void PlayTrace() => Play(TraceHash);
 

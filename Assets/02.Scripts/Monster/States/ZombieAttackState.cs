@@ -11,7 +11,8 @@ public class ZombieAttackState : ZombieStateBase
 
     public override void Enter()
     {
-        _timer = 0f;
+        // 멈춘 뒤 FirstAttackDelay만 지나면 첫 공격이 나가도록 타이머를 앞당겨 시작한다. (이후는 공격 간격대로)
+        _timer = Mathf.Max(0f, _zombie.Stats.AttackInterval - _zombie.Stats.FirstAttackDelay);
         _isAttackAnimating = false;
         _hasHit = true;     // 휘두르기 전에는 타격할 것이 없다.
         _zombie.Motor.StopMoving();

@@ -24,6 +24,7 @@ public class SpawnerManager : MonoBehaviour
     [SerializeField] private Renderer _ground;                  // 비워두면 Map 아래의 Ground를 찾는다.
     [SerializeField] private Transform _player;                 // 비워두면 Player 태그로 찾는다.
     [SerializeField] private float _navMeshSampleDistance = 2f; // NavMesh 위치 보정 최대 거리
+    [SerializeField] private float _maxSpawnHeight = 1.5f;      // 지면에서 이 높이 이내만 스폰할 수 있다. (지붕 위, 건물 안 제외)
 
     private const int ZombiePoolDefaultCapacity = 10;
 
@@ -96,6 +97,8 @@ public class SpawnerManager : MonoBehaviour
             SpawnInterval = _zombieSpawnInterval,
             SpawnRadius = _zombieSpawnRadius,
             NavMeshSampleDistance = _navMeshSampleDistance,
+            GroundHeight = _ground.bounds.max.y,
+            MaxSpawnHeight = _maxSpawnHeight,
         };
 
         spawner.Init(settings, _zombiePool, _player);
@@ -123,6 +126,7 @@ public class SpawnerManager : MonoBehaviour
 
             if (!NavMesh.SamplePosition(candidate, out NavMeshHit hit, _navMeshSampleDistance, NavMesh.AllAreas)) continue;
 
+            if (!SpawnPointValidator.IsGroundLevel(hit.position, bounds.max.y, _maxSpawnHeight)) continue;
             if (GetFlatDistance(hit.position, _player.position) < _playerSafeRadius) continue;
             if (IsNearOtherSpawner(hit.position)) continue;
 
@@ -157,17 +161,6 @@ public class SpawnerManager : MonoBehaviour
 
     private Renderer FindGround()
     {
-        GameObject map = GameObject.Find("Map");
-        if (map == null) return null;
-
-        foreach (Renderer candidate in map.GetComponentsInChildren<Renderer>())
-        {
-            if (candidate.name == "Ground")
-            {
-                return candidate;
-            }
-        }
-
-        return null;
+        return SpawnPointValidator.FindGround();
     }
 }

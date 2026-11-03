@@ -11,8 +11,7 @@ using UnityEngine.Pool;
 // - 그리고 위 방식에 따라 규칙을 세워둔 것을 "머신"
 //
 // 상태 패턴: 상태마다 클래스(States/ 폴더)로 나누고, Zombie는 현재 상태에 Update를 맡기기만 한다.
-// - Idle: 제자리에서 쉰다. / Roaming: 주변 무작위 위치로 걷는다.
-// - Trace: 플레이어를 쫓아간다. / Attack: 일정 시간마다 플레이어를 때린다.
+// - Trace: 플레이어가 어디 있든 쫓아간다. (감지 거리 없음) / Attack: 일정 시간마다 플레이어를 때린다.
 // - Hit: 공격을 받아 잠깐 멈칫한다. / Death: 쓰러지고 잠시 뒤 사라진다.
 //
 // 역할 분담: 설정값은 ZombieStats(에셋), 이동과 점프는 ZombieMotor, 애니메이션은 ZombieAnimator가 맡고,
@@ -52,15 +51,11 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
     public event Action OnDied;
 
     // 상태 객체는 좀비마다 한 번만 만들어 재사용한다. (오브젝트 풀링으로 재사용해도 그대로)
-    private ZombieIdleState _idleState;
-    private ZombieRoamingState _roamingState;
     private ZombieTraceState _traceState;
     private ZombieAttackState _attackState;
     private ZombieHitState _hitState;
     private ZombieDeathState _deathState;
 
-    public ZombieIdleState IdleState => _idleState;
-    public ZombieRoamingState RoamingState => _roamingState;
     public ZombieTraceState TraceState => _traceState;
     public ZombieAttackState AttackState => _attackState;
 
@@ -86,8 +81,6 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
         _motor = new ZombieMotor(GetComponent<NavMeshAgent>(), _stats);
         _anim = new ZombieAnimator(GetComponentInChildren<Animator>(), _stats.AnimationFadeDuration);
 
-        _idleState = new ZombieIdleState(this);
-        _roamingState = new ZombieRoamingState(this);
         _traceState = new ZombieTraceState(this);
         _attackState = new ZombieAttackState(this);
         _hitState = new ZombieHitState(this);
@@ -103,7 +96,7 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
 
         OnHealthChanged?.Invoke();
 
-        ChangeState(_idleState);
+        ChangeState(_traceState);
 
         RegisterToManager();
     }
@@ -204,7 +197,7 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
             bloodSpray.transform.forward = damageInfo.HitNormal;
 
             // 잠깐 멈칫 하고 싶다! (링크를 건너는 중에는 멈추면 경로가 꼬이므로 멈칫하지 않는다.)
-            if (!_motor.IsJumping)
+            if (_stats.CanBeStaggered && !_motor.IsJumping)
             {
                 ChangeState(_hitState);
             }
@@ -224,18 +217,6 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
             ClearBloodSprays();
             ChangeState(_deathState);
         }
-    }
-
-    // 플레이어를 발견했는지
-    public bool IsPlayerInDetectRange()
-    {
-        return Vector3.Distance(transform.position, _target.position) <= _stats.DetectDistance;
-    }
-
-    // 추격하던 플레이어가 충분히 멀어졌는지 (추격 포기 거리 밖인지)
-    public bool IsPlayerOutOfLoseRange()
-    {
-        return Vector3.Distance(transform.position, _target.position) > _stats.LoseDistance;
     }
 
     // 죽으면 이동과 피격 판정을 끈다. (다시 살아날 때 OnEnable에서 켠다.)

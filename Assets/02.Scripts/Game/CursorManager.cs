@@ -9,6 +9,26 @@ public class CursorManager : MonoBehaviour
     }
 
 
+    private void OnEnable()
+    {
+        GameManager.Instance.OnStateChanged += HandleStateChanged;
+    }
+
+    private void OnDisable()
+    {
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.OnStateChanged -= HandleStateChanged;
+        }
+    }
+
+    // 일시정지 메뉴를 클릭할 수 있게 풀고, 게임으로 돌아오면 다시 잠근다.
+    private void HandleStateChanged(GameState state)
+    {
+        if (state == GameState.Paused) UnlockCursor();
+        else if (state == GameState.Playing) LockCursor();
+    }
+
     private void Update()
     {
         // 게임이 진행 중이 아니면 GameInput이 입력 없음으로 돌려준다.

@@ -4,7 +4,7 @@ using UnityEngine;
 
 // 처치 콤보 UI: 좀비를 죽이면 조준점 아래에 랜턴 아이콘이 나타나고, 마지막 처치 후 제한 시간 안에 또 죽이면 콤보가 쌓여 "X2"처럼 파란 글자가 붙는다.
 // 제한 시간이 지나면 콤보가 끝나고 랜턴이 서서히 사라진다. 처치할 때마다 제한 시간은 다시 시작한다.
-// 어떤 방법으로 죽였는지는 구분하지 않는다. (ZombieManager의 처치 알림을 구독한다.)
+// 어떤 방법으로 죽였는지는 구분하지 않는다. (ZombieManager의 처치 알림을 구독한다.) 한 마리당 올라가는 콤보 수는 ZombieStats가 정한다.
 // 아이콘 이미지는 중앙에 고정하고 숫자 글자는 그 오른쪽에 붙인다. 표시 전체(CanvasGroup)가 이 컴포넌트의 오브젝트다.
 // 아이콘 아래의 파란 바(UI_ComboTimeBar)는 남은 콤보 시간을 보여 준다. 바는 씬에 배치해 인스펙터로 연결한다.
 [RequireComponent(typeof(CanvasGroup))]
@@ -69,7 +69,8 @@ public class UI_KillCombo : MonoBehaviour
         if (!GameManager.Instance.IsPlaying) return;
 
         // 사라지는 중이면 콤보는 이미 끝난 것이라 0에서 다시 센다. (콤보가 이어지는 중이면 쌓인다.)
-        _comboCount++;
+        // 처치한 몬스터마다 올라가는 수가 다르다. (일반 좀비 1, 보스 5 등. ZombieStats의 ComboValue)
+        _comboCount += zombie.Stats.ComboValue;
 
         if (_comboCoroutine != null)
         {

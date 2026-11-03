@@ -15,21 +15,18 @@ MonoBehaviour:
   _maxHealth: 40
   _attackDamage: 10
   _attackRange: 1.5
-  _attackInterval: 1.2
+  _attackInterval: 1
+  _firstAttackDelay: 0.3
   _moveSpeed: 5
   _angularSpeed: 540
-  _detectDistance: 8
-  _loseDistanceRatio: 1.5
-  _roamDistance: 10
-  _idleDuration: 1
   _destinationUpdateInterval: 0.2
   _destinationRepathDistance: 0.5
   _chaseStopDistanceRatio: 0.8
-  _navMeshSampleDistance: 2
   _minAvoidancePriority: 30
   _maxAvoidancePriority: 60
   _jumpDuration: 0.6
   _jumpHeight: 1.5
   _animationFadeDuration: 0.15
+  _canBeStaggered: 1
   _hitStunDuration: 0.3
   _despawnDelay: 1.5

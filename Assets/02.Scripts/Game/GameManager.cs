@@ -2,12 +2,14 @@ using System;
 using System.Collections;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public enum GameState
 {
     Ready,
     Playing,
-    GameOver
+    GameOver,
+    Paused
 }
 
 [DefaultExecutionOrder(-100)]   // 다른 컴포넌트가 OnEnable에서 Instance를 써도 되도록 가장 먼저 초기화한다.
@@ -41,6 +43,49 @@ public class GameManager : MonoBehaviour
         _instance = this;
     }
 
+    private void Update()
+    {
+        if (!GameInput.PausePressed) return;
+
+        if (_state == GameState.Playing) Pause();
+        else if (_state == GameState.Paused) Resume();
+    }
+
+    // 일시정지: 게임 시간을 멈춘다. 메뉴 표시는 UI_PauseMenu가 OnStateChanged를 구독해 맡는다.
+    public void Pause()
+    {
+        if (_state != GameState.Playing) return;
+
+        Time.timeScale = 0f;
+        SetState(GameState.Paused);
+    }
+
+    // 재개: 일시정지에서 Playing으로 돌아간다.
+    public void Resume()
+    {
+        if (_state != GameState.Paused) return;
+
+        Time.timeScale = 1f;
+        SetState(GameState.Playing);
+    }
+
+    // 다시 시작: 현재 씬을 처음부터 다시 불러온다.
+    public void Restart()
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    }
+
+    // 게임 종료: 에디터에서는 플레이 모드를 끈다.
+    public void Quit()
+    {
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
+        Application.Quit();
+#endif
+    }
+
     private void Start()
     {
         // 플레이어가 죽으면 게임 오버로 넘어간다. (플레이어는 게임 흐름을 직접 알지 못한다.)
@@ -60,6 +105,8 @@ public class GameManager : MonoBehaviour
 
     private void OnDestroy()
     {
+        if (_instance == this) Time.timeScale = 1f;   // 일시정지 중 씬이 바뀌어도 멈춘 채로 남지 않게 한다.
+
         if (_player != null)
         {
             _player.OnDied -= GameOver;
