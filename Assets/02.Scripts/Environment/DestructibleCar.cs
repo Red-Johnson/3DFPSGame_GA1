@@ -11,14 +11,12 @@ using UnityEngine;
 // - 폭발 대미지는 ExplosionDamage를 통해 다른 차량에도 전달되어 연쇄 폭발이 일어날 수 있다.
 // 차량은 리지드바디가 없는 메시 콜라이더라 드럼통처럼 튀어오르지 않고 제자리에 남는다.
 // 연기와 불은 보닛(차량 앞부분)에서 나온다. 앞쪽은 앞바퀴와 뒷바퀴 위치로 알아내고, 위치와 크기는 인스펙터에서 보정한다.
-// 폭발 반경 하나(_explosionRange)가 폭발 대미지 범위이면서 이펙트 안의 충격파(shockwave) 크기이기도 하다. 이펙트는 충격파 반지름이 폭발 반경과 같아지도록 크기를 맞춘다.
+// 폭발 반경 하나(_explosionRange)가 폭발 대미지 범위이면서 이펙트 안의 충격파(shockwave) 크기이기도 하다. 이펙트는 충격파 반지름이 폭발 반경과 같아지도록 크기를 맞춰 풀에서 재생한다. (ExplosionEffect)
 public class DestructibleCar : MonoBehaviour, IDamageable
 {
     private const string WheelKeyword = "Wheel";                // 바퀴 오브젝트 이름에 들어 있는 글자
     private const string FrontWheelKeyword = "Front";           // 앞바퀴 오브젝트 이름에 들어 있는 글자
     private const string RearWheelKeyword = "Rear";             // 뒷바퀴 오브젝트 이름에 들어 있는 글자
-    private const float ShockwaveSampleStep = 0.02f;            // 충격파가 가장 커지는 크기를 찾을 때 곡선을 보는 간격
-    private const float EffectDestroyMargin = 0.5f;             // 폭발 이펙트가 끝난 뒤 지우기 전에 더 기다리는 시간
     private const float MinSqrDistance = 0.0001f;               // 이보다 짧은 거리(제곱)는 방향을 정할 수 없는 0으로 본다.
 
     // 씬에 있는 차량 목록. 폭발 대미지가 차량에도 닿도록 ExplosionDamage가 이 목록을 쓴다.
@@ -124,8 +122,8 @@ public class DestructibleCar : MonoBehaviour, IDamageable
         // 2. 폭발하기 전에 불이 탄다.
         yield return new WaitForSeconds(_burnTimeBeforeExplosion);
 
-        // 3. 폭발 이펙트를 한 번 재생한다. (충격파가 폭발 반경만큼 퍼지도록 크기를 맞춘다.)
-        PlayExplosionEffect();
+        // 3. 폭발 이펙트를 한 번 재생한다. (충격파가 폭발 반경만큼 퍼지도록 크기를 맞추고, 끝나면 풀로 돌아간다.)
+        ExplosionEffect.PlayFitted(_explosionEffectPrefab, _centerPosition, _explosionRange, _shockwaveName);
 
         // 4. 주위에 폭발을 전달한다. (좀비, 드럼통과 다른 차량에 대미지를 준다.)
         ExplosionDamage.Apply(_centerPosition, _explosionRange, _explosionDamage);
@@ -170,66 +168,6 @@ public class DestructibleCar : MonoBehaviour, IDamageable
             Destroy(_fire.gameObject, GetLongestLifetime(_fire));
             _fire = null;
         }
-    }
-
-    // 폭발 이펙트를 차량마다 한 번만 만들어 쓰고 끝나면 지운다. (풀을 쓰지 않는다.)
-    // - 하위 파티클이 반복 재생(Looping)되면 폭발이 계속 되풀이되므로 모두 끈다.
-    // - 하위 파티클이 루트 크기 배율을 따르도록(Hierarchy) 바꿔서 이펙트 전체가 같은 비율로 커지게 한다.
-    private void PlayExplosionEffect()
-    {
-        if (_explosionEffectPrefab == null) return;
-
-        ParticleSystem effect = Instantiate(_explosionEffectPrefab, _centerPosition, Quaternion.identity);
-
-        foreach (ParticleSystem particle in effect.GetComponentsInChildren<ParticleSystem>(true))
-        {
-            ParticleSystem.MainModule main = particle.main;
-            main.loop = false;
-            main.scalingMode = ParticleSystemScalingMode.Hierarchy;
-        }
-
-        effect.transform.localScale = Vector3.one * GetExplosionEffectScale();
-        Destroy(effect.gameObject, GetTotalPlayTime(effect));
-    }
-
-    // 충격파의 반지름이 폭발 반경과 같아지는 이펙트 크기 배율. 충격파를 찾지 못하면 원래 크기(1)로 낸다.
-    private float GetExplosionEffectScale()
-    {
-        float baseRadius = GetShockwaveBaseRadius();
-        if (baseRadius <= 0f)
-        {
-            GameLogger.LogWarning($"[DestructibleCar] 폭발 이펙트에서 {_shockwaveName} 파티클을 찾지 못해 이펙트 크기를 맞추지 못했습니다.");
-            return 1f;
-        }
-
-        return _explosionRange / baseRadius;
-    }
-
-    // 이펙트 원래 크기(배율 1)에서 충격파가 가장 크게 퍼졌을 때의 반지름. 시작 크기에 시간에 따른 크기 곡선의 최대값을 곱한 지름의 절반이다.
-    private float GetShockwaveBaseRadius()
-    {
-        foreach (ParticleSystem particle in _explosionEffectPrefab.GetComponentsInChildren<ParticleSystem>(true))
-        {
-            if (particle.name != _shockwaveName) continue;
-
-            float size = particle.main.startSize.constantMax;
-
-            ParticleSystem.SizeOverLifetimeModule sizeOverLifetime = particle.sizeOverLifetime;
-            if (sizeOverLifetime.enabled)
-            {
-                float peak = 0f;
-                for (float t = 0f; t <= 1f; t += ShockwaveSampleStep)
-                {
-                    peak = Mathf.Max(peak, sizeOverLifetime.size.Evaluate(t));
-                }
-
-                size *= peak;
-            }
-
-            return size * 0.5f;
-        }
-
-        return 0f;
     }
 
     private void ReplaceSmokeWithFire()
@@ -346,16 +284,4 @@ public class DestructibleCar : MonoBehaviour, IDamageable
         return longest;
     }
 
-    // 반복하지 않는 이펙트가 시작해서 완전히 끝나기까지의 시간(시작 지연 + 재생 시간 + 파티클 수명)
-    private static float GetTotalPlayTime(ParticleSystem effect)
-    {
-        float longest = 0f;
-        foreach (ParticleSystem particle in effect.GetComponentsInChildren<ParticleSystem>(true))
-        {
-            ParticleSystem.MainModule main = particle.main;
-            longest = Mathf.Max(longest, main.startDelay.constantMax + main.duration + main.startLifetime.constantMax);
-        }
-
-        return longest + EffectDestroyMargin;
-    }
 }

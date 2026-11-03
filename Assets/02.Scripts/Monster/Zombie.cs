@@ -21,7 +21,8 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
     [SerializeField] private ZombieStats _stats;
 
     [Header("이펙트")]
-    [SerializeField] private GameObject _bloodSprayPrefab;
+    [SerializeField] private GameObject _bloodSprayPrefab;      // 맞은 자리에서 계속 피가 나는 출혈 이펙트(반복 재생)
+    [SerializeField] private int _maxBloodSprays = 8;           // 한 좀비에 동시에 남는 출혈 수. 넘으면 가장 오래된 것을 다시 쓴다.
 
     // _stats를 연결하지 않았을 때 같은 기본값으로 동작하도록 모든 좀비가 나눠 쓰는 대체 설정
     private static ZombieStats _fallbackStats;
@@ -61,8 +62,11 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
     // 풀에서 꺼낸 좀비면 값이 있다. 씬에 미리 배치한 좀비는 null이라 Destroy로 없앤다.
     private IObjectPool<Zombie> _pool;
 
-    // 좀비의 자식으로 만든 피 이펙트. 재사용되기 전에 정리한다.
+    // 좀비의 자식으로 만든 출혈 이펙트. 맞을 때마다 새로 만들지 않고 상한(_maxBloodSprays)까지만 만들어 돌려 쓴다.
+    // 죽거나 풀로 돌아가면 모두 끄고, 좀비가 다시 쓰일 때 그대로 다시 쓴다.
     private readonly List<GameObject> _bloodSprays = new List<GameObject>();
+    private int _activeBloodSprayCount;     // 목록 앞에서부터 켜져 있는 출혈 수
+    private int _nextBloodSpray;            // 모든 슬롯이 켜진 뒤 다음에 다시 쓸(가장 오래된) 슬롯
 
     private bool IsDead => _currentState == _deathState;
 
@@ -187,11 +191,7 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
 
         if (_health > 0f)
         {
-            // 좀비의 자식으로 블러드 스프레이를 생성! -> 위치 수정!
-            GameObject bloodSpray = Instantiate(_bloodSprayPrefab, transform);
-            _bloodSprays.Add(bloodSpray);
-            bloodSpray.transform.position = damageInfo.HitPoint;
-            bloodSpray.transform.forward = damageInfo.HitNormal;
+            SpawnBloodSpray(damageInfo.HitPoint, damageInfo.HitNormal);
 
             // 잠깐 멈칫 하고 싶다! (링크를 건너는 중에는 멈추면 경로가 꼬이므로 멈칫하지 않는다.)
             if (_stats.CanBeStaggered && !_motor.IsJumping)
@@ -254,17 +254,50 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
         }
     }
 
+    // 맞은 자리에 출혈 이펙트를 낸다.
+    // 만들어 둔 빈 슬롯이 있으면 그것을, 없고 상한 전이면 새로 만들고, 상한에 도달했으면 가장 오래된 출혈을 새 자리로 옮겨 다시 켠다.
+    private void SpawnBloodSpray(Vector3 hitPoint, Vector3 hitNormal)
+    {
+        if (_bloodSprayPrefab == null || _maxBloodSprays <= 0) return;
+
+        GameObject bloodSpray;
+        if (_activeBloodSprayCount < _bloodSprays.Count)
+        {
+            bloodSpray = _bloodSprays[_activeBloodSprayCount];
+            _activeBloodSprayCount++;
+        }
+        else if (_bloodSprays.Count < _maxBloodSprays)
+        {
+            bloodSpray = Instantiate(_bloodSprayPrefab, transform);
+            _bloodSprays.Add(bloodSpray);
+            _activeBloodSprayCount++;
+        }
+        else
+        {
+            bloodSpray = _bloodSprays[_nextBloodSpray];
+            _nextBloodSpray = (_nextBloodSpray + 1) % _bloodSprays.Count;
+        }
+
+        // 끄고 다시 켜서 파티클이 처음부터 나오게 한다.
+        bloodSpray.SetActive(false);
+        bloodSpray.transform.position = hitPoint;
+        bloodSpray.transform.forward = hitNormal;
+        bloodSpray.SetActive(true);
+    }
+
+    // 출혈을 모두 끈다. 오브젝트는 지우지 않고 다음 출혈에 다시 쓴다.
     private void ClearBloodSprays()
     {
         foreach (GameObject bloodSpray in _bloodSprays)
         {
             if (bloodSpray != null)
             {
-                Destroy(bloodSpray);
+                bloodSpray.SetActive(false);
             }
         }
 
-        _bloodSprays.Clear();
+        _activeBloodSprayCount = 0;
+        _nextBloodSpray = 0;
     }
 
     private static ZombieStats GetFallbackStats()
