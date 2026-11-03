@@ -55,7 +55,7 @@ public class GameManager : MonoBehaviour
         else if (_state == GameState.Paused) Resume();
     }
 
-    // 일시정지: 게임 시간을 멈춘다. 메뉴 표시는 UI_PauseMenu가 OnStateChanged를 구독해 맡는다.
+    // 일시정지: 게임 시간을 멈춘다. 메뉴 표시는 UI_StatePanel이 OnStateChanged를 구독해 맡는다.
     public void Pause()
     {
         if (_state != GameState.Playing) return;
@@ -151,7 +151,7 @@ public class GameManager : MonoBehaviour
         OnStartMessage?.Invoke(null);
 
         SetState(GameState.GameOver);
-        // 게임오버 문구와 버튼은 UI_GameOverMenu가 OnStateChanged를 구독해 보여 준다.
+        // 게임오버 문구와 버튼은 UI_StatePanel이 OnStateChanged를 구독해 보여 준다.
     }
 
     private void SetState(GameState state)

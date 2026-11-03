@@ -89165,9 +89165,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 292925962}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8b05d5e3a0f8c4f4086379d5baad75c3, type: 3}
+  m_Script: {fileID: 11500000, guid: 0edbe78fc076d8549bc5c265bcb88839, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::UI_GameOverMenu
+  m_EditorClassIdentifier: Assembly-CSharp::UI_StatePanel
+  _visibleState: 2
   _panel: {fileID: 83085089}
 --- !u!1 &293471259
 GameObject:
@@ -111026,9 +111027,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 292925964}
-        m_TargetAssemblyTypeName: UI_GameOverMenu, Assembly-CSharp
-        m_MethodName: OnQuitClicked
+      - m_Target: {fileID: 824612820}
+        m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
+        m_MethodName: Quit
         m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -359059,9 +359060,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1129388522}
-        m_TargetAssemblyTypeName: UI_PauseMenu, Assembly-CSharp
-        m_MethodName: OnContinueClicked
+      - m_Target: {fileID: 824612820}
+        m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
+        m_MethodName: Resume
         m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -390947,9 +390948,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 292925964}
-        m_TargetAssemblyTypeName: UI_GameOverMenu, Assembly-CSharp
-        m_MethodName: OnRestartClicked
+      - m_Target: {fileID: 824612820}
+        m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
+        m_MethodName: Restart
         m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -411930,9 +411931,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 1129388520}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a51c4006a11e42847a0eeed7cdd6d969, type: 3}
+  m_Script: {fileID: 11500000, guid: 0edbe78fc076d8549bc5c265bcb88839, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::UI_PauseMenu
+  m_EditorClassIdentifier: Assembly-CSharp::UI_StatePanel
+  _visibleState: 3
   _panel: {fileID: 504509134}
 --- !u!1001 &1129407555
 PrefabInstance:
@@ -437491,9 +437493,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1129388522}
-        m_TargetAssemblyTypeName: UI_PauseMenu, Assembly-CSharp
-        m_MethodName: OnQuitClicked
+      - m_Target: {fileID: 824612820}
+        m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
+        m_MethodName: Quit
         m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -614433,9 +614435,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1129388522}
-        m_TargetAssemblyTypeName: UI_PauseMenu, Assembly-CSharp
-        m_MethodName: OnRestartClicked
+      - m_Target: {fileID: 824612820}
+        m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
+        m_MethodName: Restart
         m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
