@@ -91,7 +91,9 @@ public class PlayerMove : MonoBehaviour
 
         // 5. 속도를 구한다.
         float requiredStamina = _sprintCost * Time.deltaTime;
-        bool isSprint = GameInput.SprintHeld && _stamina > requiredStamina;
+        // 제자리에서는 달리기 키를 눌러도 기력을 쓰지 않는다.
+        bool isMoving = moveInput != Vector2.zero;
+        bool isSprint = isMoving && GameInput.SprintHeld && _stamina > requiredStamina;
         float currentSpeed = _moveSpeed;
         if (isSprint)
         {
