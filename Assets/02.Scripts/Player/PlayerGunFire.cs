@@ -19,16 +19,10 @@ public class PlayerGunFire : MonoBehaviour
     [SerializeField] private GameObject[] _muzzleFlashes;
     [SerializeField] private float _flashTime = 0.05f;
 
-    private const float AimPointMargin = 0.1f;
-    private const int HitBufferSize = 64;
-
-    // 레이가 맞은 것을 담는 버퍼. 한 번 쓰고 바로 결과를 고르므로(안에서 다시 부르지 않는다) 돌려 써도 안전하다.
-    private readonly RaycastHit[] _hitBuffer = new RaycastHit[HitBufferSize];
-
-    private readonly Dictionary<WeaponMode, int> _bulletCounts = new Dictionary<WeaponMode, int>();      // 총마다 따로 남은 총알
-    private readonly Dictionary<WeaponMode, float> _nextFireTimes = new Dictionary<WeaponMode, float>(); // 총마다 따로 다음에 쏠 수 있는 시각
+    private readonly Dictionary<WeaponMode, GunState> _states = new Dictionary<WeaponMode, GunState>();    // 총마다 따로 가진 잔탄과 쿨타임
 
     private WeaponMode _gunMode;      // 지금 들고 있는 총. (근접 모드일 때는 마지막으로 들었던 총)
+    private GunHitScan _hitScan;      // 총알 판정과 조준 보정
     private Coroutine _reloadCoroutine = null;
     private Camera _camera;
     private PlayerWeaponMode _weaponMode;
@@ -39,7 +33,7 @@ public class PlayerGunFire : MonoBehaviour
     private bool IsReloading => _reloadCoroutine != null;
     private GunSpec CurrentSpec => GetSpec(_gunMode);
 
-    public int BulletCount => _bulletCounts[_gunMode];
+    public int BulletCount => _states[_gunMode].BulletCount;
     public int MaxBulletCount => CurrentSpec.MaxBulletCount;
     public event System.Action<int, int> OnBulletChanged;
 
@@ -61,6 +55,7 @@ public class PlayerGunFire : MonoBehaviour
         _bombFire = GetComponent<PlayerBombFire>();
         _zoom = GetComponent<PlayerMarksmanZoom>();
         _lampColor = GetComponent<PlayerLampColor>();
+        _hitScan = new GunHitScan(transform);
 
         // UI가 Start에서 총알 수를 읽어도 되도록 Awake에서 채운다. (Start 실행 순서에 의존하지 않는다.)
         bool hasGun = false;
@@ -68,8 +63,7 @@ public class PlayerGunFire : MonoBehaviour
         {
             if (profile == null || !profile.IsGun) continue;
 
-            _bulletCounts[profile.Mode] = profile.GunSpec.MaxBulletCount;
-            _nextFireTimes[profile.Mode] = 0f;
+            _states[profile.Mode] = new GunState(profile.GunSpec.MaxBulletCount);
 
             // 근접 모드로 시작하는 경우를 대비해, 처음 들 총은 목록의 첫 총으로 정한다.
             if (!hasGun)
@@ -136,13 +130,15 @@ public class PlayerGunFire : MonoBehaviour
         // 폭탄을 충전하거나 던지는 모션이 재생되는 동안은 쏠 수 없다.
         bool isTriggered = spec.IsAutomatic ? GameInput.FireHeld : GameInput.FirePressed;
 
-        if (isTriggered && Time.time >= _nextFireTimes[_gunMode] && BulletCount > 0 && !IsFireBlockedByBomb)
+        GunState state = _states[_gunMode];
+
+        if (isTriggered && Time.time >= state.NextFireTime && state.BulletCount > 0 && !IsFireBlockedByBomb)
         {
             CancelReload();
 
-            _bulletCounts[_gunMode]--;
+            state.BulletCount--;
             OnBulletChanged?.Invoke(BulletCount, MaxBulletCount);
-            _nextFireTimes[_gunMode] = Time.time + spec.FireInterval;
+            state.NextFireTime = Time.time + spec.FireInterval;
             Shoot(spec);
             OnShot?.Invoke(spec);
         }
@@ -197,7 +193,7 @@ public class PlayerGunFire : MonoBehaviour
 
         yield return new WaitForSeconds(GetSpec(mode).ReloadingTime);
 
-        _bulletCounts[mode] = GetSpec(mode).MaxBulletCount;
+        _states[mode].BulletCount = GetSpec(mode).MaxBulletCount;
         OnBulletChanged?.Invoke(BulletCount, MaxBulletCount);
 
         GameLogger.Log("재장전 완료!");
@@ -216,9 +212,10 @@ public class PlayerGunFire : MonoBehaviour
         // 1. 조준점 찾기: 화면 중앙(조준점)이 가리키는 곳을 카메라에서 쏜 레이로 먼저 정한다.
         // 트리거 콜라이더와 Ignore Raycast 레이어(경계 벽)는 총알이 맞지 않는다.
         Transform cameraTransform = _camera.transform;
-        Ray aimRay = new Ray(cameraTransform.position, ApplyAimAssist(cameraTransform.position, cameraTransform.forward, spec));
+        bool isZooming = _zoom != null && _zoom.IsZooming;      // 줌 중에만 조준 보정을 쓴다. 줌 컴포넌트가 없으면 보정하지 않는다.
+        Ray aimRay = new Ray(cameraTransform.position, _hitScan.ApplyAimAssist(cameraTransform.position, cameraTransform.forward, spec, isZooming));
         // 약점을 맞출 수 있는 총은 조준점도 몸통 안쪽의 약점 판정까지 들어가서 잡아야, 총구에서 쏜 총알도 약점에 닿는다.
-        Vector3 aimPoint = RaycastIgnoringSelf(aimRay, spec.Range, spec.CanHitWeakPoint, out RaycastHit aimHit)
+        Vector3 aimPoint = _hitScan.Raycast(aimRay, spec.Range, spec.CanHitWeakPoint, out RaycastHit aimHit)
             ? aimHit.point
             : aimRay.GetPoint(spec.Range);
 
@@ -232,7 +229,7 @@ public class PlayerGunFire : MonoBehaviour
 
         // 4. 레이를 발사하고, 만일 부딛힌 물체가 있다면 이펙트 표시하기
         // 조준점 바로 앞에서 끊기지 않도록 조준점까지의 거리에 여유를 조금 둔다.
-        bool isHit = RaycastIgnoringSelf(ray, toAim.magnitude + AimPointMargin, spec.CanHitWeakPoint, out hitInfo);
+        bool isHit = _hitScan.Raycast(ray, toAim.magnitude + GunHitScan.AimPointMargin, spec.CanHitWeakPoint, out hitInfo);
 
         // 맞았으면 맞은 자리까지, 허공이면 조준점(사거리 끝)까지 궤적을 날린다.
         // 궤적 색은 들고 있는 총의 가로등 색을 따른다. (PlayerLampColor가 없으면 궤적의 기본 색을 쓴다.)
@@ -255,7 +252,7 @@ public class PlayerGunFire : MonoBehaviour
 
             // 맞은 자리에 총알 자국 이펙트 만들기 (끝나면 풀로 돌아가 재사용된다.)
             // 좀비는 맞으면 피가 튀므로, 벽에 맞은 자국 이펙트는 내지 않는다.
-            if (target is not Zombie)
+            if (target is not IMonster)
             {
                 EffectPool.For(_hitEffectPrefab).Play(hitInfo.point, Quaternion.LookRotation(hitInfo.normal));
             }
@@ -265,103 +262,11 @@ public class PlayerGunFire : MonoBehaviour
             target?.TakeDamage(new DamageInfo(damage, hitInfo.point, hitInfo.normal, isWeakPointHit));
 
             // 몬스터(좀비)에 맞았을 때만 명중으로 친다. 벽, 드럼통, 박스 같은 것에 맞은 것은 표시하지 않는다.
-            if (target is Zombie)
+            if (target is IMonster)
             {
                 OnHit?.Invoke(isWeakPointHit);
             }
         }
-    }
-
-    // 조준 보정: 줌 중에 조준점이 약점 근처로 지나가면 총알이 나가는 방향만 그 약점 쪽으로 끌어당긴다. (화면과 시점은 바뀌지 않는다.)
-    // 조준선이 약점 중심에서 얼마나 벗어나 지나가는지를 약점이 있는 거리에서 미터로 재서, 반지름 안에서 가장 가까운 약점 하나를 고른다.
-    // 고른 약점 쪽으로 그 어긋남의 세기(0~1)만큼을 지운다. (0.5면 어긋남이 절반으로, 1이면 약점 중심으로 맞춘다.)
-    // 다른 물체에 가려진 약점, 사거리 밖의 약점, 뒤쪽의 약점은 고르지 않는다.
-    private Vector3 ApplyAimAssist(Vector3 origin, Vector3 direction, GunSpec spec)
-    {
-        if (!spec.HasAimAssist || _zoom == null || !_zoom.IsZooming || ZombieManager.Instance == null) return direction;
-
-        float bestMiss = spec.AimAssistRadius;
-        Vector3 bestDirection = direction;
-        bool found = false;
-
-        foreach (Zombie zombie in ZombieManager.Instance.AliveZombies)
-        {
-            foreach (WeakPointHitbox weakPoint in zombie.WeakPoints)
-            {
-                Vector3 center = weakPoint.Center;
-                Vector3 toWeakPoint = center - origin;
-                float distance = toWeakPoint.magnitude;
-                if (distance > spec.Range) continue;
-
-                // 조준선 위에서 약점과 가장 가까운 지점까지의 거리(미터). 약점이 뒤쪽에 있으면 제외한다.
-                float along = Vector3.Dot(toWeakPoint, direction);
-                if (along <= 0f) continue;
-
-                float miss = (center - (origin + (direction * along))).magnitude;
-                if (miss >= bestMiss) continue;
-
-                // 약점으로 쏜 레이가 같은 좀비에게 먼저 닿아야 보이는 것이다. (벽이나 다른 물체에 가리면 제외)
-                bool isVisible = RaycastIgnoringSelf(new Ray(origin, toWeakPoint), distance + AimPointMargin, true, out RaycastHit hit)
-                    && hit.collider.GetComponentInParent<Zombie>() == zombie;
-                if (!isVisible) continue;
-
-                bestMiss = miss;
-                bestDirection = toWeakPoint / distance;
-                found = true;
-            }
-        }
-
-        if (!found) return direction;
-
-        return Vector3.Slerp(direction, bestDirection, spec.AimAssistStrength).normalized;
-    }
-
-    // 가장 가까운 맞은 물체를 찾되 플레이어 자신의 콜라이더는 건너뛴다. (3인칭에서는 카메라가 플레이어 뒤에 있어 레이가 자신부터 맞기 때문)
-    // preferWeakPoint가 켜져 있으면, 맞은 대상의 약점 판정(WeakPointHitbox)이 레이 위에 있을 때 몸통 대신 약점을 맞은 것으로 돌려준다.
-    // (약점 판정은 몸통 콜라이더 안쪽에 있을 수 있어서, 가장 가까운 것만 고르면 항상 몸통이 먼저 잡히기 때문)
-    private bool RaycastIgnoringSelf(Ray ray, float distance, bool preferWeakPoint, out RaycastHit result)
-    {
-        result = default;
-        float nearest = float.MaxValue;
-        bool found = false;
-
-        // 매번 배열을 새로 만들지 않도록 버퍼를 재사용한다. 버퍼가 가득 차면 가까운 대상을 놓치지 않도록 새 배열로 다시 쏜다.
-        int hitCount = Physics.RaycastNonAlloc(ray, _hitBuffer, distance, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
-        RaycastHit[] hits = _hitBuffer;
-
-        if (hitCount == HitBufferSize)
-        {
-            hits = Physics.RaycastAll(ray, distance, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
-            hitCount = hits.Length;
-        }
-
-        for (int i = 0; i < hitCount; i++)
-        {
-            RaycastHit hit = hits[i];
-            if (hit.collider.transform.root == transform.root || hit.distance >= nearest) continue;
-
-            nearest = hit.distance;
-            result = hit;
-            found = true;
-        }
-
-        if (!found || !preferWeakPoint) return found;
-
-        IDamageable owner = result.collider.GetComponentInParent<IDamageable>();
-        if (owner == null) return true;
-
-        float nearestWeakPoint = float.MaxValue;
-        for (int i = 0; i < hitCount; i++)
-        {
-            RaycastHit hit = hits[i];
-            if (hit.distance >= nearestWeakPoint || hit.collider.GetComponent<WeakPointHitbox>() == null) continue;
-            if (hit.collider.GetComponentInParent<IDamageable>() != owner) continue;
-
-            nearestWeakPoint = hit.distance;
-            result = hit;
-        }
-
-        return true;
     }
 
     private void HideMuzzleFlashes()
