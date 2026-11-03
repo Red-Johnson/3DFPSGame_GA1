@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.AI;
 
 // 스포너 관리자: 일정 간격마다 Ground 위 무작위 위치에 좀비 스포너를 만든다.
 // 플레이어 주변과 다른 스포너 주변은 피하고, 조건을 만족하는 자리를 못 찾으면 이번 생성은 건너뛴다.
@@ -33,28 +32,19 @@ public class SpawnerManager : MonoBehaviour
 
     private void Start()
     {
-        // 동시에 존재할 수 있는 좀비 수만큼만 풀에 보관한다.
-        _zombiePool = new PrefabPool<Zombie>(_zombiePrefab, "ZombiePool", ZombiePoolDefaultCapacity, ZombieManager.Instance.MaxCount);
+        _ground = SpawnPointValidator.ResolveGround(_ground, nameof(SpawnerManager));
+        _player = SpawnPointValidator.ResolvePlayer(_player, nameof(SpawnerManager));
 
-        if (_ground == null)
+        // Ground나 플레이어를 못 찾으면 스포너 위치를 정할 수 없으니, 오류를 남기고 멈춘다.
+        if (_ground == null || _player == null)
         {
-            _ground = SpawnPointValidator.FindGround();
-            GameLogger.LogWarning("[SpawnerManager] _ground가 연결되지 않아 씬에서 찾았습니다. 인스펙터에서 연결하세요.");
-        }
-
-        // Ground를 못 찾으면 스포너 위치를 정할 수 없으니, 오류를 남기고 멈춘다.
-        if (_ground == null)
-        {
-            GameLogger.LogError("[SpawnerManager] Ground를 찾지 못했습니다. _ground를 직접 연결하거나 Map 아래에 Ground를 두세요.");
+            GameLogger.LogError("[SpawnerManager] Ground나 플레이어를 찾지 못했습니다. _ground, _player를 직접 연결하세요. (Ground는 Map 아래에, 플레이어는 Player 태그로 찾습니다.)");
             enabled = false;
             return;
         }
 
-        if (_player == null)
-        {
-            _player = GameObject.FindGameObjectWithTag("Player").transform;
-            GameLogger.LogWarning("[SpawnerManager] _player가 연결되지 않아 Player 태그로 찾았습니다. 인스펙터에서 연결하세요.");
-        }
+        // 동시에 존재할 수 있는 좀비 수만큼만 풀에 보관한다.
+        _zombiePool = new PrefabPool<Zombie>(_zombiePrefab, "ZombiePool", ZombiePoolDefaultCapacity, ZombieManager.Instance.MaxCount);
 
         StartCoroutine(SpawnerCreate_Coroutine());
     }
@@ -68,7 +58,7 @@ public class SpawnerManager : MonoBehaviour
             yield return wait;
 
             // 게임이 진행 중이 아니면 진행 중이 될 때까지 기다렸다가 만든다.
-            yield return new WaitUntil(IsGamePlaying);
+            yield return GameManager.WaitUntilPlaying;
 
             if (_spawners.Count >= _maxSpawnerCount) continue;
 
@@ -77,11 +67,6 @@ public class SpawnerManager : MonoBehaviour
                 CreateSpawner(position);
             }
         }
-    }
-
-    private bool IsGamePlaying()
-    {
-        return GameManager.Instance.IsPlaying;
     }
 
     private void CreateSpawner(Vector3 position)
@@ -119,18 +104,13 @@ public class SpawnerManager : MonoBehaviour
 
         for (int i = 0; i < _positionTryCount; i++)
         {
-            Vector3 candidate = new Vector3(
-                Random.Range(bounds.min.x, bounds.max.x),
-                bounds.max.y,
-                Random.Range(bounds.min.z, bounds.max.z));
+            Vector3 candidate = SpawnPointValidator.RandomPointInGround(bounds);
 
-            if (!NavMesh.SamplePosition(candidate, out NavMeshHit hit, _navMeshSampleDistance, NavMesh.AllAreas)) continue;
+            if (!SpawnPointValidator.TrySnapToGround(candidate, _navMeshSampleDistance, bounds.max.y, _maxSpawnHeight, out Vector3 snapped)) continue;
+            if (SpawnPointValidator.GetFlatDistance(snapped, _player.position) < _playerSafeRadius) continue;
+            if (IsNearOtherSpawner(snapped)) continue;
 
-            if (!SpawnPointValidator.IsGroundLevel(hit.position, bounds.max.y, _maxSpawnHeight)) continue;
-            if (GetFlatDistance(hit.position, _player.position) < _playerSafeRadius) continue;
-            if (IsNearOtherSpawner(hit.position)) continue;
-
-            position = hit.position;
+            position = snapped;
             return true;
         }
 
@@ -142,20 +122,12 @@ public class SpawnerManager : MonoBehaviour
     {
         foreach (ZombieSpawner spawner in _spawners)
         {
-            if (GetFlatDistance(position, spawner.transform.position) < _minSpawnerDistance)
+            if (SpawnPointValidator.GetFlatDistance(position, spawner.transform.position) < _minSpawnerDistance)
             {
                 return true;
             }
         }
 
         return false;
-    }
-
-    // 높이를 무시한 평면 거리
-    private float GetFlatDistance(Vector3 a, Vector3 b)
-    {
-        a.y = 0f;
-        b.y = 0f;
-        return Vector3.Distance(a, b);
     }
 }

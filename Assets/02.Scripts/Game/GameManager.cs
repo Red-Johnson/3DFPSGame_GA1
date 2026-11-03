@@ -22,6 +22,9 @@ public class GameManager : MonoBehaviour
     public GameState State => _state;
     public bool IsPlaying => _state == GameState.Playing;
 
+    // 코루틴에서 "게임이 진행 중이 될 때까지 기다린다"를 쓸 때 yield return으로 쓴다. 한 번만 만들어 모든 코루틴이 공유한다.
+    public static readonly WaitUntil WaitUntilPlaying = new WaitUntil(() => _instance != null && _instance.IsPlaying);
+
     // 게임 상태가 바뀌면 구독자에게 새 상태를 알린다.
     public event Action<GameState> OnStateChanged;
 

@@ -1,6 +1,5 @@
 using System.Collections;
 using UnityEngine;
-using UnityEngine.AI;
 
 // 보스 스포너: 좀비를 일정 수 처치할 때마다 Ground 안의 무작위 위치에 보스를 한 마리 생성한다.
 // 씬에 하나만 두며 위치는 상관없다. 보스가 이미 살아 있어도 처치 수를 채우면 또 생성한다.
@@ -27,21 +26,8 @@ public class BossSpawner : MonoBehaviour
 
     private void Awake()
     {
-        if (_player == null)
-        {
-            GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
-            if (playerObject != null)
-            {
-                _player = playerObject.transform;
-                GameLogger.LogWarning("[BossSpawner] _player가 연결되지 않아 Player 태그로 찾았습니다. 인스펙터에서 연결하세요.");
-            }
-        }
-
-        if (_ground == null)
-        {
-            _ground = SpawnPointValidator.FindGround();
-            GameLogger.LogWarning("[BossSpawner] _ground가 연결되지 않아 씬에서 찾았습니다. 인스펙터에서 연결하세요.");
-        }
+        _player = SpawnPointValidator.ResolvePlayer(_player, nameof(BossSpawner));
+        _ground = SpawnPointValidator.ResolveGround(_ground, nameof(BossSpawner));
     }
 
     private void OnEnable()
@@ -87,7 +73,7 @@ public class BossSpawner : MonoBehaviour
         while (_pendingBossCount > 0)
         {
             // 게임이 진행 중이 아니면 진행 중이 될 때까지 기다린다.
-            yield return new WaitUntil(IsGamePlaying);
+            yield return GameManager.WaitUntilPlaying;
 
             if (TryGetRandomPosition(out Vector3 position))
             {
@@ -101,11 +87,6 @@ public class BossSpawner : MonoBehaviour
         }
 
         _spawnRoutine = null;
-    }
-
-    private bool IsGamePlaying()
-    {
-        return GameManager.Instance.IsPlaying;
     }
 
     // Ground 안의 무작위 위치를 시도 횟수만큼 찾아본다. 스폰 가능한 곳을 찾으면 true.
@@ -123,31 +104,15 @@ public class BossSpawner : MonoBehaviour
 
         for (int i = 0; i < _positionTryCountPerFrame; i++)
         {
-            Vector3 candidate = new Vector3(
-                Random.Range(bounds.min.x, bounds.max.x),
-                bounds.max.y,
-                Random.Range(bounds.min.z, bounds.max.z));
+            Vector3 candidate = SpawnPointValidator.RandomPointInGround(bounds);
 
-            if (!TryGetSpawnPosition(candidate, out position)) continue;
-            if (_player != null && GetFlatDistance(position, _player.position) < _playerSafeRadius) continue;
+            if (!SpawnPointValidator.TrySnapToGround(candidate, _navMeshSampleDistance, bounds.max.y, _maxSpawnHeight, out position)) continue;
+            if (_player != null && SpawnPointValidator.GetFlatDistance(position, _player.position) < _playerSafeRadius) continue;
 
             return true;
         }
 
         return false;
-    }
-
-    // 후보 위치를 NavMesh 위로 보정하고, 도로나 땅 위인지 확인한다.
-    private bool TryGetSpawnPosition(Vector3 candidate, out Vector3 position)
-    {
-        position = Vector3.zero;
-
-        if (!NavMesh.SamplePosition(candidate, out NavMeshHit hit, _navMeshSampleDistance, NavMesh.AllAreas)) return false;
-
-        if (!SpawnPointValidator.IsGroundLevel(hit.position, _ground.bounds.max.y, _maxSpawnHeight)) return false;
-
-        position = hit.position;
-        return true;
     }
 
     private void SpawnBoss(Vector3 position)
@@ -158,13 +123,5 @@ public class BossSpawner : MonoBehaviour
         {
             boss.SetTarget(_player);
         }
-    }
-
-    // 높이를 무시한 평면 거리
-    private float GetFlatDistance(Vector3 a, Vector3 b)
-    {
-        a.y = 0f;
-        b.y = 0f;
-        return Vector3.Distance(a, b);
     }
 }
