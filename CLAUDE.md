@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 프로젝트 개요
 
-Unity 6 (에디터 버전 `6000.3.22f1`)와 C#으로 만드는 3D FPS 게임이다. 빌드·린트·테스트 스크립트나 테스트 어셈블리는 없다. 빌드와 실행은 Unity 에디터에서 `Assets/01.Scenes/CityScene.unity`(빌드 0번, 메인 씬)를 열어 Play로 확인한다. 예전 씬이던 `GameScene`은 삭제했다. 씬(`.unity`), 머티리얼, 렌더 텍스처 같은 에셋은 에디터에서 편집하는 파일이므로 텍스트로 직접 고치지 않는다.
+Unity 6 (에디터 버전 `6000.3.22f1`)와 C#으로 만드는 3D FPS 게임이다. 빌드·린트·테스트 스크립트나 테스트 어셈블리는 없다. 빌드와 실행은 Unity 에디터에서 `Assets/01.Scenes/TitleScene.unity`(빌드 0번, 타이틀·로그인 화면)나 `Assets/01.Scenes/CityScene.unity`(빌드 1번, 메인 게임 씬)를 열어 Play로 확인한다. 예전 씬이던 `GameScene`은 삭제했다. 씬(`.unity`), 머티리얼, 렌더 텍스처 같은 에셋은 에디터에서 편집하는 파일이므로 텍스트로 직접 고치지 않는다.
 
 ## 폴더 구조
 
@@ -28,6 +28,14 @@ Unity 6 (에디터 버전 `6000.3.22f1`)와 C#으로 만드는 3D FPS 게임이�
 - **미니맵:** `MinimapCamera`(플레이어 머리 위에서 따라다니는 직교 카메라)가 `MinimapRenderTexture`에 그리고, `UI_Minimap`이 `orthographicSize`를 바꿔 확대/축소한다. 확대/축소 로직이 `MinimapCamera.Update`(키 입력)에 임시로 남아 있고 Todo로 `UI_Minimap` 쪽으로 옮기는 중이다.
 - **커서:** `CursorManager`가 커서를 잠그고, 왼쪽 Alt를 누르는 동안 풀어준다. 발사와 폭탄은 커서가 보이는 동안 입력되지 않는다(`GameInput`이 커서 상태를 확인).
 - **입력:** 레거시 `UnityEngine.Input`을 쓰되, 플레이어 입력은 정적 클래스 `GameInput`(이동, 시점, 점프, 달리기, 장전 R, 발사 마우스 왼쪽(연사는 누르고 있는 동안 `FireHeld`, 단발은 누르는 순간 `FirePressed`), 폭탄 마우스 오른쪽: 누르고 있으면 충전, 떼면 던짐, 무기 모드 전환 1·2·3키와 마우스 휠, 지정사수소총 줌 마우스 오른쪽)이 한곳에서 읽는다. 게임이 진행 중이 아니면 입력 없음으로 돌려준다. 커서를 푸는 Alt와 미니맵 확대·축소 키(0, 9), 무기 모드 전환 키도 모두 `GameInput`의 상수로 정하므로, `GameInput` 밖에서는 `Input`을 직접 읽지 않는다. 사격은 Input Manager의 `Fire1`(left ctrl도 포함) 대신 마우스 왼쪽 버튼을 직접 읽는다. `InputSystem_Actions.inputactions`가 있지만 코드는 새 Input System을 쓰지 않는다.
+
+## 타이틀 씬
+
+- `TitleScene`(어두운 대도시 사이드뷰, 게임 이름 "Vesper")은 UGUI 캔버스(1920x1080 기준)만으로 이루어진다. 배경은 하늘, 먼 빌딩, 중간 빌딩, 가까운 빌딩(길바닥, 버려진 차, 꺼져 가는 가로등 포함) 층과 화면 전체를 덮는 옥빛·푸른빛 수증기 4겹으로 쌓는다. 960x540으로 그린 그림을 2배로 부드럽게(Bilinear) 늘려 쓰며 사방에 여분을 둬서 시차 연출로 가장자리가 비지 않는다. 픽셀아트가 아니다.
+- `UI_Title`이 연출을 맡는다(검은 화면 → 도시가 서서히 보임 → 가로등이 깜빡이며 켜짐 → 제목 → 로그인 창, 그리고 가로등 빛 일렁임과 가끔 꺼질 듯한 깜빡임, 마우스 시차, 돌풍에 빠르게 날리는 수증기(`FogLayer`의 `Speed`, `Gust`), 4~10초마다 치는 번개(화면 섬광과 갈라지는 번개 줄기 `title_bolt`, 칠 때마다 위치와 방향이 바뀐다), 제목 뒤 따뜻한 번짐). 가로등 빛은 가까운 빌딩 층의 자식이라 시차로 함께 움직인다. 어둠 속 빨간 눈은 `UI_RedEyes`(정해진 둥지 자리마다 눈을 떴다 깜빡이고 사라짐을 되풀이하며, 눈 그림은 미간 쪽이 아래로 내려간 맹수 눈이다), 비는 `UI_Rain`, 떠오르는 먼지와 불씨는 `UI_TitleEmbers`가 맡는다. `UI_Login`은 로그인 버튼(또는 Enter)을 누르면 입력값과 상관없이 섬광 → 검게 페이드 아웃 → `CityScene` 비동기 로드를 한다(실제 로그인은 아직 없고, 회원가입 버튼은 비활성). 그 밖에 `UI_ScreenFader`(페이드), `UI_TitleButton`(버튼 글자)이 있다. 모두 시간이 멈춰도 도는 `unscaledTime`을 쓴다. 타이틀 전용 입력(`SubmitPressed`, `PointerViewport`)은 게임 상태와 상관없이 `GameInput`에서 읽는다.
+- 이미지와 씬은 에디터 스크립트로 만든다(`02.Scripts/Editor/`). 메뉴 `Tools > Vesper > 1. 타이틀 에셋 생성`이 `Assets/04.Images/Title/` 폴더를 비우고 PNG를 코드로 다시 그리며(임포트 설정 포함), `2. 타이틀 씬 만들기`가 `TitleScene`을 처음부터 다시 만들고 빌드 설정(0번 Title, 1번 City)을 맞춘다. 씬에 저장된 값이 코드 기본값을 덮으므로 `UI_RedEyes` 같은 기본값을 코드에서 바꾸면 2번을 다시 돌려야 반영된다. 손으로 고친 PNG는 1번을 다시 돌리면 덮어쓰이니 주의한다.
+- 제목 "VESPER"는 글꼴이 아니라 `title_vesper.png`(굵은 픽셀 글자, 안쪽은 어두운 남색, 테두리는 도트 한 칸의 가로등색, 글자마다 호박색 보석과 위쪽·양옆 장식)이며 에셋 생성기가 그린다(도트 하나가 캔버스 4칸, Point 필터). 한글 UI 글꼴은 `Assets/08.Fonts/Title/`의 나눔명조(SIL OFL, 라이선스 파일 동봉)이고 TMP 폰트 에셋은 Dynamic이다.
+- 효과음과 배경음악은 아직 없다(`06.Sounds`가 비어 있음).
 
 ## 씬과 맵
 

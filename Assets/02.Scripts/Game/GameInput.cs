@@ -28,6 +28,23 @@ public static class GameInput
     private const string SprintButton = "Sprint";
     private const KeyCode MinimapZoomInKey = KeyCode.Alpha0;    // 미니맵 확대
     private const KeyCode MinimapZoomOutKey = KeyCode.Alpha9;   // 미니맵 축소
+    private const KeyCode SubmitKey = KeyCode.Return;           // 타이틀 화면: 로그인(확인)
+    private const KeyCode SubmitKeypadKey = KeyCode.KeypadEnter;
+
+    // 타이틀 화면 같은 UI 입력. 게임 상태(GameManager)와 상관없이 읽는다.
+    public static bool SubmitPressed => Input.GetKeyDown(SubmitKey) || Input.GetKeyDown(SubmitKeypadKey);
+
+    // 마우스가 화면 안 어디에 있는지 -1~1로 돌려준다(왼쪽 아래 -1,-1, 오른쪽 위 1,1). 타이틀 배경 시차에 쓴다.
+    public static Vector2 PointerViewport
+    {
+        get
+        {
+            if (Screen.width <= 0 || Screen.height <= 0) return Vector2.zero;
+            Vector3 m = Input.mousePosition;
+            Vector2 v = new Vector2(m.x / Screen.width, m.y / Screen.height) * 2f - Vector2.one;
+            return new Vector2(Mathf.Clamp(v.x, -1f, 1f), Mathf.Clamp(v.y, -1f, 1f));
+        }
+    }
 
     // 이동 입력 (-1, 0, 1). x: 좌우, y: 앞뒤
     public static Vector2 MoveAxis => IsPlaying ? new Vector2(Input.GetAxisRaw(HorizontalAxis), Input.GetAxisRaw(VerticalAxis)) : Vector2.zero;
