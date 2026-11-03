@@ -18,7 +18,7 @@ public class MinimapCamera : MonoBehaviour
     [SerializeField] private float _maxSize = 16f;
 
     [Header("최적화")]
-    [SerializeField] private float _renderInterval = 0.05f;     // 미니맵을 다시 그리는 간격(초). 0이면 매 프레임 그린다.
+    [SerializeField] private float _renderFps = 40f;            // 미니맵을 그리는 초당 횟수. 0 이하면 카메라가 매 프레임 그린다. (게임 프레임을 넘지는 못한다.)
     [SerializeField] private float _farClipMargin = 20f;        // 카메라 높이에 더해 먼 클립 평면으로 쓰는 여유 거리(m)
 
 
@@ -51,7 +51,7 @@ public class MinimapCamera : MonoBehaviour
         }
 
         // 직접 Render()를 불러 정해진 간격으로만 그린다. 간격이 0이면 카메라가 알아서 매 프레임 그린다.
-        _camera.enabled = _renderInterval <= 0f;
+        _camera.enabled = _renderFps <= 0f;
     }
 
 
@@ -78,13 +78,16 @@ public class MinimapCamera : MonoBehaviour
         RenderIfDue();
     }
 
-    // 간격이 지났을 때만 미니맵을 그린다. (일시정지 중에도 흐르도록 unscaledTime을 쓴다.)
+    // 정해진 횟수에 맞춰 미니맵을 그린다. (일시정지 중에도 흐르도록 unscaledTime을 쓴다.)
+    // 다음 시각을 지금이 아닌 이전 예정 시각에 더해, 프레임 간격에 걸려 목표보다 덜 그려지는 일을 막는다.
     private void RenderIfDue()
     {
-        if (_renderInterval <= 0f) return;
-        if (Time.unscaledTime < _nextRenderTime) return;
+        if (_renderFps <= 0f) return;
 
-        _nextRenderTime = Time.unscaledTime + _renderInterval;
+        float now = Time.unscaledTime;
+        if (now < _nextRenderTime) return;
+
+        _nextRenderTime = Mathf.Max(_nextRenderTime + 1f / _renderFps, now);
         _camera.Render();
     }
 

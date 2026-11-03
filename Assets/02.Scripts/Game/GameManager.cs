@@ -130,6 +130,7 @@ public class GameManager : MonoBehaviour
         if (_state == GameState.GameOver) return;
 
         SetState(GameState.GameOver);
+        Time.timeScale = 0f;
 
         _stateText.gameObject.SetActive(true);
         _stateText.text = "게임오버";

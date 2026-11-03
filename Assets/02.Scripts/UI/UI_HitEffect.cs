@@ -12,8 +12,10 @@ public class UI_HitEffect : MonoBehaviour
     [SerializeField] private Player _player;    // 비워두면 씬에서 찾는다.
 
     private Image _image;
+    private Coroutine _routine;     // 진행 중인 연출. 새 연출이 시작되면 먼저 멈춘다.
 
-
+    // 평소에 꺼 두려면 GameObject가 아니라 Image 컴포넌트를 끈다.
+    // 이 오브젝트가 비활성이면 OnEnable에서 이벤트를 구독하지 못해 피격 연출이 나오지 않는다.
     private void Awake()
     {
         _image = GetComponent<Image>();
@@ -51,7 +53,7 @@ public class UI_HitEffect : MonoBehaviour
     {
         SetAlpha(alpha);
 
-        StartCoroutine(Flash_Coroutine());
+        StartRoutine(Flash_Coroutine());
     }
 
     private IEnumerator Flash_Coroutine()
@@ -67,8 +69,13 @@ public class UI_HitEffect : MonoBehaviour
     {
         SetAlpha(alpha);
 
-        StartCoroutine(Fade_Coroutine());
-        // 2. 0.4에서 서서히 0으로 가서 사라지게 한다.
+        StartRoutine(Fade_Coroutine());
+    }
+
+    private void StartRoutine(IEnumerator routine)
+    {
+        if (_routine != null) StopCoroutine(_routine);
+        _routine = StartCoroutine(routine);
     }
 
     private IEnumerator Fade_Coroutine()
