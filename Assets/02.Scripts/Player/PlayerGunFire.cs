@@ -4,7 +4,7 @@ using UnityEngine;
 
 
 // 마우스 왼쪽 버튼을 누르면 바라보는 방향으로 총알을 발사하고 싶다.
-// 총은 돌격소총(1번)과 지정사수소총(2번) 두 자루이고, 성능(GunSpec)과 잔탄은 총마다 따로 가진다.
+// 총의 성능(GunSpec)은 무기 프로필(WeaponProfile)에서 읽고, 잔탄은 총마다 따로 가진다. (프로필 목록의 총마다 자동으로 만든다.)
 // 무기를 바꿨다가 돌아와도 잔탄이 유지되고, 다른 총으로 바꾸면 진행 중인 재장전은 취소된다.
 [RequireComponent(typeof(PlayerWeaponMode))]
 public class PlayerGunFire : MonoBehaviour
@@ -13,12 +13,6 @@ public class PlayerGunFire : MonoBehaviour
 
     [Header("총알 궤적")]
     [SerializeField] private BulletTracerSpawner _tracer;
-
-    [Header("돌격소총 (1번): 누르고 있으면 연사")]
-    [SerializeField] private GunSpec _assaultRifle = new GunSpec(60, 1f, 100f, 10f, 0.1f, true, 20f, 0.5f, 0.2f, 1.5f);
-
-    [Header("지정사수소총 (2번): 한 번 누를 때마다 한 발")]
-    [SerializeField] private GunSpec _marksmanRifle = new GunSpec(12, 3f, 150f, 20f, 1f, false, 40f, 3f, 0.4f, 5f, 0.6f, 0.6f);
 
     [Header("총구")]
     [SerializeField] private Transform _muzzlePosition;      // 총알과 궤적이 나가는 총구. 화염은 이 아래에 둔다.
@@ -30,7 +24,7 @@ public class PlayerGunFire : MonoBehaviour
     private readonly Dictionary<WeaponMode, int> _bulletCounts = new Dictionary<WeaponMode, int>();      // 총마다 따로 남은 총알
     private readonly Dictionary<WeaponMode, float> _nextFireTimes = new Dictionary<WeaponMode, float>(); // 총마다 따로 다음에 쏠 수 있는 시각
 
-    private WeaponMode _gunMode = WeaponMode.AssaultRifle;      // 지금 들고 있는 총. (근접 모드일 때는 마지막으로 들었던 총)
+    private WeaponMode _gunMode;      // 지금 들고 있는 총. (근접 모드일 때는 마지막으로 들었던 총)
     private Coroutine _reloadCoroutine = null;
     private Camera _camera;
     private PlayerWeaponMode _weaponMode;
@@ -65,10 +59,28 @@ public class PlayerGunFire : MonoBehaviour
         _lampColor = GetComponent<PlayerLampColor>();
 
         // UI가 Start에서 총알 수를 읽어도 되도록 Awake에서 채운다. (Start 실행 순서에 의존하지 않는다.)
-        _bulletCounts[WeaponMode.AssaultRifle] = _assaultRifle.MaxBulletCount;
-        _bulletCounts[WeaponMode.MarksmanRifle] = _marksmanRifle.MaxBulletCount;
-        _nextFireTimes[WeaponMode.AssaultRifle] = 0f;
-        _nextFireTimes[WeaponMode.MarksmanRifle] = 0f;
+        bool hasGun = false;
+        foreach (WeaponProfile profile in _weaponMode.Profiles)
+        {
+            if (profile == null || !profile.IsGun) continue;
+
+            _bulletCounts[profile.Mode] = profile.GunSpec.MaxBulletCount;
+            _nextFireTimes[profile.Mode] = 0f;
+
+            // 근접 모드로 시작하는 경우를 대비해, 처음 들 총은 목록의 첫 총으로 정한다.
+            if (!hasGun)
+            {
+                _gunMode = profile.Mode;
+                hasGun = true;
+            }
+        }
+
+        if (!hasGun)
+        {
+            GameLogger.LogError("[PlayerGunFire] PlayerWeaponMode의 프로필 목록에 총이 없어 사격을 쓸 수 없습니다.");
+            enabled = false;
+            return;
+        }
 
         if (IsGun(_weaponMode.Mode))
         {
@@ -153,14 +165,15 @@ public class PlayerGunFire : MonoBehaviour
         OnBulletChanged?.Invoke(BulletCount, MaxBulletCount);
     }
 
-    private static bool IsGun(WeaponMode mode)
+    private bool IsGun(WeaponMode mode)
     {
-        return mode == WeaponMode.AssaultRifle || mode == WeaponMode.MarksmanRifle;
+        WeaponProfile profile = _weaponMode.GetProfile(mode);
+        return profile != null && profile.IsGun;
     }
 
     private GunSpec GetSpec(WeaponMode mode)
     {
-        return mode == WeaponMode.MarksmanRifle ? _marksmanRifle : _assaultRifle;
+        return _weaponMode.GetProfile(mode).GunSpec;
     }
 
     // 진행 중인 재장전을 취소한다. 재장전 중이 아니면 아무 일도 없다.

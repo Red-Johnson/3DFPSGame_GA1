@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 51394aedd6ddc274db8c49dc2c99018e, type: 3}
+  m_Name: Weapon_Melee
+  m_EditorClassIdentifier: Assembly-CSharp::WeaponProfile
+  _mode: 2
+  _kind: 1
+  _displayName: "\uADFC\uC811 \uBAA8\uB4DC"
+  _icon: {fileID: 1246625491, guid: cc27fdc1e703a584d817becbb583a369, type: 3}
+  _canThrowBomb: 1
+  _canZoom: 0
+  _usesThirdPerson: 1
+  _lampColor: {r: 0.1, g: 0.95, b: 0.95, a: 1}
+  _gunSpec:
+    _maxBulletCount: 0
+    _reloadingTime: 0
+    _range: 0
+    _damage: 0
+    _fireInterval: 0
+    _isAutomatic: 0
+    _weakPointDamage: 0
+    _cameraRecoilPitch: 0
+    _cameraRecoilSide: 0
+    _bodyRecoilAngle: 0
+    _aimAssistRadius: 0
+    _aimAssistStrength: 0

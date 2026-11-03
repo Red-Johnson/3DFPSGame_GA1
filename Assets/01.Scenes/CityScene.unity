@@ -557835,32 +557835,6 @@ MonoBehaviour:
     _width: 0.05
     _speed: 200
     _length: 5
-  _assaultRifle:
-    _maxBulletCount: 60
-    _reloadingTime: 1
-    _range: 100
-    _damage: 10
-    _fireInterval: 0.1
-    _isAutomatic: 1
-    _weakPointDamage: 20
-    _cameraRecoilPitch: 0.5
-    _cameraRecoilSide: 0.2
-    _bodyRecoilAngle: 1.5
-    _aimAssistRadius: 0
-    _aimAssistStrength: 0
-  _marksmanRifle:
-    _maxBulletCount: 12
-    _reloadingTime: 1.5
-    _range: 150
-    _damage: 20
-    _fireInterval: 0.5
-    _isAutomatic: 0
-    _weakPointDamage: 40
-    _cameraRecoilPitch: 3
-    _cameraRecoilSide: 0.4
-    _bodyRecoilAngle: 5
-    _aimAssistRadius: 0.6
-    _aimAssistStrength: 1
   _muzzlePosition: {fileID: 842281521}
   _muzzleFlashes:
   - {fileID: 502244813}
@@ -557938,6 +557912,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 135c06d9eed25bc4bbe0f6255fabf083, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerWeaponMode
+  _profiles:
+  - {fileID: 11400000, guid: 6f6c946a5ac920445a75c8157ab68c4b, type: 2}
+  - {fileID: 11400000, guid: ab140cbafe349a94bbca4d6c54a4b418, type: 2}
+  - {fileID: 11400000, guid: 2798badf184bb0f498d25b1f89efa628, type: 2}
 --- !u!114 &1620558219
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -557980,7 +557958,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMeleeAttack
   _damage: 30
   _range: 3.5
-  _angle: 120
   _attackInterval: 0.6
   _hitDelay: 0.2
   _originOffset: {x: 0, y: -0.1, z: 0}
@@ -557992,7 +557969,6 @@ MonoBehaviour:
   _slashEffectOffset: {x: 0, y: 0.2, z: 0.8}
   _slashEffectRotation: {x: 0, y: 0, z: 0}
   _effectHitRadiusScale: 1
-  _slashEffect: {fileID: 0}
 --- !u!114 &1620558222
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -558040,9 +558016,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: deb99bbb61fe1e245b81d843b55479dc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerLampColor
-  _assaultColor: {r: 1, g: 0.72, b: 0.38, a: 1}
-  _marksmanColor: {r: 1, g: 0.12, b: 0.08, a: 1}
-  _meleeColor: {r: 0.1, g: 0.95, b: 0.95, a: 1}
   _headColor: {r: 0.25, g: 0.6, b: 1, a: 1}
   _headLight: {fileID: 1955235585}
   _headHalo: {fileID: 1238856067}
@@ -663055,10 +663028,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UI_WeaponStatus
   _weaponIcon: {fileID: 903922854}
-  _modeIcons:
-  - {fileID: -1106090705, guid: ac990ce673376c24e8a12c86aa10a0ac, type: 3}
-  - {fileID: -554932874, guid: 198a4aba8f3012c448ff58875130eb3d, type: 3}
-  - {fileID: 1246625491, guid: cc27fdc1e703a584d817becbb583a369, type: 3}
   _modeText: {fileID: 287160919}
   _bulletText: {fileID: 814702175}
   _bombText: {fileID: 1517810344}

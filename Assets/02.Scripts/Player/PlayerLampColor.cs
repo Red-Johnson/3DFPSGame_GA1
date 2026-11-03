@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 
 // 가로등 불빛 색: 무기 모드에 맞춰 손에 든 가로등의 빛 색을 바꾸고, 머리의 빛 색은 한 번 정해 고정한다.
-// - 돌격소총: 기본 따뜻한 색, 지정사수소총: 붉은 빛, 근접: 청록 빛
+// - 모드별 색은 무기 프로필(WeaponProfile)의 LampColor에서 읽는다. (돌격소총: 따뜻한 색, 지정사수소총: 붉은 빛, 근접: 청록 빛)
 // - 머리(HeadGlow)는 연속 처치 게이지(UI_ComboTimeBar)와 같은 푸른빛으로 고정한다. 근접 가로등의 청록빛과 구별된다.
 // 가로등은 총 모드가 쓰는 GunLamp와 근접 모드가 쓰는 MeleeLamp가 따로 있고, 켜고 끄는 일은 PlayerWeaponSwitcher가 맡는다.
 // 이 컴포넌트는 색만 바꾼다. (세기, 범위, 번짐 크기는 각 광원과 파티클에서 정한다.)
@@ -24,19 +24,14 @@ public class PlayerLampColor : MonoBehaviour
     private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
     private static readonly int TintColorId = Shader.PropertyToID("_TintColor");
 
-    [Header("모드별 가로등 색")]
-    [SerializeField] private Color _assaultColor = new Color(1f, 0.72f, 0.38f);     // 돌격소총: 기존 따뜻한 색
-    [SerializeField] private Color _marksmanColor = new Color(1f, 0.12f, 0.08f);    // 지정사수소총: 붉은 빛
-    [SerializeField] private Color _meleeColor = new Color(0.1f, 0.95f, 0.95f);     // 근접: 청록 빛
-
     [Header("머리 빛(고정)")]
     [SerializeField] private Color _headColor = new Color(0.25f, 0.6f, 1f);         // 처치 콤보 글자와 같은 푸른 빛. 근접 가로등의 청록빛과 구별되게
     [SerializeField] private Light _headLight;
     [SerializeField] private ParticleSystemRenderer _headHalo;
 
     [Header("가로등")]
-    [SerializeField] private LampTarget _gunLamp;           // 돌격소총, 지정사수소총이 함께 쓴다.
-    [SerializeField] private LampTarget _meleeLamp;
+    [SerializeField] private LampTarget _gunLamp;           // 총 종류의 무기들이 함께 쓴다.
+    [SerializeField] private LampTarget _meleeLamp;         // 근접 종류의 무기가 쓴다.
     [SerializeField] private float _emissionIntensity = 3.5f;   // 전구 발광의 밝기 배율
 
     [Header("총구 섬광(총 모드에서만 쓴다)")]
@@ -84,23 +79,21 @@ public class PlayerLampColor : MonoBehaviour
     // 모드에 해당하는 가로등 색. (총알 궤적이 같은 색을 쓰도록 PlayerGunFire가 부른다.)
     public Color GetLampColor(WeaponMode mode)
     {
-        switch (mode)
-        {
-            case WeaponMode.MarksmanRifle: return _marksmanColor;
-            case WeaponMode.Melee: return _meleeColor;
-            default: return _assaultColor;
-        }
+        WeaponProfile profile = _weaponMode.GetProfile(mode);
+        return profile != null ? profile.LampColor : Color.white;
     }
 
     private void Apply(WeaponMode mode)
     {
-        Color color = GetLampColor(mode);
-        bool isMelee = mode == WeaponMode.Melee;
+        WeaponProfile profile = _weaponMode.GetProfile(mode);
+        if (profile == null) return;
 
-        Tint(isMelee ? _meleeLamp : _gunLamp, color);
+        Color color = profile.LampColor;
+
+        Tint(profile.IsGun ? _gunLamp : _meleeLamp, color);
 
         // 총구 섬광은 총 모드에서만 나오므로, 총 모드일 때만 그 총의 색으로 맞춘다.
-        if (!isMelee)
+        if (profile.IsGun)
         {
             TintMuzzleFlash(color);
         }

@@ -6,7 +6,6 @@ using UnityEngine.UI;
 public class UI_WeaponStatus : MonoBehaviour
 {
     [SerializeField] private Image _weaponIcon;
-    [SerializeField] private Sprite[] _modeIcons;
     [SerializeField] private TextMeshProUGUI _modeText;
     [SerializeField] private TextMeshProUGUI _bulletText;
     [SerializeField] private TextMeshProUGUI _bombText;
@@ -44,21 +43,25 @@ public class UI_WeaponStatus : MonoBehaviour
 
     private void RefreshMode(WeaponMode mode)
     {
-        // 아이콘이 준비된 모드만 보여 준다. (근접 모드처럼 아이콘이 없으면 숨긴다.)
-        bool hasIcon = (int)mode < _modeIcons.Length && _modeIcons[(int)mode] != null;
+        // 이름, 아이콘, 총알 표시 여부는 무기 프로필에서 읽는다.
+        WeaponProfile profile = _weaponMode.GetProfile(mode);
+        if (profile == null) return;
+
+        // 아이콘이 준비된 무기만 보여 준다. (아이콘이 없으면 숨긴다.)
+        bool hasIcon = profile.Icon != null;
         _weaponIcon.gameObject.SetActive(hasIcon);
         if (hasIcon)
         {
-            _weaponIcon.sprite = _modeIcons[(int)mode];
+            _weaponIcon.sprite = profile.Icon;
         }
 
-        // 근접 모드에는 총알이 없으므로 총알 수를 숨긴다.
-        _bulletText.gameObject.SetActive(mode != WeaponMode.Melee);
+        // 총이 아닌 무기에는 총알이 없으므로 총알 수를 숨긴다.
+        _bulletText.gameObject.SetActive(profile.IsGun);
 
         // 텍스트 오브젝트를 아직 연결하지 않았어도 나머지 UI는 동작하게 한다.
         if (_modeText != null)
         {
-            _modeText.text = GetModeName(mode);
+            _modeText.text = profile.DisplayName;
         }
     }
 
@@ -72,18 +75,4 @@ public class UI_WeaponStatus : MonoBehaviour
         _bombText.text = $"폭탄 {count}";
     }
 
-    private static string GetModeName(WeaponMode mode)
-    {
-        switch (mode)
-        {
-            case WeaponMode.AssaultRifle:
-                return "돌격소총 모드";
-            case WeaponMode.MarksmanRifle:
-                return "지정사수소총 모드";
-            case WeaponMode.Melee:
-                return "근접 모드";
-            default:
-                return mode.ToString();
-        }
-    }
 }

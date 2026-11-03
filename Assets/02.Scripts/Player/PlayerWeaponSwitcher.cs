@@ -55,15 +55,20 @@ public class PlayerWeaponSwitcher : MonoBehaviour
 
     private void Apply(WeaponMode mode)
     {
-        bool isMelee = mode == WeaponMode.Melee;
+        WeaponProfile profile = _weaponMode.GetProfile(mode);
+        if (profile == null) return;
 
-        if (_gunFire != null) _gunFire.enabled = !isMelee;
+        // 총 종류면 사격 컴포넌트와 총 모델을, 그 밖(근접)이면 근접 컴포넌트와 칼 모델을 켠다.
+        bool isGun = profile.IsGun;
+        bool isMelee = !isGun;
+
+        if (_gunFire != null) _gunFire.enabled = isGun;
         if (_meleeAttack != null) _meleeAttack.enabled = isMelee;
         if (_meleeWeaponModel != null) _meleeWeaponModel.SetActive(isMelee);
-        if (_gunWeaponModel != null) _gunWeaponModel.SetActive(!isMelee);
+        if (_gunWeaponModel != null) _gunWeaponModel.SetActive(isGun);
 
         // 총을 들게 되면(처음 시작할 때는 제외) 아래에서 올라오는 연출을 한다.
-        if (!isMelee && !_isFirstApply)
+        if (isGun && !_isFirstApply)
         {
             StartDraw();
         }
@@ -74,8 +79,8 @@ public class PlayerWeaponSwitcher : MonoBehaviour
 
         if (_cameraView != null)
         {
-            // 근접 모드는 3인칭, 총 모드는 1인칭으로 바꾼다.
-            _cameraView.ForceView(isMelee ? CameraViewMode.ThirdPerson : CameraViewMode.FirstPerson);
+            // 시점은 프로필이 정한다. (현재 근접은 3인칭, 총은 1인칭)
+            _cameraView.ForceView(profile.UsesThirdPerson ? CameraViewMode.ThirdPerson : CameraViewMode.FirstPerson);
         }
     }
 

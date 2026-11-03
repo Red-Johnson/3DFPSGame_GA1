@@ -47,8 +47,8 @@ public class PlayerBombFire : MonoBehaviour
     public bool IsCharging => _phase == Phase.Charging;
     public bool IsThrowing => _phase == Phase.Throwing;
 
-    // 폭탄은 무기 모드가 AssaultRifle이나 Melee일 때 던질 수 있다. (MarksmanRifle는 같은 마우스 버튼이 줌이다. PlayerWeaponMode가 없으면 막지 않는다.)
-    private bool CanThrowInCurrentMode => _weaponMode == null || _weaponMode.Mode != WeaponMode.MarksmanRifle;
+    // 폭탄을 던질 수 있는지는 현재 무기 프로필이 정한다. (줌이 같은 마우스 버튼을 쓰는 무기는 던질 수 없다. PlayerWeaponMode나 프로필이 없으면 막지 않는다.)
+    private bool CanThrowInCurrentMode => _weaponMode == null || _weaponMode.CurrentProfile == null || _weaponMode.CurrentProfile.CanThrowBomb;
 
     // 폭탄 충전을 시작하면 구독자(총기의 재장전 취소 등)에게 알린다.
     public event Action OnChargeStarted;

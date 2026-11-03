@@ -38,7 +38,8 @@ public class PlayerMarksmanZoom : MonoBehaviour
     private void Update()
     {
         // 게임이 진행 중이 아니거나 커서가 풀려 있으면 GameInput이 입력 없음으로 돌려준다.
-        bool isZooming = _weaponMode.Mode == WeaponMode.MarksmanRifle && GameInput.ZoomHeld;
+        WeaponProfile profile = _weaponMode.CurrentProfile;
+        bool isZooming = profile != null && profile.CanZoom && GameInput.ZoomHeld;
 
         // 줌 상태가 바뀔 때만 화면을 갱신한다.
         if (isZooming == _isZooming) return;
