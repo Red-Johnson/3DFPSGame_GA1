@@ -72,6 +72,9 @@ public class CameraShake : MonoBehaviour
     {
         if (_remainingTime <= 0f) return;
 
+        // 일시정지, 게임오버로 시간이 멈추면 흔들지 않는다. (시점이 회전을 새로 정하지 않아 같은 흔들림이 프레임마다 쌓이기 때문)
+        if (!GameManager.Instance.IsPlaying) return;
+
         _remainingTime -= Time.deltaTime;
         float amplitude = CurrentStrength();
 

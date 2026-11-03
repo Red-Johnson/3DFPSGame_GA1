@@ -12,8 +12,6 @@ public class CameraViewTransition : MonoBehaviour
     private float _elapsed;
     private bool _isPlaying;
 
-    public bool IsPlaying => _isPlaying;
-
     // 지금 카메라 위치와 회전에서 시작해 duration 초 동안 새 시점의 위치와 회전으로 옮겨 간다.
     public void Begin(Vector3 fromPosition, Quaternion fromRotation, float duration)
     {
@@ -33,6 +31,9 @@ public class CameraViewTransition : MonoBehaviour
     private void LateUpdate()
     {
         if (!_isPlaying) return;
+
+        // 시간이 멈춘 동안에는 섞지 않는다. (섞으면 시점이 회전을 새로 정하지 않는 1인칭에서 회전이 한쪽으로 계속 끌려간다.)
+        if (!GameManager.Instance.IsPlaying) return;
 
         _elapsed += Time.deltaTime;
         float t = Mathf.Clamp01(_elapsed / _duration);

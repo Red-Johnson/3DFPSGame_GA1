@@ -2,10 +2,12 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
+// 피격 이펙트: 플레이어가 맞으면 화면을 붉게 번쩍이고 서서히 지운다.
+// 평소에 숨기려면 GameObject가 아니라 Image 컴포넌트를 끈다. (오브젝트가 비활성이면 OnEnable에서 구독하지 못한다.)
+// 게임오버에서는 시간이 멈춰 페이드가 중간에 얼어붙으므로, 상태가 GameOver가 되면 바로 지운다.
 [RequireComponent(typeof(Image))]
 public class UI_HitEffect : MonoBehaviour
 {
-    [SerializeField] private float _flashTime = 0.06f;
     [SerializeField] private float _fadeTime = 0.3f;
     [SerializeField] private float _hitAlpha = 0.6f;    // 플레이어가 맞았을 때 화면이 붉어지는 처음 투명도
 
@@ -14,8 +16,6 @@ public class UI_HitEffect : MonoBehaviour
     private Image _image;
     private Coroutine _routine;     // 진행 중인 연출. 새 연출이 시작되면 먼저 멈춘다.
 
-    // 평소에 꺼 두려면 GameObject가 아니라 Image 컴포넌트를 끈다.
-    // 이 오브젝트가 비활성이면 OnEnable에서 이벤트를 구독하지 못해 피격 연출이 나오지 않는다.
     private void Awake()
     {
         _image = GetComponent<Image>();
@@ -34,6 +34,11 @@ public class UI_HitEffect : MonoBehaviour
         {
             _player.OnDamaged += OnPlayerDamaged;
         }
+
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.OnStateChanged += OnGameStateChanged;
+        }
     }
 
     private void OnDisable()
@@ -42,62 +47,67 @@ public class UI_HitEffect : MonoBehaviour
         {
             _player.OnDamaged -= OnPlayerDamaged;
         }
+
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.OnStateChanged -= OnGameStateChanged;
+        }
+
+        Clear();
     }
 
     private void OnPlayerDamaged()
     {
-        Fade(_hitAlpha);
-    }
+        SetAlpha(_hitAlpha);
 
-    public void Flash(float alpha)
-    {
-        SetAlpha(alpha);
-
-        StartRoutine(Flash_Coroutine());
-    }
-
-    private IEnumerator Flash_Coroutine()
-    {
-        _image.enabled = true;
-
-        yield return new WaitForSeconds(_flashTime);
-
-        _image.enabled = false;
-    }
-
-    public void Fade(float alpha)
-    {
-        SetAlpha(alpha);
-
-        StartRoutine(Fade_Coroutine());
-    }
-
-    private void StartRoutine(IEnumerator routine)
-    {
         if (_routine != null) StopCoroutine(_routine);
-        _routine = StartCoroutine(routine);
+        _routine = StartCoroutine(Fade_Coroutine());
+    }
+
+    // 게임오버로 시간이 멈추면 페이드가 끝나지 않으므로 남은 연출을 지운다.
+    private void OnGameStateChanged(GameState state)
+    {
+        if (state == GameState.GameOver)
+        {
+            Clear();
+        }
+    }
+
+    private void Clear()
+    {
+        if (_routine != null)
+        {
+            StopCoroutine(_routine);
+            _routine = null;
+        }
+
+        if (_image != null)
+        {
+            _image.enabled = false;
+        }
     }
 
     private IEnumerator Fade_Coroutine()
     {
         _image.enabled = true;
 
-        float elpasedTime = 0f;
+        float elapsedTime = 0f;
 
         float startAlpha = _image.color.a;
 
-        while (elpasedTime < _fadeTime)
+        while (elapsedTime < _fadeTime)
         {
-            float alpha = Mathf.Lerp(startAlpha, 0f, elpasedTime / _fadeTime);
+            float alpha = Mathf.Lerp(startAlpha, 0f, elapsedTime / _fadeTime);
 
             SetAlpha(alpha);
 
-            elpasedTime += Time.deltaTime;
+            elapsedTime += Time.deltaTime;
             yield return null; // 한 프레임씩 쉰다!
         }
 
         SetAlpha(0f);
         _image.enabled = false;
+        _routine = null;
     }
 
     private void SetAlpha(float alpha)

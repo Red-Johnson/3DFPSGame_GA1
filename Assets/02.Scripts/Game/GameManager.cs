@@ -88,6 +88,9 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
+        // 중복 인스턴스는 Awake에서 파괴 예약되었으므로 시작 연출을 되풀이하지 않는다.
+        if (_instance != this) return;
+
         // 플레이어가 죽으면 게임 오버로 넘어간다. (플레이어는 게임 흐름을 직접 알지 못한다.)
         if (_player == null)
         {
@@ -113,14 +116,27 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    // 시작 연출("준비", "시작!")을 보여 준 뒤 Playing으로 넘어간다.
+    // _stateText가 연결되지 않아도 연출만 건너뛰고 게임은 시작한다.
     private IEnumerator StartSequence_Coroutine()
     {
-        _stateText.gameObject.SetActive(true);
-        _stateText.text = "준비";
+        if (_stateText != null)
+        {
+            _stateText.gameObject.SetActive(true);
+            _stateText.text = "준비";
+        }
+        else
+        {
+            GameLogger.LogWarning("[GameManager] _stateText가 연결되지 않아 시작 연출을 건너뜁니다.");
+        }
+
         yield return new WaitForSeconds(_readyDuration);
-        _stateText.text = "시작!";
+        if (_stateText != null) _stateText.text = "시작!";
         yield return new WaitForSeconds(_startDuration);
-        _stateText.gameObject.SetActive(false);
+        if (_stateText != null) _stateText.gameObject.SetActive(false);
+
+        // 연출 중에 게임오버가 되었으면 Playing으로 덮어쓰지 않는다.
+        if (_state != GameState.Ready) yield break;
 
         SetState(GameState.Playing);
     }
@@ -129,8 +145,14 @@ public class GameManager : MonoBehaviour
     {
         if (_state == GameState.GameOver) return;
 
-        SetState(GameState.GameOver);
+        // 시간을 먼저 멈춘 뒤 알린다. (Pause와 같은 순서라 구독자가 어느 상태에서나 같은 timeScale을 본다.)
         Time.timeScale = 0f;
+
+        // 시작 연출 중에 죽으면 시간이 멈춰 연출이 끝나지 못하므로, 연출을 멈추고 문구를 지운다.
+        StopAllCoroutines();
+        if (_stateText != null) _stateText.gameObject.SetActive(false);
+
+        SetState(GameState.GameOver);
         // 게임오버 문구와 버튼은 UI_GameOverMenu가 OnStateChanged를 구독해 보여 준다.
     }
 

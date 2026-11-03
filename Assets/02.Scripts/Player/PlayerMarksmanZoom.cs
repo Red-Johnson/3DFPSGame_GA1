@@ -8,12 +8,12 @@ public class PlayerMarksmanZoom : MonoBehaviour
 {
     [FormerlySerializedAs("_sniperZoom")]
     [SerializeField] private GameObject _scopeOverlay;
-    [SerializeField] private GameObject _crosshair;
     [SerializeField] private float _normalFov = 60f;
     [SerializeField] private float _zoomFov = 15f;
 
     private PlayerWeaponMode _weaponMode;
     private Camera _camera;
+    private CameraViewManager _cameraView;      // 조준점 표시는 이 컴포넌트가 정한다. 없으면 조준점을 건드리지 않는다.
     private bool _isZooming;
 
     public bool IsZooming => _isZooming;
@@ -27,6 +27,7 @@ public class PlayerMarksmanZoom : MonoBehaviour
     {
         _weaponMode = GetComponent<PlayerWeaponMode>();
         _camera = Camera.main;
+        _cameraView = _camera.GetComponent<CameraViewManager>();
     }
 
     private void Start()
@@ -52,7 +53,12 @@ public class PlayerMarksmanZoom : MonoBehaviour
         _isZooming = isZooming;
 
         _camera.fieldOfView = isZooming ? _zoomFov : _normalFov;
-        _crosshair.SetActive(!isZooming);
+        // 조준점은 시점(1인칭, 3인칭)도 함께 따져야 하므로 CameraViewManager가 켜고 끈다.
+        if (_cameraView != null)
+        {
+            _cameraView.SetCrosshairHiddenByZoom(isZooming);
+        }
+
         _scopeOverlay.SetActive(isZooming);
     }
 }

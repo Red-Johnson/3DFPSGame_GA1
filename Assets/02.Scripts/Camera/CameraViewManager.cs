@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 
 public enum CameraViewMode
@@ -26,11 +25,17 @@ public class CameraViewManager : MonoBehaviour
     // 3인칭 카메라가 보는 좌우 방향. 플레이어가 카메라 기준으로 걸을 때 쓴다.
     public float ThirdPersonYaw => _thirdPerson != null ? _thirdPerson.Yaw : 0f;
 
-    public event Action<CameraViewMode> OnViewChanged;
-
     [SerializeField] private float _transitionDuration = 0.3f;     // 시점이 바뀔 때 카메라가 새 위치로 이동하는 시간(초). 0이면 바로 바뀐다.
 
     private CameraViewTransition _transition;
+    private bool _isCrosshairHiddenByZoom;      // 줌 중이라 조준점을 숨기고 있는지. (줌 컴포넌트가 알려 준다.)
+
+    // 줌 중에는 조준점 대신 스코프가 보이므로 조준점을 숨긴다. 조준점을 켜고 끄는 일은 이 클래스가 한곳에서 정한다.
+    public void SetCrosshairHiddenByZoom(bool isHidden)
+    {
+        _isCrosshairHiddenByZoom = isHidden;
+        ApplyCrosshair();
+    }
 
     // 시점을 정한다. (총 모드는 1인칭, 근접 모드는 3인칭. 플레이어가 직접 바꾸는 키는 없다.)
     public void ForceView(CameraViewMode mode)
@@ -42,12 +47,12 @@ public class CameraViewManager : MonoBehaviour
         Apply(target, true);
     }
 
-    // 3인칭(근접 모드)에서는 조준점을 숨기고, 1인칭(총 모드)에서는 보인다.
+    // 조준점은 1인칭이고 줌 중이 아닐 때만 보인다. (3인칭에서는 숨기고, 줌 중에는 스코프가 대신한다.)
     private void ApplyCrosshair()
     {
         if (_crosshair != null)
         {
-            _crosshair.SetActive(!IsThirdPerson);
+            _crosshair.SetActive(!IsThirdPerson && !_isCrosshairHiddenByZoom);
         }
     }
 
@@ -95,7 +100,5 @@ public class CameraViewManager : MonoBehaviour
         {
             _transition.Begin(fromPosition, fromRotation, _transitionDuration);
         }
-
-        OnViewChanged?.Invoke(Mode);
     }
 }

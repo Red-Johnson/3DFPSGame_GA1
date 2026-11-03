@@ -28,12 +28,13 @@ public class PlayerMeleeAttack : MonoBehaviour
 
     private float _effectRadius;                        // 이펙트 중심에서 이펙트가 그려지는 가장 먼 거리(판정 반경)
     private float _attackTimer;
+    private Coroutine _slashCoroutine;                  // 휘두르기를 시작한 뒤 타격 시점을 기다리는 중인 코루틴
     private PlayerAnimator _playerAnimator;
     private PlayerBombFire _bombFire;
     private readonly HashSet<IDamageable> _hitTargets = new HashSet<IDamageable>();
 
     // 한 번 벤 결과 몬스터(좀비)가 하나라도 맞으면 알린다. 인자는 그중 죽은 몬스터가 있는지다.
-    // (카메라 흔들림, 히트 스톱, 명중 표시가 구독한다. 이 클래스는 그 연출들을 모른다.)
+    // (카메라 흔들림, 명중 표시가 구독한다. 이 클래스는 그 연출들을 모른다.)
     public event System.Action<bool> OnHit;
 
     // 폭탄을 충전하거나 던지는 모션이 재생되는 동안은 벨 수 없다.
@@ -95,6 +96,19 @@ public class PlayerMeleeAttack : MonoBehaviour
         return radius;
     }
 
+    // 타격을 기다리는 중에 총 모드로 바뀌어 이 컴포넌트가 꺼지면, 코루틴은 멈추지 않으므로 직접 멈춘다.
+    // (멈추지 않으면 총 모드인데 베기 대미지와 이펙트가 들어간다.)
+    private void OnDisable()
+    {
+        if (_slashCoroutine != null)
+        {
+            StopCoroutine(_slashCoroutine);
+            _slashCoroutine = null;
+        }
+
+        _attackTimer = 0f;
+    }
+
     private void Update()
     {
         if (!GameManager.Instance.IsPlaying) return;
@@ -106,13 +120,14 @@ public class PlayerMeleeAttack : MonoBehaviour
         {
             _attackTimer = _attackInterval;
             _playerAnimator.TriggerSlash();
-            StartCoroutine(Slash_Coroutine());
+            _slashCoroutine = StartCoroutine(Slash_Coroutine());
         }
     }
 
     private IEnumerator Slash_Coroutine()
     {
         yield return new WaitForSeconds(_hitDelay);
+        _slashCoroutine = null;
 
         // 기다리는 사이 게임이 끝났으면 타격하지 않는다.
         if (!GameManager.Instance.IsPlaying) yield break;
