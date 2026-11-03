@@ -463747,7 +463747,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3c3a8a40f9f259940b23b9059fa05ffe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UI_HitEffect
-  _flashTime: 0.06
   _fadeTime: 0.3
   _hitAlpha: 0.6
   _player: {fileID: 1620558217}
@@ -557929,7 +557928,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerZoom
   _scopeOverlay: {fileID: 1082396934}
-  _crosshair: {fileID: 1923320526}
   _normalFov: 60
   _zoomFov: 15
 --- !u!114 &1620558220

@@ -38,7 +38,7 @@ public class SpawnerManager : MonoBehaviour
 
         if (_ground == null)
         {
-            _ground = FindGround();
+            _ground = SpawnPointValidator.FindGround();
             GameLogger.LogWarning("[SpawnerManager] _ground가 연결되지 않아 씬에서 찾았습니다. 인스펙터에서 연결하세요.");
         }
 
@@ -157,10 +157,5 @@ public class SpawnerManager : MonoBehaviour
         a.y = 0f;
         b.y = 0f;
         return Vector3.Distance(a, b);
-    }
-
-    private Renderer FindGround()
-    {
-        return SpawnPointValidator.FindGround();
     }
 }

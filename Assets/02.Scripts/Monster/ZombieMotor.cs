@@ -83,14 +83,6 @@ public class ZombieMotor
         _agent.velocity = Vector3.zero;     // 남은 속도로 미끄러지며 목표를 지나쳤다 돌아오는 떨림을 막는다.
     }
 
-    // 목적지에 도착했거나 갈 수 없는 경로면 true. 경로 계산 중에는 false.
-    public bool HasFinishedPath()
-    {
-        if (!_agent.isOnNavMesh || _agent.pathPending) return false;
-
-        return _agent.pathStatus == NavMeshPathStatus.PathInvalid || _agent.remainingDistance <= _agent.stoppingDistance;
-    }
-
     // 에이전트가 회전을 맡지 않을 때(멈춤, 점프) 매 프레임 불러서, 높이는 무시하고 목표 쪽으로 회전 속도에 맞춰 돈다.
     public void FaceToward(Vector3 target)
     {

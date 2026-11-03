@@ -1,16 +1,16 @@
 using System.Collections;
 using UnityEngine;
 
-// 무기 모드에 맞춰 무기 컴포넌트를 켜고 끈다.
-// - 일반, 저격: 총(PlayerGunFire)을 쓰고, 총 모델을 보여 주며, 근접 무기(칼)는 숨긴다.
-// - 근접: 칼 베기(PlayerMeleeAttack)를 쓰고, 칼을 보여 주며, 총과 총 모델은 끈다.
-// 총은 모드에 상관없이 코드를 지우지 않고 컴포넌트만 켜고 끈다. 시점은 모드가 정한다. (총 모드는 1인칭, 근접 모드는 3인칭)
+// 무기 모드에 맞춰 무기 컴포넌트를 켜고 끈다. 종류와 시점은 무기 프로필(WeaponProfile)이 정한다.
+// - 총 종류(돌격소총, 지정사수소총): 총(PlayerGunFire)을 쓰고, 총 모델을 보여 주며, 근접 무기(칼)는 숨긴다.
+// - 근접 종류: 칼 베기(PlayerMeleeAttack)를 쓰고, 칼을 보여 주며, 총과 총 모델은 끈다.
+// 컴포넌트는 코드를 지우지 않고 켜고 끄기만 한다. (지금은 총 모드는 1인칭, 근접 모드는 3인칭)
 [RequireComponent(typeof(PlayerWeaponMode))]
 public class PlayerWeaponSwitcher : MonoBehaviour
 {
     [SerializeField] private GameObject _meleeWeaponModel;      // 근접 모드에서만 보일 칼
-    [SerializeField] private GameObject _gunWeaponModel;        // 일반, 저격 모드에서만 보일 총(총처럼 든 가로등). 비워두면 건드리지 않는다.
-    [SerializeField] private CameraViewManager _cameraView;     // 3인칭에서 총 모드일 때 조준점을 보이게 한다. 비워두면 건드리지 않는다.
+    [SerializeField] private GameObject _gunWeaponModel;        // 총 모드에서만 보일 총(총처럼 든 가로등). 비워두면 건드리지 않는다.
+    [SerializeField] private CameraViewManager _cameraView;     // 무기에 맞는 시점으로 바꾼다. 3인칭에서는 조준점도 숨긴다. 비워두면 건드리지 않는다.
 
     [Header("총 꺼내기 연출")]
     [SerializeField] private float _drawDuration = 0.25f;       // 총이 올라오는 데 걸리는 시간(초)

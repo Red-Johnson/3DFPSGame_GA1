@@ -1,13 +1,13 @@
 using UnityEngine;
 
 // 마우스 커서를 화면 가운데에 잠그고 숨긴다.
+// 왼쪽 Alt를 누르는 동안과, 일시정지·게임오버 메뉴가 떠 있는 동안에는 커서를 풀어 준다.
 public class CursorManager : MonoBehaviour
 {
     private void Awake()
     {
         LockCursor();
     }
-
 
     private void OnEnable()
     {
@@ -41,8 +41,6 @@ public class CursorManager : MonoBehaviour
             LockCursor();
         }
     }
-
-
 
     public void LockCursor()
     {

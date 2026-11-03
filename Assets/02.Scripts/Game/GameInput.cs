@@ -16,20 +16,29 @@ public static class GameInput
     private const KeyCode MarksmanRifleModeKey = KeyCode.Alpha2;  // 무기 모드: 지정사수소총
     private const KeyCode MeleeModeKey = KeyCode.Alpha3;        // 무기 모드: 근접
     private const KeyCode CursorUnlockKey = KeyCode.LeftAlt;    // 누르고 있는 동안 커서를 푼다.
+    private const KeyCode ReloadKey = KeyCode.R;                // 장전
     private const KeyCode PauseKey = KeyCode.Escape;            // 일시정지, 재개
+
+    // Input Manager의 축, 버튼 이름
+    private const string HorizontalAxis = "Horizontal";
+    private const string VerticalAxis = "Vertical";
+    private const string MouseXAxis = "Mouse X";
+    private const string MouseYAxis = "Mouse Y";
+    private const string JumpButton = "Jump";
+    private const string SprintButton = "Sprint";
     private const KeyCode MinimapZoomInKey = KeyCode.Alpha0;    // 미니맵 확대
     private const KeyCode MinimapZoomOutKey = KeyCode.Alpha9;   // 미니맵 축소
 
     // 이동 입력 (-1, 0, 1). x: 좌우, y: 앞뒤
-    public static Vector2 MoveAxis => IsPlaying ? new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical")) : Vector2.zero;
+    public static Vector2 MoveAxis => IsPlaying ? new Vector2(Input.GetAxisRaw(HorizontalAxis), Input.GetAxisRaw(VerticalAxis)) : Vector2.zero;
 
     // 이번 프레임에 마우스가 움직인 양. x: 좌우, y: 위아래 (프레임 시간을 곱하지 않는다.)
     // 커서가 보이는 동안(Alt)에는 시점이 돌지 않는다.
-    public static Vector2 LookDelta => CanUseWeapon ? new Vector2(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y")) : Vector2.zero;
+    public static Vector2 LookDelta => CanUseWeapon ? new Vector2(Input.GetAxis(MouseXAxis), Input.GetAxis(MouseYAxis)) : Vector2.zero;
 
-    public static bool JumpPressed => IsPlaying && Input.GetButtonDown("Jump");
-    public static bool SprintHeld => IsPlaying && Input.GetButton("Sprint");
-    public static bool ReloadPressed => IsPlaying && Input.GetKeyDown(KeyCode.R);
+    public static bool JumpPressed => IsPlaying && Input.GetButtonDown(JumpButton);
+    public static bool SprintHeld => IsPlaying && Input.GetButton(SprintButton);
+    public static bool ReloadPressed => IsPlaying && Input.GetKeyDown(ReloadKey);
 
     public static bool FireHeld => CanUseWeapon && Input.GetMouseButton(FireMouseButton);        // 연사 총, 근접 공격
     public static bool FirePressed => CanUseWeapon && Input.GetMouseButtonDown(FireMouseButton);   // 단발 총

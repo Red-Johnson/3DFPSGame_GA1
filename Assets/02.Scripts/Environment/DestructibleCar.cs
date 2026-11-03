@@ -2,11 +2,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-// 부서지는 차량: 체력에 따라 효과가 단계로 바뀌고, 체력이 0이 되면 불이 붙었다가 폭발한 뒤 불이 붙은 잔해로 남는다.
+// 부서지는 차량: 체력에 따라 효과가 단계로 바뀌고, 체력이 0이 되면 불이 붙었다가 폭발한 뒤 한동안 타다가 꺼지고, 체력이 복구되어 다시 터뜨릴 수 있다.
 // - 체력이 연기 시작 체력(_smokeStartHealth)을 넘으면(기본 70 초과) 아무 효과가 없다.
 // - 체력이 그 이하이고 0보다 크면 검은 연기(VFX_BlackSmoke)가 난다.
 // - 체력이 0이 되면 연기가 같은 위치에서 불(VFX_Fire)로 바뀌고, 폭발까지의 시간(_burnTimeBeforeExplosion, 기본 2초)이 지나면
-//   폭발 이펙트를 한 번 내고 주변에 폭발 대미지를 준다. 그 뒤로도 불은 계속 탄다.
+//   폭발 이펙트를 한 번 내고 주변에 폭발 대미지를 준다. 폭발 뒤 _burnTimeAfterExplosion(기본 10초) 동안 불이 타다가
+//   _fireFadeTime(기본 5초)에 걸쳐 서서히 작아져 꺼지고, 그때 체력이 복구된다.
 // - 폭발 대미지는 ExplosionDamage를 통해 다른 차량에도 전달되어 연쇄 폭발이 일어날 수 있다.
 // 차량은 리지드바디가 없는 메시 콜라이더라 드럼통처럼 튀어오르지 않고 제자리에 남는다.
 // 연기와 불은 보닛(차량 앞부분)에서 나온다. 앞쪽은 앞바퀴와 뒷바퀴 위치로 알아내고, 위치와 크기는 인스펙터에서 보정한다.
@@ -18,6 +19,7 @@ public class DestructibleCar : MonoBehaviour, IDamageable
     private const string RearWheelKeyword = "Rear";             // 뒷바퀴 오브젝트 이름에 들어 있는 글자
     private const float ShockwaveSampleStep = 0.02f;            // 충격파가 가장 커지는 크기를 찾을 때 곡선을 보는 간격
     private const float EffectDestroyMargin = 0.5f;             // 폭발 이펙트가 끝난 뒤 지우기 전에 더 기다리는 시간
+    private const float MinSqrDistance = 0.0001f;               // 이보다 짧은 거리(제곱)는 방향을 정할 수 없는 0으로 본다.
 
     // 씬에 있는 차량 목록. 폭발 대미지가 차량에도 닿도록 ExplosionDamage가 이 목록을 쓴다.
     private static readonly List<DestructibleCar> Cars = new List<DestructibleCar>();
@@ -108,12 +110,12 @@ public class DestructibleCar : MonoBehaviour, IDamageable
             Vector3 closestPoint = car._bodyCollider.bounds.ClosestPoint(center);
             if ((closestPoint - center).sqrMagnitude > range * range) continue;
 
-            Vector3 normal = (center - closestPoint).sqrMagnitude > 0.0001f ? (center - closestPoint).normalized : Vector3.up;
+            Vector3 normal = (center - closestPoint).sqrMagnitude > MinSqrDistance ? (center - closestPoint).normalized : Vector3.up;
             car.TakeDamage(new DamageInfo(damage, closestPoint, normal));
         }
     }
 
-    // 체력이 0이 되면: 연기를 같은 자리의 불로 바꾸고, 정해진 시간 뒤에 폭발을 한 번 낸다. 불은 폭발 뒤에도 계속 탄다.
+    // 체력이 0이 되면: 연기를 같은 자리의 불로 바꾸고, 정해진 시간 뒤에 폭발을 한 번 낸다. 불은 폭발 뒤 한동안 타다가 꺼지고 체력이 복구된다.
     private IEnumerator Burn_Coroutine()
     {
         // 1. 연기는 새로 나오지 않게 멈추고(남은 연기는 자연스럽게 사라진다), 같은 자리에서 불을 붙인다.
@@ -319,7 +321,7 @@ public class DestructibleCar : MonoBehaviour, IDamageable
 
         Vector3 direction = (front / frontCount) - (rear / rearCount);
         direction.y = 0f;
-        return direction.sqrMagnitude > 0.0001f ? direction.normalized : Vector3.forward;
+        return direction.sqrMagnitude > MinSqrDistance ? direction.normalized : Vector3.forward;
     }
 
     // 이펙트 프리팹을 차량의 자식으로 만들어 연기와 불이 차량을 따라다니게 한다. 프리팹이 없으면 아무것도 하지 않는다.

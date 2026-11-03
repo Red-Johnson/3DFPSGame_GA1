@@ -47,9 +47,6 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
     // 체력이 바뀌면(대미지를 받거나 다시 살아나면) 구독자(체력바 등)에게 알린다.
     public event Action OnHealthChanged;
 
-    // 좀비가 죽으면 구독자(남은 좀비 수 UI 등)에게 알린다.
-    public event Action OnDied;
-
     // 상태 객체는 좀비마다 한 번만 만들어 재사용한다. (오브젝트 풀링으로 재사용해도 그대로)
     private ZombieTraceState _traceState;
     private ZombieAttackState _attackState;
@@ -205,7 +202,6 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable<Zombie>
         else
         {
             UnregisterFromManager();
-            OnDied?.Invoke();
 
             // 처치를 알린다. (콤보 UI 등이 구독한다. 풀로 돌아가거나 꺼지는 것과는 다르다.)
             if (ZombieManager.Instance != null)
