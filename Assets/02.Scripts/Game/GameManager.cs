@@ -131,10 +131,7 @@ public class GameManager : MonoBehaviour
 
         SetState(GameState.GameOver);
         Time.timeScale = 0f;
-
-        _stateText.gameObject.SetActive(true);
-        _stateText.text = "게임오버";
-        _stateText.color = Color.red;
+        // 게임오버 문구와 버튼은 UI_GameOverMenu가 OnStateChanged를 구독해 보여 준다.
     }
 
     private void SetState(GameState state)

@@ -22,10 +22,10 @@ public class CursorManager : MonoBehaviour
         }
     }
 
-    // 일시정지 메뉴를 클릭할 수 있게 풀고, 게임으로 돌아오면 다시 잠근다.
+    // 일시정지, 게임오버 메뉴를 클릭할 수 있게 풀고, 게임으로 돌아오면 다시 잠근다.
     private void HandleStateChanged(GameState state)
     {
-        if (state == GameState.Paused) UnlockCursor();
+        if (state == GameState.Paused || state == GameState.GameOver) UnlockCursor();
         else if (state == GameState.Playing) LockCursor();
     }
 
