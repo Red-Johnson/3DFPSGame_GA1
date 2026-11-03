@@ -9,6 +9,12 @@ public class UI_ZombieCount : MonoBehaviour
     // ZombieManager는 DefaultExecutionOrder(-100)으로 먼저 초기화되므로 OnEnable에서 Instance를 써도 된다.
     private void OnEnable()
     {
+        if (ZombieManager.Instance == null)
+        {
+            GameLogger.LogError("[UI_ZombieCount] 씬에 ZombieManager가 없어 남은 좀비 수를 보여 줄 수 없습니다.");
+            return;
+        }
+
         ZombieManager.Instance.OnCountChanged += Refresh;
     }
 
@@ -22,6 +28,8 @@ public class UI_ZombieCount : MonoBehaviour
 
     private void Start()
     {
+        if (ZombieManager.Instance == null) return;
+
         // 모든 컴포넌트의 Awake가 끝난 뒤 한 번 갱신해서, 처음부터 정확한 값을 보여 준다.
         Refresh(ZombieManager.Instance.AliveCount, ZombieManager.Instance.MaxCount);
     }

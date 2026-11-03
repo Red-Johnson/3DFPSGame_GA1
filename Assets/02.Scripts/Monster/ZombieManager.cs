@@ -39,6 +39,15 @@ public class ZombieManager : MonoBehaviour
         _instance = this;
     }
 
+    // 파괴된 인스턴스를 가리키지 않게 비운다. (등록과 구독 해제는 Instance가 null인지 확인하고 건너뛴다.)
+    private void OnDestroy()
+    {
+        if (_instance == this)
+        {
+            _instance = null;
+        }
+    }
+
     public void Register(Zombie zombie)
     {
         if (_aliveZombies.Add(zombie))

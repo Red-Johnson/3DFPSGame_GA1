@@ -8,6 +8,12 @@ public class UI_GameOverMenu : MonoBehaviour
 
     private void OnEnable()
     {
+        if (GameManager.Instance == null)
+        {
+            GameLogger.LogError("[UI_GameOverMenu] 씬에 GameManager가 없어 게임오버 메뉴를 쓸 수 없습니다.");
+            return;
+        }
+
         GameManager.Instance.OnStateChanged += HandleStateChanged;
     }
 

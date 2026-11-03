@@ -31,7 +31,7 @@ public class UI_KillCombo : MonoBehaviour
 
         if (_timeBar == null)
         {
-            Debug.LogWarning("UI_KillCombo: _timeBar가 연결되지 않아 콤보 시간 바를 보여 주지 않습니다.", this);
+            GameLogger.LogWarning("[UI_KillCombo] _timeBar가 연결되지 않아 콤보 시간 바를 보여 주지 않습니다.");
         }
 
         Hide();
@@ -49,6 +49,12 @@ public class UI_KillCombo : MonoBehaviour
     // ZombieManager는 DefaultExecutionOrder(-100)으로 먼저 초기화되므로 OnEnable에서 Instance를 써도 된다.
     private void OnEnable()
     {
+        if (ZombieManager.Instance == null)
+        {
+            GameLogger.LogError("[UI_KillCombo] 씬에 ZombieManager가 없어 처치 콤보를 셀 수 없습니다.");
+            return;
+        }
+
         ZombieManager.Instance.OnZombieKilled += OnZombieKilled;
     }
 

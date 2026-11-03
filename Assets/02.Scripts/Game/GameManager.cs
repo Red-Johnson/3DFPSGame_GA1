@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -28,7 +27,9 @@ public class GameManager : MonoBehaviour
     // 게임 상태가 바뀌면 구독자에게 새 상태를 알린다.
     public event Action<GameState> OnStateChanged;
 
-    [SerializeField] private TextMeshProUGUI _stateText;
+    // 시작 연출 문구("준비", "시작!")를 알린다. 문구를 없애야 하면 null을 알린다. (UI_StartMessage가 구독한다. 이 클래스는 UI를 모른다.)
+    public event Action<string> OnStartMessage;
+
     [SerializeField] private Player _player;    // 비워두면 씬에서 찾는다.
 
     [Header("시작 연출")]
@@ -111,7 +112,11 @@ public class GameManager : MonoBehaviour
 
     private void OnDestroy()
     {
-        if (_instance == this) Time.timeScale = 1f;   // 일시정지 중 씬이 바뀌어도 멈춘 채로 남지 않게 한다.
+        if (_instance == this)
+        {
+            Time.timeScale = 1f;    // 일시정지 중 씬이 바뀌어도 멈춘 채로 남지 않게 한다.
+            _instance = null;       // 파괴된 인스턴스를 가리키지 않게 비운다. (구독 해제는 Instance가 null인지 확인하고 건너뛴다.)
+        }
 
         if (_player != null)
         {
@@ -119,24 +124,14 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // 시작 연출("준비", "시작!")을 보여 준 뒤 Playing으로 넘어간다.
-    // _stateText가 연결되지 않아도 연출만 건너뛰고 게임은 시작한다.
+    // 시작 연출("준비", "시작!")을 알린 뒤 Playing으로 넘어간다. 문구를 보여 주는 것은 UI가 맡으므로, 구독자가 없어도 게임은 시작한다.
     private IEnumerator StartSequence_Coroutine()
     {
-        if (_stateText != null)
-        {
-            _stateText.gameObject.SetActive(true);
-            _stateText.text = "준비";
-        }
-        else
-        {
-            GameLogger.LogWarning("[GameManager] _stateText가 연결되지 않아 시작 연출을 건너뜁니다.");
-        }
-
+        OnStartMessage?.Invoke("준비");
         yield return new WaitForSeconds(_readyDuration);
-        if (_stateText != null) _stateText.text = "시작!";
+        OnStartMessage?.Invoke("시작!");
         yield return new WaitForSeconds(_startDuration);
-        if (_stateText != null) _stateText.gameObject.SetActive(false);
+        OnStartMessage?.Invoke(null);
 
         // 연출 중에 게임오버가 되었으면 Playing으로 덮어쓰지 않는다.
         if (_state != GameState.Ready) yield break;
@@ -153,7 +148,7 @@ public class GameManager : MonoBehaviour
 
         // 시작 연출 중에 죽으면 시간이 멈춰 연출이 끝나지 못하므로, 연출을 멈추고 문구를 지운다.
         StopAllCoroutines();
-        if (_stateText != null) _stateText.gameObject.SetActive(false);
+        OnStartMessage?.Invoke(null);
 
         SetState(GameState.GameOver);
         // 게임오버 문구와 버튼은 UI_GameOverMenu가 OnStateChanged를 구독해 보여 준다.

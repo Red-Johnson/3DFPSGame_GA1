@@ -9,6 +9,12 @@ public class UI_PauseMenu : MonoBehaviour
 
     private void OnEnable()
     {
+        if (GameManager.Instance == null)
+        {
+            GameLogger.LogError("[UI_PauseMenu] 씬에 GameManager가 없어 일시정지 메뉴를 쓸 수 없습니다.");
+            return;
+        }
+
         GameManager.Instance.OnStateChanged += HandleStateChanged;
     }
 

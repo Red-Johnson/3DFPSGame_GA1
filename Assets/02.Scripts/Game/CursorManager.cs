@@ -11,6 +11,12 @@ public class CursorManager : MonoBehaviour
 
     private void OnEnable()
     {
+        if (GameManager.Instance == null)
+        {
+            GameLogger.LogError("[CursorManager] 씬에 GameManager가 없어 일시정지, 게임오버 때 커서를 풀지 못합니다.");
+            return;
+        }
+
         GameManager.Instance.OnStateChanged += HandleStateChanged;
     }
 
