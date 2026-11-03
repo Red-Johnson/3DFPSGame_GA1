@@ -28,6 +28,8 @@ MonoBehaviour:
     _fireInterval: 0.5
     _isAutomatic: 0
     _weakPointDamage: 40
+    _pierceCount: -1
+    _pierceDamageLoss: 0
     _cameraRecoilPitch: 3
     _cameraRecoilSide: 0.4
     _bodyRecoilAngle: 5

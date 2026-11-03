@@ -23,6 +23,7 @@ public class PlayerGunFire : MonoBehaviour
 
     private WeaponMode _gunMode;      // 지금 들고 있는 총. (근접 모드일 때는 마지막으로 들었던 총)
     private GunHitScan _hitScan;      // 총알 판정과 조준 보정
+    private readonly HashSet<IDamageable> _piercedTargets = new HashSet<IDamageable>();     // 관통 사격에서 이미 맞힌 몬스터. 한 발 안에서만 쓴다.
     private Coroutine _reloadCoroutine = null;
     private Camera _camera;
     private PlayerWeaponMode _weaponMode;
@@ -224,6 +225,13 @@ public class PlayerGunFire : MonoBehaviour
         Vector3 toAim = aimPoint - muzzle;
         Ray ray = new Ray(muzzle, toAim);
 
+        // 관통하는 총은 조준점에서 멈추지 않고 사거리 끝까지 뚫고 나간다.
+        if (spec.CanPierce)
+        {
+            ShootPiercing(spec, ray, muzzle);
+            return;
+        }
+
         // 3. 레이가 부딛힌 대상의 정보를 저장할 변수 생성하기
         RaycastHit hitInfo = new RaycastHit();
 
@@ -232,16 +240,7 @@ public class PlayerGunFire : MonoBehaviour
         bool isHit = _hitScan.Raycast(ray, toAim.magnitude + GunHitScan.AimPointMargin, spec.CanHitWeakPoint, out hitInfo);
 
         // 맞았으면 맞은 자리까지, 허공이면 조준점(사거리 끝)까지 궤적을 날린다.
-        // 궤적 색은 들고 있는 총의 가로등 색을 따른다. (PlayerLampColor가 없으면 궤적의 기본 색을 쓴다.)
-        Vector3 tracerEnd = isHit ? hitInfo.point : aimPoint;
-        if (_lampColor != null)
-        {
-            _tracer.Fire(muzzle, tracerEnd, _lampColor.GetLampColor(_gunMode));
-        }
-        else
-        {
-            _tracer.Fire(muzzle, tracerEnd);
-        }
+        FireTracer(muzzle, isHit ? hitInfo.point : aimPoint);
 
         if (isHit)
         {
@@ -266,6 +265,93 @@ public class PlayerGunFire : MonoBehaviour
             {
                 OnHit?.Invoke(isWeakPointHit);
             }
+        }
+    }
+
+    // 관통 사격: 레이가 지나는 맞은 지점을 가까운 순서로 처리한다.
+    // - 몬스터는 한 마리씩 대미지를 주고 계속 나아간다. 한 몬스터는 몸통과 약점 판정이 따로 있어도 한 번만 맞고, 레이 위에 약점이 있으면 약점 공격이다.
+    // - 벽, 건물, 드럼통, 차량 같은 몬스터가 아닌 것에서는 멈춘다. (대미지를 받는 것이면 대미지를 주고 멈춘다.)
+    // - spec의 관통 수(처음 맞힌 몬스터 뒤로 더 뚫을 수)를 다 쓰면 거기서 멈춘다. 음수면 제한이 없다.
+    // - 뚫을 때마다 대미지가 PierceDamageLoss 비율만큼 줄어든다.
+    private void ShootPiercing(GunSpec spec, Ray ray, Vector3 muzzle)
+    {
+        int count = _hitScan.RaycastAllSorted(ray, spec.Range, out RaycastHit[] hits);
+
+        Vector3 tracerEnd = ray.GetPoint(spec.Range);   // 아무것도 멈추게 하지 않으면 사거리 끝까지
+        int monstersHit = 0;
+        bool anyWeakPointHit = false;
+        float damageScale = 1f;
+        _piercedTargets.Clear();
+
+        for (int i = 0; i < count; i++)
+        {
+            RaycastHit hit = hits[i];
+            IDamageable target = hit.collider.GetComponentInParent<IDamageable>();
+
+            if (target is IMonster)
+            {
+                // 몸통과 약점이 따로 있어도 한 마리는 한 번만 때린다.
+                if (!_piercedTargets.Add(target)) continue;
+
+                // 이 몬스터의 약점 판정이 레이 위에 있으면(가까운 것부터 찾는다) 약점 공격이다.
+                RaycastHit damageHit = hit;
+                bool isWeakPointHit = false;
+                if (spec.CanHitWeakPoint)
+                {
+                    for (int j = 0; j < count; j++)
+                    {
+                        if (hits[j].collider.GetComponent<WeakPointHitbox>() == null) continue;
+                        if (hits[j].collider.GetComponentInParent<IDamageable>() != target) continue;
+
+                        damageHit = hits[j];
+                        isWeakPointHit = true;
+                        break;
+                    }
+                }
+
+                float damage = (isWeakPointHit ? spec.WeakPointDamage : spec.Damage) * damageScale;
+                target.TakeDamage(new DamageInfo(damage, damageHit.point, damageHit.normal, isWeakPointHit));
+
+                anyWeakPointHit |= isWeakPointHit;
+                monstersHit++;
+                damageScale *= 1f - spec.PierceDamageLoss;
+
+                // 뚫을 수 있는 수를 다 썼으면 여기서 멈춘다. (처음 맞힌 몬스터 + 관통 수만큼 맞힌다.)
+                if (spec.PierceCount > 0 && monstersHit > spec.PierceCount)
+                {
+                    tracerEnd = damageHit.point;
+                    break;
+                }
+
+                continue;
+            }
+
+            // 몬스터가 아닌 것은 총알을 멈춘다. 맞은 자리에 총알 자국을 남기고, 대미지를 받는 것이면 대미지를 준다.
+            tracerEnd = hit.point;
+            EffectPool.For(_hitEffectPrefab).Play(hit.point, Quaternion.LookRotation(hit.normal));
+            target?.TakeDamage(new DamageInfo(spec.Damage * damageScale, hit.point, hit.normal));
+            break;
+        }
+
+        FireTracer(muzzle, tracerEnd);
+
+        // 몬스터를 하나라도 맞혔으면 한 발에 한 번만 명중으로 알린다. 약점에 맞은 몬스터가 있으면 약점 명중이다.
+        if (monstersHit > 0)
+        {
+            OnHit?.Invoke(anyWeakPointHit);
+        }
+    }
+
+    // 총구에서 end까지 총알 궤적을 날린다. 궤적 색은 들고 있는 총의 가로등 색을 따른다. (PlayerLampColor가 없으면 궤적의 기본 색을 쓴다.)
+    private void FireTracer(Vector3 muzzle, Vector3 end)
+    {
+        if (_lampColor != null)
+        {
+            _tracer.Fire(muzzle, end, _lampColor.GetLampColor(_gunMode));
+        }
+        else
+        {
+            _tracer.Fire(muzzle, end);
         }
     }
 

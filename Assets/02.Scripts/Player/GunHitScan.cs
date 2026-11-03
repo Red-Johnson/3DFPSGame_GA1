@@ -14,6 +14,9 @@ public class GunHitScan
     // 레이가 맞은 것을 담는 버퍼. 한 번 쓰고 바로 결과를 고르므로(안에서 다시 부르지 않는다) 돌려 써도 안전하다.
     private readonly RaycastHit[] _hitBuffer = new RaycastHit[HitBufferSize];
 
+    // RaycastAllSorted가 거리순으로 정리해 돌려주는 배열. 맞은 수가 더 많으면 그만큼 키운다.
+    private RaycastHit[] _sortedHits = new RaycastHit[HitBufferSize];
+
     public GunHitScan(Transform owner)
     {
         _owner = owner;
@@ -65,6 +68,47 @@ public class GunHitScan
         }
 
         return true;
+    }
+
+    // 레이가 지나는 모든 맞은 지점을 가까운 순서로 돌려준다. (관통하는 총이 쓴다.) 플레이어 자신의 콜라이더는 건너뛴다.
+    // 돌려주는 배열은 다음에 이 메서드를 부를 때까지만 유효하고, 앞에서 count개만 의미가 있다.
+    public int RaycastAllSorted(Ray ray, float distance, out RaycastHit[] hits)
+    {
+        int hitCount = Physics.RaycastNonAlloc(ray, _hitBuffer, distance, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+        RaycastHit[] source = _hitBuffer;
+
+        // 버퍼가 가득 차면 놓치는 것이 없도록 새 배열로 다시 쏜다.
+        if (hitCount == HitBufferSize)
+        {
+            source = Physics.RaycastAll(ray, distance, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+            hitCount = source.Length;
+        }
+
+        if (_sortedHits.Length < hitCount)
+        {
+            _sortedHits = new RaycastHit[hitCount];
+        }
+
+        // 맞은 수가 적어서 삽입 정렬로 충분하다. (정렬하면서 자기 자신은 뺀다.)
+        int count = 0;
+        for (int i = 0; i < hitCount; i++)
+        {
+            RaycastHit hit = source[i];
+            if (hit.collider.transform.root == _owner.root) continue;
+
+            int position = count;
+            while (position > 0 && _sortedHits[position - 1].distance > hit.distance)
+            {
+                _sortedHits[position] = _sortedHits[position - 1];
+                position--;
+            }
+
+            _sortedHits[position] = hit;
+            count++;
+        }
+
+        hits = _sortedHits;
+        return count;
     }
 
     // 조준 보정: 줌 중에 조준점이 약점 근처로 지나가면 총알이 나가는 방향만 그 약점 쪽으로 끌어당긴다. (화면과 시점은 바뀌지 않는다.)

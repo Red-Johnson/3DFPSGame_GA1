@@ -14,6 +14,10 @@ public class GunSpec
     [FormerlySerializedAs("_headshotDamage")]
     [SerializeField] private float _weakPointDamage = 0f;       // 약점(WeakPointHitbox)에 맞았을 때의 공격력. 0 이하면 약점 공격이 없다.
 
+    [Header("관통 (몬스터만 뚫고 지나간다. 벽, 드럼통, 차량 같은 것에서는 멈춘다)")]
+    [SerializeField] private int _pierceCount = 0;              // 처음 맞힌 몬스터 뒤로 더 뚫을 수 있는 몬스터 수. 0이면 관통하지 않고, 음수(-1)면 제한이 없다.
+    [SerializeField, Range(0f, 1f)] private float _pierceDamageLoss = 0f;   // 몬스터 하나를 뚫을 때마다 줄어드는 대미지 비율. 0이면 줄지 않고, 0.2면 다음 몬스터는 80%, 그다음은 64%로 맞는다.
+
     [Header("반동 (화면과 몸만 움직이고 조준은 바뀌지 않는다)")]
     [SerializeField] private float _cameraRecoilPitch = 0f;     // 한 발마다 화면이 위로 튀는 각도(도)
     [SerializeField] private float _cameraRecoilSide = 0f;      // 한 발마다 화면이 좌우로 무작위로 흔들리는 최대 각도(도)
@@ -31,6 +35,9 @@ public class GunSpec
     public bool IsAutomatic => _isAutomatic;
     public float WeakPointDamage => _weakPointDamage;
     public bool CanHitWeakPoint => _weakPointDamage > 0f;
+    public int PierceCount => _pierceCount;
+    public float PierceDamageLoss => _pierceDamageLoss;
+    public bool CanPierce => _pierceCount != 0;
     public float CameraRecoilPitch => _cameraRecoilPitch;
     public float CameraRecoilSide => _cameraRecoilSide;
     public float BodyRecoilAngle => _bodyRecoilAngle;
@@ -38,8 +45,10 @@ public class GunSpec
     public float AimAssistRadius => _aimAssistRadius;
     public bool HasAimAssist => _aimAssistStrength > 0f && _aimAssistRadius > 0f;
 
-    public GunSpec(int maxBulletCount, float reloadingTime, float range, float damage, float fireInterval, bool isAutomatic, float weakPointDamage = 0f, float cameraRecoilPitch = 0f, float cameraRecoilSide = 0f, float bodyRecoilAngle = 0f, float aimAssistRadius = 0f, float aimAssistStrength = 0f)
+    public GunSpec(int maxBulletCount, float reloadingTime, float range, float damage, float fireInterval, bool isAutomatic, float weakPointDamage = 0f, float cameraRecoilPitch = 0f, float cameraRecoilSide = 0f, float bodyRecoilAngle = 0f, float aimAssistRadius = 0f, float aimAssistStrength = 0f, int pierceCount = 0, float pierceDamageLoss = 0f)
     {
+        _pierceCount = pierceCount;
+        _pierceDamageLoss = pierceDamageLoss;
         _maxBulletCount = maxBulletCount;
         _reloadingTime = reloadingTime;
         _range = range;
